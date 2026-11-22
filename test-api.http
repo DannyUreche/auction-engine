@@ -1,0 +1,9 @@
+### Testare plasare licitatie noua
+POST http://localhost:8080/api/bids
+Content-Type: application/json
+
+{
+  "itemId": 1,
+  "bidderId": 2,
+  "amount": 2750.50
+}
