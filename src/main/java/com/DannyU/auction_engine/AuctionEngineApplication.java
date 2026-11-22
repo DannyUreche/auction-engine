@@ -4,6 +4,7 @@ import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
+import com.DannyU.auction_engine.service.BidService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,39 +20,59 @@ public class AuctionEngineApplication {
 	}
 
 	@Bean
-	public CommandLineRunner testDatabaseConnection(UserRepository userRepository, ItemRepository itemRepository) {
+	public CommandLineRunner testDatabaseConnection(
+			UserRepository userRepository,
+			ItemRepository itemRepository,
+			BidService bidService) {
+
 		return args -> {
-			System.out.println("--- INCEPERE TEST BAZA DE DATE ---");
+			System.out.println("--- INCEPERE SIMULARE LICITATIE ---");
 
-			// 1. Asiguram existenta utilizatorului
+			// 1. Ne asiguram ca avem vanzatorul (danny_test)
 			if (!userRepository.existsByUsername("danny_test")) {
-				User testUser = new User();
-				testUser.setUsername("danny_test");
-				testUser.setEmail("danny@test.com");
-				userRepository.save(testUser);
+				User seller = new User();
+				seller.setUsername("danny_test");
+				seller.setEmail("danny@test.com");
+				userRepository.save(seller);
 			}
-
-			// 2. Extragem utilizatorul din baza de date
 			User seller = userRepository.findByUsername("danny_test").orElseThrow();
 
-			// 3. Verificam daca are deja un item (ca sa nu tot adaugam la fiecare restart)
+			// 2. Ne asiguram ca avem obiectul de vanzare (Laptop)
 			if (itemRepository.count() == 0) {
 				Item auctionItem = new Item();
 				auctionItem.setName("Laptop Gaming Asus ROG");
-				auctionItem.setDescription("Folosit putin, arata ca nou. Ruleaza orice joc!");
+				auctionItem.setDescription("Ruleaza orice joc!");
 				auctionItem.setStartPrice(new BigDecimal("2500.00"));
 				auctionItem.setCurrentPrice(new BigDecimal("2500.00"));
-
-				// AICI ESTE MAGIA: Legam obiectul de vanzator!
 				auctionItem.setSeller(seller);
-
 				itemRepository.save(auctionItem);
-				System.out.println("Obiect salvat cu succes: " + auctionItem.getName() + " - Vandut de: " + auctionItem.getSeller().getUsername());
-			} else {
-				System.out.println("Exista deja " + itemRepository.count() + " obiect(e) in baza de date.");
+			}
+			Item laptop = itemRepository.findAll().get(0); // Luam primul obiect din DB
+
+			// 3. Cream un cumparator (alex_bidder)
+			if (!userRepository.existsByUsername("alex_bidder")) {
+				User buyer = new User();
+				buyer.setUsername("alex_bidder");
+				buyer.setEmail("alex@test.com");
+				userRepository.save(buyer);
+			}
+			User buyer = userRepository.findByUsername("alex_bidder").orElseThrow();
+
+			// 4. ACȚIUNE: Alex incearca sa liciteze 2600.50 pentru Laptop
+			try {
+				System.out.println("Alex incearca sa liciteze 2600.50 pentru laptop...");
+				bidService.placeBid(laptop.getId(), buyer.getId(), new BigDecimal("2600.50"));
+				System.out.println("Licitatie acceptata cu succes!");
+
+				// Verificam daca pretul laptopului a crescut in baza de date
+				Item updatedLaptop = itemRepository.findById(laptop.getId()).orElseThrow();
+				System.out.println("Noul pret curent al laptopului este: " + updatedLaptop.getCurrentPrice());
+
+			} catch (Exception e) {
+				System.out.println("Eroare la licitatie: " + e.getMessage());
 			}
 
-			System.out.println("--- SFARSIT TEST BAZA DE DATE ---");
+			System.out.println("--- SFARSIT SIMULARE LICITATIE ---");
 		};
 	}
 }
