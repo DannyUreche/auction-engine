@@ -1,25 +1,55 @@
 package com.DannyU.auction_engine.controller;
 
 import com.DannyU.auction_engine.entity.Item;
+import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.repository.ItemRepository;
+import com.DannyU.auction_engine.repository.UserRepository;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
-@RestController // Indica faptul ca aceasta clasa expune URL-uri (REST API)
-@RequestMapping("/api/items") // Toate linkurile din aceasta clasa vor incepe cu /api/items
+@RestController
+@RequestMapping("/api/items")
 @RequiredArgsConstructor
 public class ItemController {
 
     private final ItemRepository itemRepository;
+    private final UserRepository userRepository; // Avem nevoie de el ca sa gasim vanzatorul
 
-    // Cand cineva acceseaza URL-ul de mai sus cu metoda GET (ex: din browser)
     @GetMapping
     public List<Item> getAllItems() {
-        // Returneaza toate obiectele din baza de date ca o lista
         return itemRepository.findAll();
+    }
+
+    // Endpoint nou pentru adaugarea unui obiect de vanzare
+    @PostMapping
+    public Item createItem(@RequestBody ItemRequest request) {
+
+        // 1. Gasim vanzatorul in baza de date
+        User seller = userRepository.findById(request.getSellerId())
+                .orElseThrow(() -> new IllegalArgumentException("Vanzatorul nu exista!"));
+
+        // 2. Cream obiectul nou
+        Item newItem = new Item();
+        newItem.setName(request.getName());
+        newItem.setDescription(request.getDescription());
+        newItem.setStartPrice(request.getStartPrice());
+        newItem.setCurrentPrice(request.getStartPrice()); // La inceput, pretul curent e acelasi cu cel de pornire
+        newItem.setSeller(seller); // Legam obiectul de vanzator
+
+        // 3. Il salvam in baza de date
+        return itemRepository.save(newItem);
+    }
+
+    // Forma sub care asteptam datele pentru crearea unui Item
+    @Data
+    public static class ItemRequest {
+        private String name;
+        private String description;
+        private BigDecimal startPrice;
+        private Integer sellerId;
     }
 }
