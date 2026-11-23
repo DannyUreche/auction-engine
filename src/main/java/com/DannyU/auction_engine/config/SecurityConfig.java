@@ -42,6 +42,11 @@ public class SecurityConfig {
                         ).permitAll()
                         // Imaginile obiectelor sunt publice (tag-ul <img> din browser nu trimite token-ul)
                         .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
+                        // Rutele "ale mele" cer autentificare - trebuie declarate INAINTEA celor publice de mai jos,
+                        // altfel /api/items/{id} s-ar potrivi si pe /api/items/my
+                        .requestMatchers("/api/items/my", "/api/items/won", "/api/bids/my").authenticated()
+                        // Oricine (si fara cont) poate vedea licitatiile si istoricul ofertelor
+                        .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**").permitAll()
                         // ORICE ALTA RUTA necesită acum un token JWT valid!
                         .anyRequest().authenticated()
                 )

@@ -9,7 +9,7 @@ import Login from './pages/Login.jsx'
 import NewItem from './pages/NewItem.jsx'
 import Register from './pages/Register.jsx'
 
-// Paginile din interior cer autentificare (backend-ul cere token pentru toate rutele in afara de /api/auth)
+// Paginile pentru vanzare si cont cer autentificare; licitatiile se pot vedea si fara cont
 function RequireAuth({ children }) {
   const { user, loading } = useAuth()
   const location = useLocation()
@@ -24,17 +24,27 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route
-        element={
-          <RequireAuth>
-            <Layout />
-          </RequireAuth>
-        }
-      >
+      <Route element={<Layout />}>
+        {/* Publice */}
         <Route path="/" element={<Home />} />
         <Route path="/items/:id" element={<ItemDetail />} />
-        <Route path="/sell" element={<NewItem />} />
-        <Route path="/account" element={<Account />} />
+        {/* Doar pentru utilizatori logati */}
+        <Route
+          path="/sell"
+          element={
+            <RequireAuth>
+              <NewItem />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <RequireAuth>
+              <Account />
+            </RequireAuth>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

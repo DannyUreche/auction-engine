@@ -11,7 +11,7 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 - The JWT secret comes from `local.properties` in the project root (git-ignored, imported via `spring.config.import`) or the `JWT_SECRET` env var; the app won't start without it. See `local.properties.example`.
 - `git push` from the agent shell fails ("terminal prompts disabled"): the user's GitHub login lives in VS Code's own auth, not in Git Credential Manager. Commit, then ask the user to push via the VS Code Source Control button.
 - Tests are `@SpringBootTest` against the real Postgres — they fail if the docker container isn't running.
-- Swagger UI: `http://localhost:8080/swagger-ui.html`. Only `/api/auth/**`, Swagger routes and `/error` are public; everything else needs `Authorization: Bearer <jwt>` from `/api/auth/login`.
+- Swagger UI: `http://localhost:8080/swagger-ui.html`. Public (no token): `/api/auth/**`, Swagger, `/error`, `GET /api/images/**`, and read-only `GET /api/items`, `/api/items/**`, `/api/bids/**` — except `/api/items/my`, `/api/items/won`, `/api/bids/my`, which are declared authenticated *before* the public GET matchers in `SecurityConfig` (order matters). Everything else needs `Authorization: Bearer <jwt>` from `/api/auth/login`. In the frontend, `/` and `/items/:id` are public; `/sell` and `/account` are wrapped in `RequireAuth`.
 
 ## Frontend
 

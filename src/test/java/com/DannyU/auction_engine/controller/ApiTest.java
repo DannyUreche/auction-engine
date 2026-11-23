@@ -49,17 +49,43 @@ class ApiTest {
     // ---------- Autentificare ----------
 
     @Test
-    void faraTokenPrimesti401() throws Exception {
-        mockMvc.perform(get("/api/items"))
+    void faraTokenPrimesti401PeRuteleProtejate() throws Exception {
+        for (String url : new String[]{"/api/items/my", "/api/items/won", "/api/bids/my", "/api/users/me"}) {
+            mockMvc.perform(get(url))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.eroare").value(MESAJ_401));
+        }
+        postJson("/api/items", null, "{\"name\":\"X\",\"startPrice\":10}").andExpect(status().isUnauthorized());
+        postJson("/api/bids", null, "{\"itemId\":1,\"amount\":10}").andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void tokenFalsificatPrimeste401() throws Exception {
+        mockMvc.perform(get("/api/items/my").header("Authorization", "Bearer abc.def.ghi"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.eroare").value(MESAJ_401));
     }
 
     @Test
-    void tokenFalsificatPrimeste401() throws Exception {
-        mockMvc.perform(get("/api/items").header("Authorization", "Bearer abc.def.ghi"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.eroare").value(MESAJ_401));
+    void licitatiileSuntVizibileFaraCont() throws Exception {
+        User seller = createUser("public");
+        User bidder = createUser("ofertant");
+        Item item = createItem(seller);
+        postJson("/api/bids", bearer(bidder), """
+                {"itemId":%d,"amount":150}
+                """.formatted(item.getId()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/items")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/items/active")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/items/" + item.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Obiect test"))
+                .andExpect(jsonPath("$.seller.email").doesNotExist());
+        mockMvc.perform(get("/api/bids/" + item.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].amount").value(150))
+                .andExpect(jsonPath("$[0].bidder.email").doesNotExist());
     }
 
     @Test

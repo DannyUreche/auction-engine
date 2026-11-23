@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../auth.jsx'
 
 function NavItem({ to, children }) {
@@ -19,12 +19,14 @@ function NavItem({ to, children }) {
 
 // Bara de sus + continutul paginii curente
 export default function Layout() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user, loading, logout } = useAuth()
+  const location = useLocation()
 
   function handleLogout() {
     logout()
-    navigate('/login')
+    // Reincarcare completa pe pagina principala: altfel o pagina protejata (ex: Contul meu)
+    // apuca sa redirectioneze la login inainte de navigare, iar starea aplicatiei e oricum golita
+    window.location.assign('/')
   }
 
   return (
@@ -43,15 +45,38 @@ export default function Layout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-sm text-slate-600 md:inline">
-              Salut, <span className="font-semibold text-slate-900">{user?.username}</span>
-            </span>
-            <button
-              onClick={handleLogout}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-            >
-              Iesire
-            </button>
+            {user ? (
+              <>
+                <span className="hidden text-sm text-slate-600 md:inline">
+                  Salut, <span className="font-semibold text-slate-900">{user.username}</span>
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                >
+                  Iesire
+                </button>
+              </>
+            ) : (
+              !loading && (
+                <>
+                  {/* Dupa login, vizitatorul revine pe pagina pe care era */}
+                  <Link
+                    to="/login"
+                    state={{ from: location.pathname }}
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  >
+                    Intra in cont
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                  >
+                    Creeaza cont
+                  </Link>
+                </>
+              )
+            )}
           </div>
         </div>
 

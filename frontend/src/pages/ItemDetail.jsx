@@ -237,6 +237,24 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
     )
   }
 
+  if (!user) {
+    return (
+      <div className="space-y-3 text-center">
+        <p className="text-sm text-slate-500">Ai nevoie de un cont ca sa licitezi.</p>
+        <Link
+          to="/login"
+          state={{ from: `/items/${item.id}` }}
+          className="block rounded-lg bg-indigo-600 py-3 text-base font-semibold text-white shadow-sm hover:bg-indigo-500"
+        >
+          Intra in cont ca sa licitezi
+        </Link>
+        <Link to="/register" className="block text-sm font-semibold text-indigo-600 hover:text-indigo-500">
+          sau creeaza un cont nou
+        </Link>
+      </div>
+    )
+  }
+
   if (isSeller) {
     return <p className="text-sm text-slate-500">Acesta este obiectul tau. Urmareste ofertele in timp real.</p>
   }
