@@ -22,7 +22,7 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 
 ## Deployment (Render)
 
-- `render.yaml` (Blueprint) creates a free Postgres `auction-db` and a Docker web service `auction-engine`, region Frankfurt. Env vars `DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD` come from the DB, `JWT_SECRET` is generated; `PORT` is set by Render. Locally all of these fall back to the defaults in `application.properties`.
+- `render.yaml` (Blueprint) defines only the Docker web service `auction-engine`, region Frankfurt. The production DB is on **Neon** (free, doesn't expire; Frankfurt), not Render: env vars `DATABASE_URL` (JDBC form, `jdbc:postgresql://<host>/neondb?sslmode=require`, use the *direct* host, not `-pooler`, because of Flyway), `DATABASE_USERNAME`, `DATABASE_PASSWORD` are `sync: false` and set in the Render dashboard. `JWT_SECRET` is generated; `PORT` is set by Render. Locally all of these fall back to the defaults in `application.properties` (Docker Postgres on 5433).
 - `Dockerfile` builds the React app, copies `frontend/dist` into `src/main/resources/static`, and packages one Spring Boot jar (tests skipped in Docker — they need Postgres). In production there is no Vite: Spring serves the UI; `SpaController` forwards React routes (`/items/{id}`, `/login`, ...) to `index.html`. When adding a new React route, add it there too.
 - Render deploys automatically on every push to `main`. Live URL: https://auction-engine.onrender.com (first deployed 2026-11-23). The production DB is separate from the local one and started empty.
 

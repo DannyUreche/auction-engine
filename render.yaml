@@ -1,12 +1,5 @@
 # Configurarea pentru Render (https://render.com) - "Blueprint".
-# In Render: New + -> Blueprint -> alegi repository-ul -> Apply. Se creeaza automat baza de date si serviciul web.
-
-databases:
-  - name: auction-db
-    plan: free
-    region: frankfurt
-    databaseName: auction_db
-    user: auction_user
+# In Render: New + -> Blueprint -> alegi repository-ul -> Apply. Se creeaza serviciul web; baza de date e separat, pe Neon.
 
 services:
   - type: web
@@ -17,27 +10,17 @@ services:
     # Render verifica la aceasta adresa daca aplicatia a pornit
     healthCheckPath: /api/items/active
     envVars:
-      # Datele de conectare la baza de date, completate automat de Render
-      - key: DB_HOST
-        fromDatabase:
-          name: auction-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: auction-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: auction-db
-          property: database
-      - key: DB_USERNAME
-        fromDatabase:
-          name: auction-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: auction-db
-          property: password
+      # Baza de date este pe Neon (https://neon.tech, gratuita si nu expira).
+      # Valorile se completeaza in Render -> auction-engine -> Environment, nu se tin in cod:
+      #   DATABASE_URL      = jdbc:postgresql://<host-neon>/neondb?sslmode=require
+      #   DATABASE_USERNAME = utilizatorul din Neon (ex: neondb_owner)
+      #   DATABASE_PASSWORD = parola din Neon
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
       # Secret JWT generat aleator de Render (nu apare nicaieri in cod)
       - key: JWT_SECRET
         generateValue: true
