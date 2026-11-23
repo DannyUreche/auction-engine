@@ -2,8 +2,8 @@ package com.DannyU.auction_engine.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -14,7 +14,7 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false)
     private String name;
 
     @Column(columnDefinition = "TEXT")
@@ -26,8 +26,11 @@ public class Item {
     @Column(name = "current_price", nullable = false)
     private BigDecimal currentPrice;
 
-    // Aici ii spunem lui Hibernate ca un Item apartine unui singur User (Vanzator)
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
+
+    // Timpul cand se termina licitatia
+    @Column(name = "end_time", nullable = false)
+    private LocalDateTime endTime;
 }
