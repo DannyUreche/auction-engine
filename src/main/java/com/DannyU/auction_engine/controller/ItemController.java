@@ -26,6 +26,31 @@ public class ItemController {
         return itemRepository.findAll();
     }
 
+    // Doar licitatiile inca deschise
+    @GetMapping("/active")
+    public List<Item> getActiveItems() {
+        return itemRepository.findByActiveTrueOrderByEndTimeAsc();
+    }
+
+    // Obiectele puse la licitatie de utilizatorul logat
+    @GetMapping("/my")
+    public List<Item> getMyItems(Authentication authentication) {
+        return itemRepository.findBySellerUsernameOrderByIdDesc(authentication.getName());
+    }
+
+    // Obiectele castigate de utilizatorul logat
+    @GetMapping("/won")
+    public List<Item> getWonItems(Authentication authentication) {
+        return itemRepository.findByWinnerUsernameOrderByEndTimeDesc(authentication.getName());
+    }
+
+    // Detaliile unui singur obiect
+    @GetMapping("/{id}")
+    public Item getItem(@PathVariable Long id) {
+        return itemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
+    }
+
     @PostMapping
     public Item createItem(@RequestBody ItemRequest request, Authentication authentication) {
         // Luam utilizatorul logat direct din JWT

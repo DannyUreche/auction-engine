@@ -29,6 +29,12 @@ public class BidController {
         private BigDecimal amount;
     }
 
+    // Ofertele utilizatorului logat
+    @GetMapping("/my")
+    public List<Bid> getMyBids(Authentication authentication) {
+        return bidService.getBidsForUser(authentication.getName());
+    }
+
     @GetMapping("/{itemId}")
     public List<Bid> getItemBids(@PathVariable Long itemId) {
         return bidService.getBidsForItem(itemId);

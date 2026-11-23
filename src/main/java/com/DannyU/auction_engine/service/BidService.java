@@ -61,7 +61,13 @@ public class BidService {
         return bidRepository.save(bid);
 
 
-    }   public List<Bid> getBidsForItem(Long itemId) {
+    }
+
+    public List<Bid> getBidsForItem(Long itemId) {
         return bidRepository.findByItemIdOrderByAmountDesc(itemId);
+    }
+
+    public List<Bid> getBidsForUser(String bidderUsername) {
+        return bidRepository.findByBidderUsernameOrderByCreatedAtDesc(bidderUsername);
     }
 }
