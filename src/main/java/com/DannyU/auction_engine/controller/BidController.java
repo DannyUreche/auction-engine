@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/bids")
@@ -24,7 +25,12 @@ public class BidController {
 
     @Data
     public static class BidRequest {
-        private Integer itemId;
+        private Long itemId; // Aici am modificat din Integer in Long
         private BigDecimal amount;
+    }
+
+    @GetMapping("/{itemId}")
+    public List<Bid> getItemBids(@PathVariable Long itemId) {
+        return bidService.getBidsForItem(itemId);
     }
 }
