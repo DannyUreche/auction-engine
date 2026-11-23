@@ -13,6 +13,13 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 - Tests are `@SpringBootTest` against the real Postgres — they fail if the docker container isn't running.
 - Swagger UI: `http://localhost:8080/swagger-ui.html`. Only `/api/auth/**`, Swagger routes and `/error` are public; everything else needs `Authorization: Bearer <jwt>` from `/api/auth/login`.
 
+## Frontend
+
+- React 19 + Vite + Tailwind CSS v4 + React Router, plain JavaScript (no TypeScript), in `frontend/`.
+- Run: backend on 8080 first, then `cd frontend; npm install; npm run dev` → `http://localhost:5173`. Vite proxies `/api` to `localhost:8080`, so the backend needs no CORS config.
+- All HTTP calls go through `frontend/src/api.js` (adds the JWT from localStorage, turns `{"eroare": ...}` into thrown `Error`s, fires `auth:expired` on 401). Auth state lives in `frontend/src/auth.jsx`.
+- UI text is Romanian without diacritics, same as the backend.
+
 ## Database
 
 - Schema is owned by Flyway (`src/main/resources/db/migration/V<n>__*.sql`); Hibernate runs with `ddl-auto=validate`. Any entity change needs a new migration with the next version number — never edit an existing migration.
