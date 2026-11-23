@@ -2,8 +2,10 @@ package com.DannyU.auction_engine.repository;
 
 import com.DannyU.auction_engine.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,4 +23,18 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
 
     // Obiectele castigate de un utilizator, cele mai recente primele
     List<Item> findByWinnerUsernameOrderByEndTimeDesc(String username);
+
+    // ---------- Pentru pagina de administrare ----------
+
+    List<Item> findAllByOrderByIdDesc();
+
+    long countByActiveTrue();
+
+    long countByWinnerIsNotNull();
+
+    long countBySellerId(Integer sellerId);
+
+    // Valoarea totala a obiectelor vandute (pretul final al celor cu castigator)
+    @Query("SELECT COALESCE(SUM(i.currentPrice), 0) FROM Item i WHERE i.winner IS NOT NULL")
+    BigDecimal sumSoldValue();
 }

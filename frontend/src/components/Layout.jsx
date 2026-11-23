@@ -42,6 +42,7 @@ export default function Layout() {
             <NavItem to="/">Licitatii active</NavItem>
             <NavItem to="/sell">Vinde un obiect</NavItem>
             <NavItem to="/account">Contul meu</NavItem>
+            {user?.admin && <NavItem to="/admin">Admin</NavItem>}
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
@@ -85,6 +86,7 @@ export default function Layout() {
           <NavItem to="/">Active</NavItem>
           <NavItem to="/sell">Vinde</NavItem>
           <NavItem to="/account">Contul meu</NavItem>
+          {user?.admin && <NavItem to="/admin">Admin</NavItem>}
         </nav>
       </header>
 

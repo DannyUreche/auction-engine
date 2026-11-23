@@ -41,3 +41,7 @@ services:
       # Secret JWT generat aleator de Render (nu apare nicaieri in cod)
       - key: JWT_SECRET
         generateValue: true
+      # Administratorii (username-uri separate prin virgula). Valoarea se completeaza
+      # in Render -> auction-engine -> Environment, nu se tine in cod.
+      - key: ADMIN_USERNAMES
+        sync: false

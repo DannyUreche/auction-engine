@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 // Asculta evenimentele in timp real de la server (/api/events) si apeleaza onEvent pentru fiecare.
-// Evenimente: { type: 'bid' | 'closed', itemId, amount, username }
+// Evenimente: { type: 'bid' | 'closed' | 'deleted', itemId, amount, username }
 // Intoarce true cat timp conexiunea este activa. EventSource se reconecteaza singur daca pica.
 export function useAuctionEvents(onEvent) {
   const handlerRef = useRef(onEvent)
@@ -19,6 +19,7 @@ export function useAuctionEvents(onEvent) {
     source.addEventListener('connected', () => setConnected(true))
     source.addEventListener('bid', forward('bid'))
     source.addEventListener('closed', forward('closed'))
+    source.addEventListener('deleted', forward('deleted'))
     source.onerror = () => setConnected(false)
 
     return () => source.close()

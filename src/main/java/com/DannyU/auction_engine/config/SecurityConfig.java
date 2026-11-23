@@ -42,6 +42,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // Imaginile obiectelor sunt publice (tag-ul <img> din browser nu trimite token-ul)
                         .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
+                        // Pagina de administrare: doar utilizatorii cu rolul ADMIN (vezi AdminAccess)
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Rutele "ale mele" cer autentificare - trebuie declarate INAINTEA celor publice de mai jos,
                         // altfel /api/items/{id} s-ar potrivi si pe /api/items/my
                         .requestMatchers("/api/items/my", "/api/items/won", "/api/bids/my").authenticated()
@@ -61,6 +63,13 @@ public class SecurityConfig {
                             response.setContentType("application/json");
                             response.setCharacterEncoding("UTF-8");
                             response.getWriter().write("{\"eroare\":\"Trebuie sa fii autentificat (token lipsa, invalid sau expirat)!\"}");
+                        })
+                        // Logat, dar fara drepturi (ex: utilizator obisnuit pe /api/admin) -> 403
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.setCharacterEncoding("UTF-8");
+                            response.getWriter().write("{\"eroare\":\"Nu ai drepturi de administrator!\"}");
                         })
                 )
                 // Nu salvam sesiuni pe server, verificam token-ul la fiecare cerere

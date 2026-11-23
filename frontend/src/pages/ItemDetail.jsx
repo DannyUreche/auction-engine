@@ -38,6 +38,11 @@ export default function ItemDetail() {
   // Actualizari instant: serverul ne anunta cand se schimba ceva la acest obiect
   const live = useAuctionEvents((event) => {
     if (event.itemId !== Number(id)) return
+    if (event.type === 'deleted') {
+      setItem(null)
+      setError('Acest obiect a fost sters de un administrator.')
+      return
+    }
     load()
     if (event.type === 'bid' && event.username !== user?.username) {
       setNotice(`Oferta noua: ${formatPrice(event.amount)} de la ${event.username}`)

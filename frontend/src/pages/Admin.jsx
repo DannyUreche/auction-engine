@@ -1,0 +1,224 @@
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router'
+import { api, formatDate, formatPrice } from '../api.js'
+import ItemImage from '../components/ItemImage.jsx'
+import { Alert, Badge, Card, Loading } from '../components/ui.jsx'
+import { useAuctionEvents } from '../events.jsx'
+
+const TABS = [
+  { key: 'items', label: 'Obiecte' },
+  { key: 'users', label: 'Utilizatori' },
+]
+
+// Pagina de administrare (doar pentru conturile din ADMIN_USERNAMES)
+export default function Admin() {
+  const [tab, setTab] = useState('items')
+  const [data, setData] = useState(null)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+
+  const load = useCallback(async () => {
+    try {
+      const [stats, items, users] = await Promise.all([
+        api('/admin/stats'),
+        api('/admin/items'),
+        api('/admin/users'),
+      ])
+      setData({ stats, items, users })
+      setError('')
+    } catch (err) {
+      setError(err.message)
+    }
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  // Orice oferta noua / licitatie inchisa / obiect sters actualizeaza tabelele
+  useAuctionEvents(load)
+
+  async function closeNow(item) {
+    if (!window.confirm(`Inchizi acum licitatia pentru "${item.name}"? Castiga oferta cea mai mare de acum.`)) return
+    try {
+      const updated = await api(`/admin/items/${item.id}/close`, { method: 'POST' })
+      setMessage(
+        updated.winner
+          ? `Licitatia "${item.name}" a fost inchisa. Castigator: ${updated.winner}.`
+          : `Licitatia "${item.name}" a fost inchisa fara oferte.`,
+      )
+      load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  async function deleteItem(item) {
+    if (!window.confirm(`Stergi definitiv "${item.name}" impreuna cu cele ${item.bidsCount} oferte? Nu se poate anula.`)) return
+    try {
+      await api(`/admin/items/${item.id}`, { method: 'DELETE' })
+      setMessage(`Obiectul "${item.name}" a fost sters.`)
+      load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  if (!data && !error) return <Loading />
+
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Administrare</h1>
+        <Badge tone="indigo">Admin</Badge>
+      </div>
+      <p className="mt-2 text-slate-500">Statistici, toate obiectele si toti utilizatorii platformei.</p>
+
+      <div className="mt-6 space-y-3">
+        <Alert>{error}</Alert>
+        <Alert tone="success">{message}</Alert>
+      </div>
+
+      {data && (
+        <>
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-6">
+            <Stat label="Utilizatori" value={data.stats.users} />
+            <Stat label="Obiecte" value={data.stats.items} />
+            <Stat label="Licitatii active" value={data.stats.activeItems} />
+            <Stat label="Oferte" value={data.stats.bids} />
+            <Stat label="Obiecte vandute" value={data.stats.soldItems} />
+            <Stat label="Valoare vanduta" value={formatPrice(data.stats.soldValue)} />
+          </div>
+
+          <div className="mt-8 flex gap-1 rounded-xl bg-slate-100 p-1 sm:inline-flex">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition sm:flex-none ${
+                  tab === t.key ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {t.label}
+                <span className="ml-1.5 text-slate-400">{data[t.key].length}</span>
+              </button>
+            ))}
+          </div>
+
+          <Card className="mt-6 overflow-x-auto p-0">
+            {tab === 'items' ? (
+              <ItemsTable items={data.items} onClose={closeNow} onDelete={deleteItem} />
+            ) : (
+              <UsersTable users={data.users} />
+            )}
+          </Card>
+        </>
+      )}
+    </div>
+  )
+}
+
+function Stat({ label, value }) {
+  return (
+    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
+    </div>
+  )
+}
+
+const th = 'px-3 py-3 text-left text-xs font-semibold tracking-wide whitespace-nowrap text-slate-500 uppercase'
+const td = 'px-3 py-3 text-sm whitespace-nowrap text-slate-700'
+
+function ItemsTable({ items, onClose, onDelete }) {
+  if (items.length === 0) return <p className="p-6 text-sm text-slate-500">Nu exista obiecte.</p>
+  return (
+    <table className="min-w-full divide-y divide-slate-100">
+      <thead className="bg-slate-50">
+        <tr>
+          <th className={th}>Obiect</th>
+          <th className={th}>Vanzator</th>
+          <th className={th}>Pret</th>
+          <th className={th}>Oferte</th>
+          <th className={th}>Stare</th>
+          <th className={th}>Final</th>
+          <th className={th}></th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-slate-100">
+        {items.map((item) => (
+          <tr key={item.id} className="hover:bg-slate-50">
+            <td className={td}>
+              <Link to={`/items/${item.id}`} className="flex items-center gap-3 font-medium text-slate-900 hover:text-indigo-600">
+                <ItemImage item={item} small className="h-10 w-10 shrink-0 rounded-lg" />
+                <span className="max-w-44 truncate" title={item.name}>{item.name}</span>
+              </Link>
+            </td>
+            <td className={td}>{item.seller}</td>
+            <td className={`${td} font-semibold text-slate-900`}>{formatPrice(item.currentPrice)}</td>
+            <td className={td}>{item.bidsCount}</td>
+            <td className={td}>
+              {item.active ? (
+                <Badge tone="green">Activa</Badge>
+              ) : item.winner ? (
+                <Badge tone="amber">🏆 {item.winner}</Badge>
+              ) : (
+                <Badge tone="gray">Fara oferte</Badge>
+              )}
+            </td>
+            <td className={`${td} text-xs text-slate-500`}>{formatDate(item.endTime)}</td>
+            <td className={`${td} text-right`}>
+              <div className="flex justify-end gap-2">
+                {item.active && (
+                  <button
+                    onClick={() => onClose(item)}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200 hover:bg-amber-50"
+                  >
+                    Inchide
+                  </button>
+                )}
+                <button
+                  onClick={() => onDelete(item)}
+                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50"
+                >
+                  Sterge
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+function UsersTable({ users }) {
+  return (
+    <table className="min-w-full divide-y divide-slate-100">
+      <thead className="bg-slate-50">
+        <tr>
+          <th className={th}>Id</th>
+          <th className={th}>Username</th>
+          <th className={th}>Email</th>
+          <th className={th}>Inscris</th>
+          <th className={th}>Obiecte</th>
+          <th className={th}>Oferte</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-slate-100">
+        {users.map((user) => (
+          <tr key={user.id} className="hover:bg-slate-50">
+            <td className={`${td} text-slate-400`}>{user.id}</td>
+            <td className={`${td} font-medium text-slate-900`}>
+              {user.username} {user.admin && <Badge tone="indigo">Admin</Badge>}
+            </td>
+            <td className={td}>{user.email}</td>
+            <td className={`${td} text-slate-500`}>{formatDate(user.createdAt)}</td>
+            <td className={td}>{user.itemsCount}</td>
+            <td className={td}>{user.bidsCount}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}

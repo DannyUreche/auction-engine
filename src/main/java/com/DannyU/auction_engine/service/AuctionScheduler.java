@@ -30,27 +30,33 @@ public class AuctionScheduler {
         List<Item> expiredItems = itemRepository.findByActiveTrueAndEndTimeBefore(LocalDateTime.now());
 
         for (Item item : expiredItems) {
-            // 2. Cautam oferta cea mai mare
-            Optional<Bid> winningBid = bidRepository.findTopByItemIdOrderByAmountDesc(item.getId());
+            closeAuction(item);
+        }
+    }
 
-            // 3. Inchidem licitatia si salvam castigatorul (daca exista)
-            item.setActive(false);
-            winningBid.ifPresent(bid -> item.setWinner(bid.getBidder()));
-            itemRepository.save(item);
+    // Inchide o licitatie si stabileste castigatorul. Folosita si de administrator ("Inchide acum").
+    @Transactional
+    public void closeAuction(Item item) {
+        // 2. Cautam oferta cea mai mare
+        Optional<Bid> winningBid = bidRepository.findTopByItemIdOrderByAmountDesc(item.getId());
 
-            // 4. Anuntam browserele conectate (se trimite abia dupa salvarea tranzactiei)
-            eventPublisher.publishEvent(AuctionEvent.closed(item.getId(), item.getCurrentPrice(),
-                    item.getWinner() == null ? null : item.getWinner().getUsername()));
+        // 3. Inchidem licitatia si salvam castigatorul (daca exista)
+        item.setActive(false);
+        winningBid.ifPresent(bid -> item.setWinner(bid.getBidder()));
+        itemRepository.save(item);
 
-            if (winningBid.isPresent()) {
-                Bid winner = winningBid.get();
-                System.out.println("🎉 [LICITATIE INCHEIATA] '" + item.getName() +
-                        "' a fost castigat de " + winner.getBidder().getUsername() +
-                        " cu suma de " + winner.getAmount() + "!");
-            } else {
-                System.out.println("⏳ [LICITATIE INCHEIATA] '" + item.getName() +
-                        "' a expirat fara nicio oferta.");
-            }
+        // 4. Anuntam browserele conectate (se trimite abia dupa salvarea tranzactiei)
+        eventPublisher.publishEvent(AuctionEvent.closed(item.getId(), item.getCurrentPrice(),
+                item.getWinner() == null ? null : item.getWinner().getUsername()));
+
+        if (winningBid.isPresent()) {
+            Bid winner = winningBid.get();
+            System.out.println("🎉 [LICITATIE INCHEIATA] '" + item.getName() +
+                    "' a fost castigat de " + winner.getBidder().getUsername() +
+                    " cu suma de " + winner.getAmount() + "!");
+        } else {
+            System.out.println("⏳ [LICITATIE INCHEIATA] '" + item.getName() +
+                    "' a expirat fara nicio oferta.");
         }
     }
 }

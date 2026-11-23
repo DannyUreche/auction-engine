@@ -7,14 +7,15 @@ const PLACEHOLDER_COLORS = [
   'from-rose-100 to-pink-200 text-rose-500',
 ]
 
-export default function ItemImage({ item, className = '' }) {
+// small: pentru miniaturi (ex: tabelul din pagina de administrare)
+export default function ItemImage({ item, className = '', small = false }) {
   if (item.imageUrl) {
     return <img src={item.imageUrl} alt={item.name} loading="lazy" className={`object-cover ${className}`} />
   }
   const color = PLACEHOLDER_COLORS[item.id % PLACEHOLDER_COLORS.length]
   return (
     <div className={`grid place-items-center bg-gradient-to-br ${color} ${className}`}>
-      <span className="text-5xl font-bold opacity-60">{item.name?.[0]?.toUpperCase()}</span>
+      <span className={`font-bold opacity-60 ${small ? 'text-base' : 'text-5xl'}`}>{item.name?.[0]?.toUpperCase()}</span>
     </div>
   )
 }
