@@ -7,6 +7,7 @@ import com.DannyU.auction_engine.repository.BidRepository;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ public class BidService {
     private final BidRepository bidRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Bid placeBid(Integer itemId, String bidderUsername, BigDecimal bidAmount) {
@@ -58,8 +60,12 @@ public class BidService {
         bid.setItem(item);
         bid.setBidder(bidder);
         bid.setAmount(bidAmount);
+        Bid saved = bidRepository.save(bid);
 
-        return bidRepository.save(bid);
+        // 7. Anuntam browserele conectate (se trimite abia dupa salvarea tranzactiei)
+        eventPublisher.publishEvent(AuctionEvent.bid(item.getId(), bidAmount, bidder.getUsername()));
+
+        return saved;
 
 
     }

@@ -11,7 +11,7 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 - The JWT secret comes from `local.properties` in the project root (git-ignored, imported via `spring.config.import`) or the `JWT_SECRET` env var; the app won't start without it. See `local.properties.example`.
 - `git push` from the agent shell fails ("terminal prompts disabled"): the user's GitHub login lives in VS Code's own auth, not in Git Credential Manager. Commit, then ask the user to push via the VS Code Source Control button.
 - Tests are `@SpringBootTest` against the real Postgres — they fail if the docker container isn't running.
-- Swagger UI: `http://localhost:8080/swagger-ui.html`. Public (no token): `/api/auth/**`, Swagger, `/error`, `GET /api/images/**`, and read-only `GET /api/items`, `/api/items/**`, `/api/bids/**` — except `/api/items/my`, `/api/items/won`, `/api/bids/my`, which are declared authenticated *before* the public GET matchers in `SecurityConfig` (order matters). Everything else needs `Authorization: Bearer <jwt>` from `/api/auth/login`. In the frontend, `/` and `/items/:id` are public; `/sell` and `/account` are wrapped in `RequireAuth`.
+- Swagger UI: `http://localhost:8080/swagger-ui.html`. Public (no token): `/api/auth/**`, Swagger, `/error`, `GET /api/images/**`, `GET /api/events`, and read-only `GET /api/items`, `/api/items/**`, `/api/bids/**` — except `/api/items/my`, `/api/items/won`, `/api/bids/my`, which are declared authenticated *before* the public GET matchers in `SecurityConfig` (order matters). Everything else needs `Authorization: Bearer <jwt>` from `/api/auth/login`. In the frontend, `/` and `/items/:id` are public; `/sell` and `/account` are wrapped in `RequireAuth`.
 
 ## Frontend
 
@@ -35,6 +35,7 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 
 - `AuctionScheduler` closes expired auctions every 60s and sets `Item.winner` from the highest bid.
 - Item images: one per item, stored as files in `app.upload-dir` (default `uploads/`, git-ignored; tests use `target/test-uploads`), DB keeps only `items.image_filename` (exposed in JSON as `imageUrl`). Upload `POST /api/items/{id}/image` (multipart field `image`, seller only, max 5 MB, type detected from magic bytes in `ImageStorageService`); `GET /api/images/**` is public because `<img>` can't send the JWT.
+- Live updates: `BidService` and `AuctionScheduler` publish an `AuctionEvent` (`bid` / `closed`); `AuctionEventService` forwards it via `@TransactionalEventListener(AFTER_COMMIT)` to all `SseEmitter`s from `GET /api/events` (public, Server-Sent Events, 25s heartbeat). Frontend subscribes with `useAuctionEvents` in `frontend/src/events.jsx`; polling (30s) remains only as a fallback.
 - User objects nested in items/bids (`seller`, `winner`, `bidder`) hide `email` via `@JsonIgnoreProperties`; only `/api/users/me` returns it.
 - All ids are `Integer` end to end (DB `SERIAL`, entities, repositories, controllers); don't introduce `Long` ids.
 - `test-api.http` is written for the VS Code REST Client extension (`# @name` + `{{x.response.body.$.token}}`); keep it in sync when endpoints change.

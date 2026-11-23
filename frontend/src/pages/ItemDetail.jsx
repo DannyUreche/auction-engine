@@ -5,6 +5,7 @@ import { useAuth } from '../auth.jsx'
 import Countdown from '../components/Countdown.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
+import { LiveBadge, useAuctionEvents } from '../events.jsx'
 
 export default function ItemDetail() {
   const { id } = useParams()
@@ -26,10 +27,30 @@ export default function ItemDetail() {
     }
   }, [id])
 
-  // Reimprospatam la fiecare 5 secunde ca sa vedem ofertele altora aproape in timp real
+  // Notificare scurta cand altcineva liciteaza sau licitatia se inchide
+  const [notice, setNotice] = useState(null)
+  useEffect(() => {
+    if (!notice) return
+    const timeoutId = setTimeout(() => setNotice(null), 5000)
+    return () => clearTimeout(timeoutId)
+  }, [notice])
+
+  // Actualizari instant: serverul ne anunta cand se schimba ceva la acest obiect
+  const live = useAuctionEvents((event) => {
+    if (event.itemId !== Number(id)) return
+    load()
+    if (event.type === 'bid' && event.username !== user?.username) {
+      setNotice(`Oferta noua: ${formatPrice(event.amount)} de la ${event.username}`)
+    }
+    if (event.type === 'closed') {
+      setNotice(event.username ? `Licitatia s-a incheiat! Castigator: ${event.username}` : 'Licitatia s-a incheiat.')
+    }
+  })
+
+  // Incarcare initiala + reimprospatare rara, de siguranta (in caz ca se pierde conexiunea live)
   useEffect(() => {
     load()
-    const intervalId = setInterval(load, 5000)
+    const intervalId = setInterval(load, 30000)
     return () => clearInterval(intervalId)
   }, [load])
 
@@ -50,9 +71,20 @@ export default function ItemDetail() {
 
   return (
     <div>
-      <Link to="/" className="text-sm font-medium text-slate-500 hover:text-slate-900">
-        ← Inapoi la licitatii
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to="/" className="text-sm font-medium text-slate-500 hover:text-slate-900">
+          ← Inapoi la licitatii
+        </Link>
+        {item.active && <LiveBadge connected={live} />}
+      </div>
+
+      {notice && (
+        <div className="fixed inset-x-0 top-20 z-20 flex justify-center px-4">
+          <div className="animate-bounce rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg">
+            🔔 {notice}
+          </div>
+        </div>
+      )}
 
       {warning && (
         <div className="mt-4">

@@ -47,6 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/items/my", "/api/items/won", "/api/bids/my").authenticated()
                         // Oricine (si fara cont) poate vedea licitatiile si istoricul ofertelor
                         .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**").permitAll()
+                        // Evenimentele in timp real (EventSource nu poate trimite token-ul)
+                        .requestMatchers(HttpMethod.GET, "/api/events").permitAll()
                         // ORICE ALTA RUTA necesită acum un token JWT valid!
                         .anyRequest().authenticated()
                 )

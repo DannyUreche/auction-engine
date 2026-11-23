@@ -5,6 +5,7 @@ import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.repository.BidRepository;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class AuctionScheduler {
 
     private final ItemRepository itemRepository;
     private final BidRepository bidRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // Se executa automat o data la 60.000 milisecunde (1 minut)
     @Scheduled(fixedRate = 60000)
@@ -35,6 +37,10 @@ public class AuctionScheduler {
             item.setActive(false);
             winningBid.ifPresent(bid -> item.setWinner(bid.getBidder()));
             itemRepository.save(item);
+
+            // 4. Anuntam browserele conectate (se trimite abia dupa salvarea tranzactiei)
+            eventPublisher.publishEvent(AuctionEvent.closed(item.getId(), item.getCurrentPrice(),
+                    item.getWinner() == null ? null : item.getWinner().getUsername()));
 
             if (winningBid.isPresent()) {
                 Bid winner = winningBid.get();

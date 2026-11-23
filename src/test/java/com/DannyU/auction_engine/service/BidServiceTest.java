@@ -10,6 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -22,7 +24,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 // Fiecare test ruleaza intr-o tranzactie anulata la final, deci nu lasa date in baza
 @SpringBootTest
 @Transactional
+@RecordApplicationEvents
 class BidServiceTest {
+
+    @Autowired
+    private ApplicationEvents events;
 
     @Autowired
     private BidService bidService;
@@ -53,6 +59,22 @@ class BidServiceTest {
         assertThat(bid.getAmount()).isEqualByComparingTo("150.00");
         assertThat(item.getCurrentPrice()).isEqualByComparingTo("150.00");
         assertThat(bidRepository.findByItemIdOrderByAmountDesc(itemId())).hasSize(1);
+    }
+
+    @Test
+    void ofertaValidaPublicaUnEvenimentPentruBrowsere() {
+        bidService.placeBid(itemId(), bidder.getUsername(), new BigDecimal("150.00"));
+
+        assertThat(events.stream(AuctionEvent.class))
+                .containsExactly(AuctionEvent.bid(item.getId(), new BigDecimal("150.00"), bidder.getUsername()));
+    }
+
+    @Test
+    void ofertaRespinsaNuPublicaEveniment() {
+        assertThatThrownBy(() -> bidService.placeBid(itemId(), seller.getUsername(), new BigDecimal("150.00")))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(events.stream(AuctionEvent.class)).isEmpty();
     }
 
     @Test

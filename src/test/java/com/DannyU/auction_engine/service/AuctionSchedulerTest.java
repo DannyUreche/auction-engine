@@ -7,6 +7,8 @@ import com.DannyU.auction_engine.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -18,7 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 // Fiecare test ruleaza intr-o tranzactie anulata la final, deci nu lasa date in baza
 @SpringBootTest
 @Transactional
+@RecordApplicationEvents
 class AuctionSchedulerTest {
+
+    @Autowired
+    private ApplicationEvents events;
 
     @Autowired
     private AuctionScheduler auctionScheduler;
@@ -52,6 +58,12 @@ class AuctionSchedulerTest {
         assertThat(itemRepository.findByWinnerUsernameOrderByEndTimeDesc(cumparator2.getUsername()))
                 .extracting(Item::getId)
                 .containsExactly(item.getId());
+
+        // Browserele sunt anuntate ca licitatia s-a inchis si cine a castigat
+        // (cele doua oferte de mai sus au publicat si ele evenimente "bid", de aceea filtram dupa tip)
+        assertThat(events.stream(AuctionEvent.class)
+                .filter(e -> e.type().equals("closed") && e.itemId().equals(item.getId())))
+                .containsExactly(AuctionEvent.closed(item.getId(), item.getCurrentPrice(), cumparator2.getUsername()));
     }
 
     @Test

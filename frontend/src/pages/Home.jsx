@@ -1,27 +1,35 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api } from '../api.js'
 import ItemCard from '../components/ItemCard.jsx'
 import { Alert, EmptyState, Input, Loading } from '../components/ui.jsx'
+import { LiveBadge, useAuctionEvents } from '../events.jsx'
 
 export default function Home() {
   const [items, setItems] = useState(null)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
-  // Incarcam licitatiile active si le reimprospatam la fiecare 15 secunde
-  useEffect(() => {
-    const load = () =>
+  const load = useCallback(
+    () =>
       api('/items/active')
         .then((data) => {
           setItems(data)
           setError('')
         })
-        .catch((err) => setError(err.message))
+        .catch((err) => setError(err.message)),
+    [],
+  )
+
+  // Oferta noua sau licitatie inchisa: reincarcam lista imediat (preturi si licitatii active)
+  const live = useAuctionEvents(load)
+
+  // Incarcare initiala + reimprospatare la 30 de secunde (pentru obiectele noi puse la vanzare)
+  useEffect(() => {
     load()
-    const id = setInterval(load, 15000)
+    const id = setInterval(load, 30000)
     return () => clearInterval(id)
-  }, [])
+  }, [load])
 
   const term = search.trim().toLowerCase()
   const visible = (items ?? []).filter(
@@ -35,7 +43,10 @@ export default function Home() {
         <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Licitatii active</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">Licitatii active</h1>
+              <LiveBadge connected={live} />
+            </div>
             <p className="mt-2 text-indigo-100">
               {items ? `${items.length} obiecte asteapta oferta ta.` : 'Se incarca licitatiile...'}
             </p>
