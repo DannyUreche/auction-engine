@@ -15,6 +15,7 @@ import {
 import { useAuth } from '../auth.jsx'
 import { findCategory, useCategories } from '../categories.js'
 import Countdown from '../components/Countdown.jsx'
+import EditItemForm from '../components/EditItemForm.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
 import { LiveBadge, useAuctionEvents } from '../events.jsx'
@@ -43,6 +44,7 @@ export default function ItemDetail() {
 
   // Notificare scurta cand altcineva liciteaza sau licitatia se inchide
   const [notice, setNotice] = useState(null)
+  const [editing, setEditing] = useState(false)
   useEffect(() => {
     if (!notice) return
     const timeoutId = setTimeout(() => setNotice(null), 5000)
@@ -127,10 +129,30 @@ export default function ItemDetail() {
         <div className="space-y-6 lg:col-span-2">
           <Gallery item={item} isSeller={isSeller} onChange={setItem} />
 
+          {editing ? (
+            <EditItemForm
+              item={item}
+              onSaved={(updated) => {
+                setItem(updated)
+                setEditing(false)
+              }}
+              onCancel={() => setEditing(false)}
+            />
+          ) : (
           <Card>
             <div className="flex flex-wrap items-center gap-2">
               <Countdown endTime={item.endTime} active={item.active} />
               {isSeller && <Badge tone="indigo">Obiectul tau</Badge>}
+              {/* Editarea e permisa doar pana la prima oferta */}
+              {isSeller && item.active && bids.length === 0 && (
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="ml-auto text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                >
+                  ✏️ Editeaza
+                </button>
+              )}
             </div>
             <div className="mt-3 flex items-start justify-between gap-4">
               <h1 className="min-w-0 text-3xl font-bold tracking-tight break-words text-slate-900">{item.name}</h1>
@@ -146,6 +168,7 @@ export default function ItemDetail() {
               {item.buyNowPrice && <Detail label="Cumpara acum" value={formatPrice(item.buyNowPrice)} />}
             </dl>
           </Card>
+          )}
 
           <Card>
             <div className="flex items-center justify-between">

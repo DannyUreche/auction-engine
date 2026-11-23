@@ -2,6 +2,7 @@ package com.DannyU.auction_engine.controller;
 
 import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.User;
+import com.DannyU.auction_engine.repository.BidRepository;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.entity.Bid;
@@ -34,6 +35,7 @@ public class ItemController {
     private final UserRepository userRepository;
     private final ImageStorageService imageStorageService;
     private final BidService bidService;
+    private final BidRepository bidRepository;
 
     // "Cumpara acum": utilizatorul logat plateste pretul fix si castiga imediat
     @PostMapping("/{id}/buy-now")
@@ -146,6 +148,58 @@ public class ItemController {
         newItem.setEndTime(LocalDateTime.now().plusMinutes(minutes));
 
         return itemRepository.save(newItem);
+    }
+
+    // Editarea obiectului de catre vanzator: doar cat timp licitatia e deschisa si nu exista oferte
+    // (dupa prima oferta, cei care liciteaza trebuie sa poata avea incredere in ce au vazut)
+    @PutMapping("/{id}")
+    public Item updateItem(@PathVariable Integer id, @Valid @RequestBody ItemUpdateRequest request,
+                           Authentication authentication) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
+        if (!item.getSeller().getUsername().equals(authentication.getName())) {
+            throw new IllegalArgumentException("Doar vanzatorul poate modifica obiectul!");
+        }
+        if (!item.getActive()) {
+            throw new IllegalArgumentException("Licitatia s-a incheiat, obiectul nu mai poate fi modificat!");
+        }
+        if (bidRepository.countByItemId(id) > 0) {
+            throw new IllegalArgumentException("Obiectul are deja oferte si nu mai poate fi modificat!");
+        }
+        if (request.getBuyNowPrice() != null && request.getBuyNowPrice().compareTo(request.getStartPrice()) <= 0) {
+            throw new IllegalArgumentException("Pretul \"Cumpara acum\" trebuie sa fie mai mare decat pretul de pornire!");
+        }
+
+        item.setName(request.getName());
+        item.setDescription(request.getDescription());
+        item.setCategory(request.getCategory() != null ? request.getCategory() : Category.ALTELE);
+        item.setStartPrice(request.getStartPrice());
+        // Fara oferte, pretul curent este chiar pretul de pornire
+        item.setCurrentPrice(request.getStartPrice());
+        item.setBuyNowPrice(request.getBuyNowPrice());
+        return itemRepository.save(item);
+    }
+
+    // Aceleasi campuri ca la creare, fara durata (data de incheiere nu se schimba)
+    @Data
+    public static class ItemUpdateRequest {
+
+        @NotBlank(message = "Numele obiectului este obligatoriu!")
+        @Size(max = 100, message = "Numele obiectului poate avea maxim 100 de caractere!")
+        private String name;
+
+        private String description;
+
+        @NotNull(message = "Pretul de pornire este obligatoriu!")
+        @Positive(message = "Pretul de pornire trebuie sa fie mai mare decat 0!")
+        @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
+        private BigDecimal startPrice;
+
+        private Category category;
+
+        @Positive(message = "Pretul \"Cumpara acum\" trebuie sa fie mai mare decat 0!")
+        @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
+        private BigDecimal buyNowPrice;
     }
 
     @Data
