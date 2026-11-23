@@ -81,7 +81,7 @@ class BidServiceTest {
     void ofertaEgalaCuPretulCurentEsteRespinsa() {
         assertThatThrownBy(() -> bidService.placeBid(itemId(), bidder.getUsername(), new BigDecimal("100.00")))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Suma trebuie sa fie mai mare");
+                .hasMessageContaining("Oferta minima este 105.00 RON");
     }
 
     @Test
@@ -91,7 +91,7 @@ class BidServiceTest {
 
         assertThatThrownBy(() -> bidService.placeBid(itemId(), altCumparator.getUsername(), new BigDecimal("150.00")))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Suma trebuie sa fie mai mare");
+                .hasMessageContaining("Oferta minima este 205.00 RON");
         assertThat(item.getCurrentPrice()).isEqualByComparingTo("200.00");
     }
 
@@ -145,6 +145,91 @@ class BidServiceTest {
                 .extracting(Bid::getAmount)
                 .usingElementComparator(BigDecimal::compareTo)
                 .containsExactly(new BigDecimal("180.00"), new BigDecimal("120.00"));
+    }
+
+    // ---------- Pasul minim ----------
+
+    @Test
+    void pasulMinimCresteInTrepteDupaPret() {
+        assertThat(BidRules.increment(new BigDecimal("50"))).isEqualByComparingTo("1");
+        assertThat(BidRules.increment(new BigDecimal("99.99"))).isEqualByComparingTo("1");
+        assertThat(BidRules.increment(new BigDecimal("100"))).isEqualByComparingTo("5");
+        assertThat(BidRules.increment(new BigDecimal("999"))).isEqualByComparingTo("5");
+        assertThat(BidRules.increment(new BigDecimal("1000"))).isEqualByComparingTo("10");
+        assertThat(BidRules.increment(new BigDecimal("10000"))).isEqualByComparingTo("50");
+        assertThat(item.getMinimumBid()).isEqualByComparingTo("105.00");
+    }
+
+    @Test
+    void ofertaFixLaMinimEsteAcceptataIarSubMinimRespinsa() {
+        assertThatThrownBy(() -> bidService.placeBid(itemId(), bidder.getUsername(), new BigDecimal("104.99")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("pasul de 5 RON");
+
+        bidService.placeBid(itemId(), bidder.getUsername(), new BigDecimal("105.00"));
+        assertThat(item.getCurrentPrice()).isEqualByComparingTo("105.00");
+    }
+
+    // ---------- Anti-sniping ----------
+
+    @Test
+    void ofertaInUltimeleDouaMinutePrelungesteLicitatia() {
+        Item aproapeGata = createItem(seller, new BigDecimal("100.00"), LocalDateTime.now().plusSeconds(30));
+
+        bidService.placeBid(aproapeGata.getId(), bidder.getUsername(), new BigDecimal("110.00"));
+
+        // Finalul s-a mutat la ~2 minute de acum
+        assertThat(aproapeGata.getEndTime()).isAfter(LocalDateTime.now().plusSeconds(110));
+        assertThat(aproapeGata.getEndTime()).isBefore(LocalDateTime.now().plusSeconds(125));
+    }
+
+    @Test
+    void ofertaCuMultTimpRamasNuSchimbaFinalul() {
+        LocalDateTime finalInitial = item.getEndTime();
+
+        bidService.placeBid(itemId(), bidder.getUsername(), new BigDecimal("110.00"));
+
+        assertThat(item.getEndTime()).isEqualTo(finalInitial);
+    }
+
+    // ---------- Cumpara acum ----------
+
+    @Test
+    void cumparaAcumInchideLicitatiaCuCumparatorulCastigator() {
+        item.setBuyNowPrice(new BigDecimal("500.00"));
+        bidService.placeBid(itemId(), createUser("alt").getUsername(), new BigDecimal("150.00"));
+
+        Bid bid = bidService.buyNow(itemId(), bidder.getUsername());
+
+        assertThat(bid.getAmount()).isEqualByComparingTo("500.00");
+        assertThat(item.getActive()).isFalse();
+        assertThat(item.getWinner().getId()).isEqualTo(bidder.getId());
+        assertThat(item.getCurrentPrice()).isEqualByComparingTo("500.00");
+        assertThat(events.stream(AuctionEvent.class).map(AuctionEvent::type)).contains("bid", "closed");
+    }
+
+    @Test
+    void cumparaAcumNuMaiEDisponibilCandOferteleAjungLaPret() {
+        item.setBuyNowPrice(new BigDecimal("200.00"));
+        bidService.placeBid(itemId(), createUser("alt").getUsername(), new BigDecimal("200.00"));
+
+        assertThat(item.isBuyNowAvailable()).isFalse();
+        assertThatThrownBy(() -> bidService.buyNow(itemId(), bidder.getUsername()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("nu mai este disponibila");
+    }
+
+    @Test
+    void cumparaAcumFaraPretSetatSauDeCatreVanzatorEsteRespins() {
+        assertThatThrownBy(() -> bidService.buyNow(itemId(), bidder.getUsername()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Acest obiect nu are pret de cumparare imediata!");
+
+        item.setBuyNowPrice(new BigDecimal("500.00"));
+        assertThatThrownBy(() -> bidService.buyNow(itemId(), seller.getUsername()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Nu poti licita pentru propriul obiect!");
+        assertThat(item.getActive()).isTrue();
     }
 
     private Integer itemId() {

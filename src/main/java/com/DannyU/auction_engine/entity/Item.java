@@ -1,5 +1,6 @@
 package com.DannyU.auction_engine.entity;
 
+import com.DannyU.auction_engine.service.BidRules;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -53,8 +54,22 @@ public class Item {
     @Column(name = "image_filename")
     private String imageFilename;
 
+    // Pret optional "Cumpara acum" (null = obiectul se vinde doar prin licitatie)
+    @Column(name = "buy_now_price")
+    private BigDecimal buyNowPrice;
+
     // Adresa la care browserul poate incarca imaginea (null daca obiectul nu are imagine)
     public String getImageUrl() {
         return imageFilename == null ? null : "/api/images/" + imageFilename;
+    }
+
+    // Cea mai mica oferta acceptata acum (pretul curent + pasul minim) - afisata in interfata
+    public BigDecimal getMinimumBid() {
+        return currentPrice == null ? null : BidRules.minimumNextBid(currentPrice);
+    }
+
+    // "Cumpara acum" e disponibil cat timp licitatia e deschisa si ofertele n-au ajuns la acel pret
+    public boolean isBuyNowAvailable() {
+        return buyNowPrice != null && Boolean.TRUE.equals(active) && currentPrice.compareTo(buyNowPrice) < 0;
     }
 }

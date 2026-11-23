@@ -17,6 +17,11 @@ export default function ItemCard({ item, extra }) {
         <div className="absolute top-3 right-3 rounded-full shadow-sm">
           <Countdown endTime={item.endTime} active={item.active} />
         </div>
+        {item.buyNowAvailable && (
+          <div className="absolute bottom-3 left-3 rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
+            ⚡ Cumpara acum {formatPrice(item.buyNowPrice)}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-5">

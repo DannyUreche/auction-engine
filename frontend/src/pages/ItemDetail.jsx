@@ -35,6 +35,16 @@ export default function ItemDetail() {
     return () => clearTimeout(timeoutId)
   }, [notice])
 
+  // Anti-sniping: daca finalul s-a mutat mai tarziu, anuntam prelungirea
+  const previousEnd = useRef(null)
+  useEffect(() => {
+    if (!item) return
+    if (previousEnd.current && item.active && new Date(item.endTime) > new Date(previousEnd.current)) {
+      setNotice('Oferta de ultim moment: licitatia a fost prelungita cu 2 minute!')
+    }
+    previousEnd.current = item.endTime
+  }, [item])
+
   // Actualizari instant: serverul ne anunta cand se schimba ceva la acest obiect
   const live = useAuctionEvents((event) => {
     if (event.itemId !== Number(id)) return
@@ -114,6 +124,7 @@ export default function ItemDetail() {
               <Detail label="Vanzator" value={item.seller?.username} />
               <Detail label="Pret de pornire" value={formatPrice(item.startPrice)} />
               <Detail label={item.active ? 'Se termina' : 'S-a terminat'} value={formatDate(item.endTime)} />
+              {item.buyNowPrice && <Detail label="Cumpara acum" value={formatPrice(item.buyNowPrice)} />}
             </dl>
           </Card>
 
@@ -254,11 +265,18 @@ function Detail({ label, value }) {
 }
 
 function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
-  const minimum = Math.floor(Number(item.currentPrice)) + 1
+  // Oferta minima vine de la server (pretul curent + pasul minim)
+  const minimum = Number(item.minimumBid)
+  const step = minimum - Number(item.currentPrice)
   const [amount, setAmount] = useState(String(minimum))
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  // Daca altcineva a licitat intre timp, ridicam suma propusa la noul minim
+  useEffect(() => {
+    setAmount((current) => (Number(current) < minimum ? String(minimum) : current))
+  }, [minimum])
 
   // Licitatia s-a incheiat: aratam rezultatul
   if (!item.active) {
@@ -308,8 +326,6 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
     try {
       await api('/bids', { method: 'POST', body: { itemId: item.id, amount: Number(amount) } })
       setSuccess(`Oferta de ${formatPrice(amount)} a fost plasata!`)
-      // Propunem direct urmatoarea oferta posibila
-      setAmount(String(Math.floor(Number(amount)) + 1))
       await onBid()
     } catch (err) {
       setError(err.message)
@@ -318,7 +334,25 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
     }
   }
 
+  async function handleBuyNow() {
+    if (!window.confirm(`Cumperi "${item.name}" acum cu ${formatPrice(item.buyNowPrice)}? Licitatia se incheie imediat.`)) {
+      return
+    }
+    setError('')
+    setSuccess('')
+    setSubmitting(true)
+    try {
+      await api(`/items/${item.id}/buy-now`, { method: 'POST' })
+      await onBid()
+    } catch (err) {
+      setError(err.message)
+      setSubmitting(false)
+    }
+  }
+
   const iAmLeading = leadingBid?.bidder?.id === user?.id
+  // Sume rapide: minimul, apoi cu 5 si 10 pasi peste el
+  const quickAmounts = [minimum, minimum + 4 * step, minimum + 9 * step]
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -339,18 +373,21 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
           onChange={(e) => setAmount(e.target.value)}
           required
         />
-        <p className="mt-1 text-xs text-slate-500">Trebuie sa fie mai mare de {formatPrice(item.currentPrice)}</p>
+        <p className="mt-1 text-xs text-slate-500">
+          Oferta minima: <span className="font-semibold text-slate-700">{formatPrice(minimum)}</span> (pas de{' '}
+          {formatPrice(step)})
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        {[5, 10, 50].map((step) => (
+        {quickAmounts.map((value) => (
           <button
-            key={step}
+            key={value}
             type="button"
-            onClick={() => setAmount(String(Number(item.currentPrice) + step))}
-            className="rounded-lg bg-slate-100 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+            onClick={() => setAmount(String(value))}
+            className="rounded-lg bg-slate-100 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
           >
-            +{step}
+            {formatPrice(value)}
           </button>
         ))}
       </div>
@@ -358,6 +395,24 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
       <Button type="submit" loading={submitting} className="w-full py-3 text-base">
         Liciteaza
       </Button>
+
+      {item.buyNowAvailable && (
+        <div className="border-t border-slate-100 pt-4">
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            disabled={submitting}
+            className="w-full rounded-lg bg-amber-500 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-400 disabled:opacity-50"
+          >
+            ⚡ Cumpara acum cu {formatPrice(item.buyNowPrice)}
+          </button>
+          <p className="mt-1.5 text-center text-xs text-slate-500">Castigi imediat, fara sa astepti finalul.</p>
+        </div>
+      )}
+
+      <p className="text-center text-xs text-slate-400">
+        ⏱ O oferta in ultimele 2 minute prelungeste licitatia cu 2 minute.
+      </p>
     </form>
   )
 }

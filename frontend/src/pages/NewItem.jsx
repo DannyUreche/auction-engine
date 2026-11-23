@@ -16,7 +16,13 @@ const DURATIONS = [
 
 export default function NewItem() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', description: '', startPrice: '', durationInMinutes: '60' })
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    startPrice: '',
+    buyNowPrice: '',
+    durationInMinutes: '60',
+  })
   const [image, setImage] = useState(null)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -33,6 +39,8 @@ export default function NewItem() {
           name: form.name,
           description: form.description,
           startPrice: Number(form.startPrice),
+          // Optional: gol = fara "Cumpara acum"
+          buyNowPrice: form.buyNowPrice ? Number(form.buyNowPrice) : null,
           durationInMinutes: Number(form.durationInMinutes),
         },
       })
@@ -112,6 +120,20 @@ export default function NewItem() {
               </Select>
             </Field>
           </div>
+
+          <Field
+            label="Pret &quot;Cumpara acum&quot; (RON, optional)"
+            hint="Cine plateste acest pret castiga imediat. Trebuie sa fie mai mare decat pretul de pornire. Lasa gol daca vrei doar licitatie."
+          >
+            <Input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={form.buyNowPrice}
+              onChange={update('buyNowPrice')}
+              placeholder="ex: 500"
+            />
+          </Field>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-6">
             <Button type="button" variant="secondary" onClick={() => navigate(-1)}>

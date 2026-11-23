@@ -218,6 +218,45 @@ class ApiTest {
     }
 
     @Test
+    void obiectulAratOfertaMinimaSiCumparaAcum() throws Exception {
+        User seller = createUser("vanzator");
+        User buyer = createUser("cumparator");
+
+        String body = postJson("/api/items", bearer(seller), """
+                {"name":"Lampa","startPrice":100,"buyNowPrice":400}
+                """)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.minimumBid").value(105))
+                .andExpect(jsonPath("$.buyNowPrice").value(400))
+                .andExpect(jsonPath("$.buyNowAvailable").value(true))
+                .andReturn().getResponse().getContentAsString();
+        int itemId = com.jayway.jsonpath.JsonPath.read(body, "$.id");
+
+        mockMvc.perform(post("/api/items/" + itemId + "/buy-now").header("Authorization", bearer(buyer)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.amount").value(400));
+
+        mockMvc.perform(get("/api/items/" + itemId))
+                .andExpect(jsonPath("$.active").value(false))
+                .andExpect(jsonPath("$.winner.username").value(buyer.getUsername()))
+                .andExpect(jsonPath("$.buyNowAvailable").value(false));
+
+        // Fara cont nu se poate cumpara
+        mockMvc.perform(post("/api/items/" + itemId + "/buy-now")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void pretulCumparaAcumTrebuieSaFieMaiMareDecatPornirea() throws Exception {
+        User seller = createUser("vanzator");
+
+        postJson("/api/items", bearer(seller), """
+                {"name":"Lampa","startPrice":100,"buyNowPrice":100}
+                """)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.eroare").value("Pretul \"Cumpara acum\" trebuie sa fie mai mare decat pretul de pornire!"));
+    }
+
+    @Test
     void obiectInexistentEsteRespins() throws Exception {
         User user = createUser("cautare");
 

@@ -4,6 +4,8 @@ import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
+import com.DannyU.auction_engine.entity.Bid;
+import com.DannyU.auction_engine.service.BidService;
 import com.DannyU.auction_engine.service.ImageStorageService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
@@ -30,6 +32,13 @@ public class ItemController {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ImageStorageService imageStorageService;
+    private final BidService bidService;
+
+    // "Cumpara acum": utilizatorul logat plateste pretul fix si castiga imediat
+    @PostMapping("/{id}/buy-now")
+    public Bid buyNow(@PathVariable Integer id, Authentication authentication) {
+        return bidService.buyNow(id, authentication.getName());
+    }
 
     // Incarcarea (sau inlocuirea) imaginii unui obiect - doar de catre vanzator
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -97,6 +106,12 @@ public class ItemController {
         newItem.setCurrentPrice(request.getStartPrice());
         newItem.setSeller(seller);
 
+        // Pretul "Cumpara acum" (optional) trebuie sa fie peste pretul de pornire
+        if (request.getBuyNowPrice() != null && request.getBuyNowPrice().compareTo(request.getStartPrice()) <= 0) {
+            throw new IllegalArgumentException("Pretul \"Cumpara acum\" trebuie sa fie mai mare decat pretul de pornire!");
+        }
+        newItem.setBuyNowPrice(request.getBuyNowPrice());
+
         // Durata este optionala: implicit 60 de minute
         int minutes = request.getDurationInMinutes() != null ? request.getDurationInMinutes() : 60;
         newItem.setEndTime(LocalDateTime.now().plusMinutes(minutes));
@@ -120,5 +135,10 @@ public class ItemController {
 
         @Positive(message = "Durata licitatiei trebuie sa fie de cel putin un minut!")
         private Integer durationInMinutes;
+
+        // Optional: cine plateste acest pret castiga imediat
+        @Positive(message = "Pretul \"Cumpara acum\" trebuie sa fie mai mare decat 0!")
+        @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
+        private BigDecimal buyNowPrice;
     }
 }
