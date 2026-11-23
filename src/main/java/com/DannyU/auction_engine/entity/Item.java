@@ -1,5 +1,6 @@
 package com.DannyU.auction_engine.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -26,8 +27,10 @@ public class Item {
     @Column(name = "current_price", nullable = false)
     private BigDecimal currentPrice;
 
+    // Email-ul vanzatorului nu se trimite in raspunsuri (e vizibil doar in /api/users/me)
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
+    @JsonIgnoreProperties("email")
     private User seller;
 
     // Timpul cand se termina licitatia
@@ -41,5 +44,6 @@ public class Item {
     // Castigatorul licitatiei: se seteaza la inchidere, ramane null daca nu exista oferte
     @ManyToOne
     @JoinColumn(name = "winner_id")
+    @JsonIgnoreProperties("email")
     private User winner;
 }

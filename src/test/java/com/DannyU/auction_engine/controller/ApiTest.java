@@ -80,6 +80,7 @@ class ApiTest {
         mockMvc.perform(get("/api/users/me").header("Authorization", bearer(user)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value(user.getUsername()))
+                .andExpect(jsonPath("$.email").value(user.getEmail()))
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
 
@@ -185,6 +186,7 @@ class ApiTest {
                 """)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.seller.username").value(seller.getUsername()))
+                .andExpect(jsonPath("$.seller.email").doesNotExist())
                 .andExpect(jsonPath("$.currentPrice").value(100))
                 .andExpect(jsonPath("$.active").value(true));
     }
@@ -210,6 +212,8 @@ class ApiTest {
                 """.formatted(item.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bidder.username").value(bidder.getUsername()))
+                .andExpect(jsonPath("$.bidder.email").doesNotExist())
+                .andExpect(jsonPath("$.item.seller.email").doesNotExist())
                 .andExpect(jsonPath("$.amount").value(150));
 
         // Vanzatorul nu poate licita la propriul obiect
@@ -227,7 +231,9 @@ class ApiTest {
 
         mockMvc.perform(get("/api/bids/" + item.getId()).header("Authorization", bearer(seller)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].bidder.username").value(bidder.getUsername()))
+                .andExpect(jsonPath("$[0].bidder.email").doesNotExist());
 
         // Obiectul apare la "obiectele mele" ale vanzatorului
         mockMvc.perform(get("/api/items/my").header("Authorization", bearer(seller)))

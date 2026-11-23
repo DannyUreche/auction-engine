@@ -1,5 +1,6 @@
 package com.DannyU.auction_engine.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -19,9 +20,10 @@ public class Bid {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    // Relatia catre utilizatorul care liciteaza
+    // Relatia catre utilizatorul care liciteaza (fara email in raspunsuri)
     @ManyToOne
     @JoinColumn(name = "bidder_id", nullable = false)
+    @JsonIgnoreProperties("email")
     private User bidder;
 
     @Column(nullable = false)
