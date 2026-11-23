@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { api, uploadItemImage } from '../api.js'
+import { useCategories } from '../categories.js'
 import ImagePicker from '../components/ImagePicker.jsx'
 import { Alert, Button, Card, Field, Input, Select, Textarea } from '../components/ui.jsx'
 
@@ -16,9 +17,11 @@ const DURATIONS = [
 
 export default function NewItem() {
   const navigate = useNavigate()
+  const categories = useCategories()
   const [form, setForm] = useState({
     name: '',
     description: '',
+    category: '',
     startPrice: '',
     buyNowPrice: '',
     durationInMinutes: '60',
@@ -38,6 +41,7 @@ export default function NewItem() {
         body: {
           name: form.name,
           description: form.description,
+          category: form.category,
           startPrice: Number(form.startPrice),
           // Optional: gol = fara "Cumpara acum"
           buyNowPrice: form.buyNowPrice ? Number(form.buyNowPrice) : null,
@@ -96,6 +100,19 @@ export default function NewItem() {
               onChange={update('description')}
               placeholder="Starea obiectului, detalii importante..."
             />
+          </Field>
+
+          <Field label="Categorie">
+            <Select value={form.category} onChange={update('category')} required>
+              <option value="" disabled>
+                Alege categoria...
+              </option>
+              {categories.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.icon} {c.label}
+                </option>
+              ))}
+            </Select>
           </Field>
 
           <div className="grid gap-6 sm:grid-cols-2">

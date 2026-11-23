@@ -5,6 +5,7 @@ import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.entity.Bid;
+import com.DannyU.auction_engine.entity.Category;
 import com.DannyU.auction_engine.service.BidService;
 import com.DannyU.auction_engine.service.ImageStorageService;
 import jakarta.validation.Valid;
@@ -112,6 +113,9 @@ public class ItemController {
         }
         newItem.setBuyNowPrice(request.getBuyNowPrice());
 
+        // Categoria e optionala: implicit "Altele"
+        newItem.setCategory(request.getCategory() != null ? request.getCategory() : Category.ALTELE);
+
         // Durata este optionala: implicit 60 de minute
         int minutes = request.getDurationInMinutes() != null ? request.getDurationInMinutes() : 60;
         newItem.setEndTime(LocalDateTime.now().plusMinutes(minutes));
@@ -135,6 +139,9 @@ public class ItemController {
 
         @Positive(message = "Durata licitatiei trebuie sa fie de cel putin un minut!")
         private Integer durationInMinutes;
+
+        // Una dintre valorile din Category (ex: "ELECTRONICE"); lipsa = "ALTELE"
+        private Category category;
 
         // Optional: cine plateste acest pret castiga imediat
         @Positive(message = "Pretul \"Cumpara acum\" trebuie sa fie mai mare decat 0!")

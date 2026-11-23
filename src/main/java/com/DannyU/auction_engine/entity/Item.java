@@ -54,6 +54,11 @@ public class Item {
     @Column(name = "image_filename")
     private String imageFilename;
 
+    // Categoria obiectului (pentru filtrele de pe pagina principala)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private Category category = Category.ALTELE;
+
     // Pret optional "Cumpara acum" (null = obiectul se vinde doar prin licitatie)
     @Column(name = "buy_now_price")
     private BigDecimal buyNowPrice;

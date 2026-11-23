@@ -1,14 +1,47 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { api } from '../api.js'
+import { useCategories } from '../categories.js'
 import ItemCard from '../components/ItemCard.jsx'
-import { Alert, EmptyState, Input, Loading } from '../components/ui.jsx'
+import { Alert, EmptyState, Input, Loading, Select } from '../components/ui.jsx'
 import { LiveBadge, useAuctionEvents } from '../events.jsx'
+
+const SORTS = {
+  ending: { label: 'Se termina curand', compare: (a, b) => a.endTime.localeCompare(b.endTime) },
+  'price-asc': { label: 'Pret crescator', compare: (a, b) => Number(a.currentPrice) - Number(b.currentPrice) },
+  'price-desc': { label: 'Pret descrescator', compare: (a, b) => Number(b.currentPrice) - Number(a.currentPrice) },
+  newest: { label: 'Cele mai noi', compare: (a, b) => b.id - a.id },
+}
 
 export default function Home() {
   const [items, setItems] = useState(null)
   const [error, setError] = useState('')
-  const [search, setSearch] = useState('')
+  const categories = useCategories()
+
+  // Filtrele stau in adresa paginii (ex: /?cat=ELECTRONICE&max=500), ca sa poata fi trimise ca link
+  // Filtrele sunt tinute local (sursa de adevar) si copiate in adresa paginii (ex: /?cat=ELECTRONICE&max=500),
+  // ca un link sa deschida aceleasi filtre. La deschiderea paginii se citesc din adresa.
+  const [params, setParams] = useSearchParams()
+  const [filters, setFilters] = useState(() => ({
+    cat: params.get('cat') ?? '',
+    q: params.get('q') ?? '',
+    min: params.get('min') ?? '',
+    max: params.get('max') ?? '',
+    sort: SORTS[params.get('sort')] ? params.get('sort') : 'ending',
+  }))
+  const { cat: category, q: search, min: minPrice, max: maxPrice, sort } = filters
+
+  useEffect(() => {
+    const next = new URLSearchParams()
+    for (const [key, value] of Object.entries(filters)) {
+      if (value && !(key === 'sort' && value === 'ending')) next.set(key, value)
+    }
+    // replace: tastarea in cautare nu umple istoricul browserului
+    setParams(next, { replace: true })
+  }, [filters, setParams])
+
+  const setFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }))
+  const clearFilters = () => setFilters((current) => ({ cat: '', q: '', min: '', max: '', sort: current.sort }))
 
   const load = useCallback(
     () =>
@@ -31,11 +64,22 @@ export default function Home() {
     return () => clearInterval(id)
   }, [load])
 
+  const all = items ?? []
   const term = search.trim().toLowerCase()
-  const visible = (items ?? []).filter(
-    (item) =>
-      !term || item.name.toLowerCase().includes(term) || (item.description ?? '').toLowerCase().includes(term),
-  )
+
+  // Filtrele de cautare si pret (fara categorie), ca sa putem afisa cate obiecte are fiecare categorie
+  const matchesOtherFilters = (item) =>
+    (!term || item.name.toLowerCase().includes(term) || (item.description ?? '').toLowerCase().includes(term)) &&
+    (!minPrice || Number(item.currentPrice) >= Number(minPrice)) &&
+    (!maxPrice || Number(item.currentPrice) <= Number(maxPrice))
+
+  const filteredWithoutCategory = all.filter(matchesOtherFilters)
+  const visible = filteredWithoutCategory
+    .filter((item) => !category || item.category === category)
+    .sort(SORTS[sort].compare)
+
+  const countFor = (code) => filteredWithoutCategory.filter((item) => item.category === code).length
+  const hasFilters = Boolean(category || term || minPrice || maxPrice)
 
   return (
     <div>
@@ -60,20 +104,67 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-slate-500">Cele care se termina cel mai repede sunt primele.</p>
-        <div className="sm:w-72">
-          <Input placeholder="Cauta un obiect..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
+      {/* Categorii */}
+      <div className="mt-8 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        <CategoryChip active={!category} onClick={() => setFilter('cat', '')}>
+          Toate <span className="opacity-60">{filteredWithoutCategory.length}</span>
+        </CategoryChip>
+        {categories.map((c) => (
+          <CategoryChip key={c.code} active={category === c.code} onClick={() => setFilter('cat', c.code)}>
+            {c.icon} {c.label} <span className="opacity-60">{countFor(c.code)}</span>
+          </CategoryChip>
+        ))}
       </div>
 
-      <div className="mt-6">
+      {/* Cautare, pret, sortare */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_9rem_9rem_12rem]">
+        <Input placeholder="Cauta un obiect..." value={search} onChange={(e) => setFilter('q', e.target.value)} />
+        <Input
+          type="number"
+          min="0"
+          placeholder="Pret minim"
+          value={minPrice}
+          onChange={(e) => setFilter('min', e.target.value)}
+        />
+        <Input
+          type="number"
+          min="0"
+          placeholder="Pret maxim"
+          value={maxPrice}
+          onChange={(e) => setFilter('max', e.target.value)}
+        />
+        <Select value={sort} onChange={(e) => setFilter('sort', e.target.value)}>
+          {Object.entries(SORTS).map(([key, s]) => (
+            <option key={key} value={key}>
+              {s.label}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      {items && (
+        <div className="mt-3 flex items-center justify-between text-sm text-slate-500">
+          <span>
+            {visible.length} {visible.length === 1 ? 'rezultat' : 'rezultate'}
+          </span>
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="font-semibold text-indigo-600 hover:text-indigo-500"
+            >
+              Sterge filtrele
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="mt-4">
         <Alert>{error}</Alert>
         {items === null && !error && <Loading />}
 
         {items && visible.length === 0 && (
-          <EmptyState title={term ? 'Niciun obiect nu se potriveste cautarii' : 'Nu exista licitatii active'}>
-            {!term && (
+          <EmptyState title={hasFilters ? 'Niciun obiect nu se potriveste filtrelor' : 'Nu exista licitatii active'}>
+            {!hasFilters && (
               <Link to="/sell" className="font-semibold text-indigo-600 hover:text-indigo-500">
                 Pune primul obiect la licitatie
               </Link>
@@ -88,5 +179,20 @@ export default function Home() {
         </div>
       </div>
     </div>
+  )
+}
+
+function CategoryChip({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition ${
+        active
+          ? 'bg-indigo-600 text-white shadow-sm'
+          : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-900'
+      }`}
+    >
+      {children}
+    </button>
   )
 }

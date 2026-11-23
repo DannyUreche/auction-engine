@@ -1,11 +1,13 @@
 import { Link } from 'react-router'
 import { formatPrice } from '../api.js'
+import { findCategory, useCategories } from '../categories.js'
 import Countdown from './Countdown.jsx'
 import ItemImage from './ItemImage.jsx'
 
 // Cardul unui obiect din liste (pagina principala, contul meu)
 export default function ItemCard({ item, extra }) {
   const hasBids = Number(item.currentPrice) > Number(item.startPrice)
+  const category = findCategory(useCategories(), item.category)
 
   return (
     <Link
@@ -25,7 +27,10 @@ export default function ItemCard({ item, extra }) {
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="line-clamp-1 font-semibold text-slate-900 group-hover:text-indigo-600">{item.name}</h3>
+        <p className="text-xs font-medium text-slate-400">
+          {category.icon} {category.label}
+        </p>
+        <h3 className="mt-0.5 line-clamp-1 font-semibold text-slate-900 group-hover:text-indigo-600">{item.name}</h3>
         <p className="mt-1 line-clamp-2 min-h-10 text-sm text-slate-500">{item.description || 'Fara descriere'}</p>
 
         <div className="mt-4 flex items-end justify-between border-t border-slate-100 pt-4">

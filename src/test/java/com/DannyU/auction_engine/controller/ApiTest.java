@@ -246,6 +246,39 @@ class ApiTest {
     }
 
     @Test
+    void obiectulAreCategorieIarImplicitEsteAltele() throws Exception {
+        User seller = createUser("vanzator");
+
+        postJson("/api/items", bearer(seller), """
+                {"name":"Telefon","startPrice":100,"category":"ELECTRONICE"}
+                """)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.category").value("ELECTRONICE"));
+
+        postJson("/api/items", bearer(seller), """
+                {"name":"Ceva","startPrice":100}
+                """)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.category").value("ALTELE"));
+
+        postJson("/api/items", bearer(seller), """
+                {"name":"Ceva","startPrice":100,"category":"NU_EXISTA"}
+                """)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.eroare").value("Cererea are un format invalid!"));
+    }
+
+    @Test
+    void listaCategoriilorEstePublica() throws Exception {
+        mockMvc.perform(get("/api/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(9))
+                .andExpect(jsonPath("$[0].code").value("ELECTRONICE"))
+                .andExpect(jsonPath("$[0].label").value("Electronice"))
+                .andExpect(jsonPath("$[8].code").value("ALTELE"));
+    }
+
+    @Test
     void pretulCumparaAcumTrebuieSaFieMaiMareDecatPornirea() throws Exception {
         User seller = createUser("vanzator");
 

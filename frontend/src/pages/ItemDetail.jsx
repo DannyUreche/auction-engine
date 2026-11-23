@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { api, checkImage, formatDate, formatPrice, IMAGE_TYPES, parseDate, uploadItemImage } from '../api.js'
 import { useAuth } from '../auth.jsx'
+import { findCategory, useCategories } from '../categories.js'
 import Countdown from '../components/Countdown.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
@@ -10,6 +11,7 @@ import { LiveBadge, useAuctionEvents } from '../events.jsx'
 export default function ItemDetail() {
   const { id } = useParams()
   const { user } = useAuth()
+  const categories = useCategories()
   // Mesaj venit de pe pagina "Vinde un obiect" (ex: imaginea nu s-a putut incarca)
   const warning = useLocation().state?.warning
   const [item, setItem] = useState(null)
@@ -82,6 +84,7 @@ export default function ItemDetail() {
   if (!item) return <Loading />
 
   const isSeller = item.seller?.id === user?.id
+  const category = findCategory(categories, item.category)
   const leadingBid = bids[0]
 
   return (
@@ -122,6 +125,7 @@ export default function ItemDetail() {
 
             <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3">
               <Detail label="Vanzator" value={item.seller?.username} />
+              <Detail label="Categorie" value={`${category.icon} ${category.label}`} />
               <Detail label="Pret de pornire" value={formatPrice(item.startPrice)} />
               <Detail label={item.active ? 'Se termina' : 'S-a terminat'} value={formatDate(item.endTime)} />
               {item.buyNowPrice && <Detail label="Cumpara acum" value={formatPrice(item.buyNowPrice)} />}
