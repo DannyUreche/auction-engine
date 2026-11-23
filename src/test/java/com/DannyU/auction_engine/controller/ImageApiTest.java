@@ -2,6 +2,7 @@ package com.DannyU.auction_engine.controller;
 
 import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.User;
+import com.DannyU.auction_engine.repository.ItemImageRepository;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.service.JwtService;
@@ -18,8 +19,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -31,16 +30,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// Teste pentru incarcarea si afisarea imaginilor. Imaginile de test se salveaza in target/test-uploads.
-@SpringBootTest(properties = "app.upload-dir=target/test-uploads")
+// Teste pentru incarcarea si afisarea imaginilor (salvate in baza de date; tranzactia e anulata la final)
+@SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 class ImageApiTest {
 
-    private static final Path UPLOAD_DIR = Path.of("target/test-uploads");
-
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private ItemImageRepository itemImageRepository;
     @Autowired
     private JwtService jwtService;
     @Autowired
@@ -91,8 +90,8 @@ class ImageApiTest {
         upload(item, seller, new MockMultipartFile("image", "b.png", "image/png", pngBytes())).andExpect(status().isOk());
 
         assertThat(item.getImageFilename()).isNotEqualTo(primul);
-        assertThat(Files.exists(UPLOAD_DIR.resolve(primul))).isFalse();
-        assertThat(Files.exists(UPLOAD_DIR.resolve(item.getImageFilename()))).isTrue();
+        assertThat(itemImageRepository.existsById(primul)).isFalse();
+        assertThat(itemImageRepository.existsById(item.getImageFilename())).isTrue();
     }
 
     @Test

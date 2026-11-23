@@ -1,0 +1,43 @@
+# Configurarea pentru Render (https://render.com) - "Blueprint".
+# In Render: New + -> Blueprint -> alegi repository-ul -> Apply. Se creeaza automat baza de date si serviciul web.
+
+databases:
+  - name: auction-db
+    plan: free
+    region: frankfurt
+    databaseName: auction_db
+    user: auction_user
+
+services:
+  - type: web
+    name: auction-engine
+    runtime: docker
+    plan: free
+    region: frankfurt
+    # Render verifica la aceasta adresa daca aplicatia a pornit
+    healthCheckPath: /api/items/active
+    envVars:
+      # Datele de conectare la baza de date, completate automat de Render
+      - key: DB_HOST
+        fromDatabase:
+          name: auction-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: auction-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: auction-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: auction-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: auction-db
+          property: password
+      # Secret JWT generat aleator de Render (nu apare nicaieri in cod)
+      - key: JWT_SECRET
+        generateValue: true

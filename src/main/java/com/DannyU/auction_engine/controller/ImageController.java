@@ -2,8 +2,6 @@ package com.DannyU.auction_engine.controller;
 
 import com.DannyU.auction_engine.service.ImageStorageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +21,13 @@ public class ImageController {
     private final ImageStorageService imageStorageService;
 
     @GetMapping("/{filename}")
-    public ResponseEntity<Resource> getImage(@PathVariable String filename) {
+    public ResponseEntity<byte[]> getImage(@PathVariable String filename) {
         return imageStorageService.find(filename)
-                .map(path -> ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(imageStorageService.contentType(filename)))
-                        // Numele fisierului se schimba la fiecare imagine noua, deci browserul o poate tine in cache
+                .map(image -> ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(image.getContentType()))
+                        // Numele se schimba la fiecare imagine noua, deci browserul o poate tine in cache
                         .cacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic())
-                        .<Resource>body(new FileSystemResource(path)))
+                        .body(image.getData()))
                 .orElse(ResponseEntity.notFound().build());
     }
 }

@@ -49,8 +49,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**").permitAll()
                         // Evenimentele in timp real (EventSource nu poate trimite token-ul)
                         .requestMatchers(HttpMethod.GET, "/api/events").permitAll()
-                        // ORICE ALTA RUTA necesită acum un token JWT valid!
-                        .anyRequest().authenticated()
+                        // Orice alta ruta din API necesita un token JWT valid
+                        .requestMatchers("/api/**").authenticated()
+                        // Restul sunt fisierele interfetei React (index.html, /assets/...) si paginile ei - publice
+                        .anyRequest().permitAll()
                 )
                 // Fara token valid raspundem cu 401 si un mesaj in acelasi format ca restul erorilor
                 .exceptionHandling(ex -> ex

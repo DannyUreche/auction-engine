@@ -20,6 +20,12 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 - All HTTP calls go through `frontend/src/api.js` (adds the JWT from localStorage, turns `{"eroare": ...}` into thrown `Error`s, fires `auth:expired` on 401). Auth state lives in `frontend/src/auth.jsx`.
 - UI text is Romanian without diacritics, same as the backend.
 
+## Deployment (Render)
+
+- `render.yaml` (Blueprint) creates a free Postgres `auction-db` and a Docker web service `auction-engine`, region Frankfurt. Env vars `DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD` come from the DB, `JWT_SECRET` is generated; `PORT` is set by Render. Locally all of these fall back to the defaults in `application.properties`.
+- `Dockerfile` builds the React app, copies `frontend/dist` into `src/main/resources/static`, and packages one Spring Boot jar (tests skipped in Docker — they need Postgres). In production there is no Vite: Spring serves the UI; `SpaController` forwards React routes (`/items/{id}`, `/login`, ...) to `index.html`. When adding a new React route, add it there too.
+- Render deploys automatically on every push to `main`.
+
 ## Database
 
 - Schema is owned by Flyway (`src/main/resources/db/migration/V<n>__*.sql`); Hibernate runs with `ddl-auto=validate`. Any entity change needs a new migration with the next version number — never edit an existing migration.
@@ -34,7 +40,7 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 ## Known gotchas
 
 - `AuctionScheduler` closes expired auctions every 60s and sets `Item.winner` from the highest bid.
-- Item images: one per item, stored as files in `app.upload-dir` (default `uploads/`, git-ignored; tests use `target/test-uploads`), DB keeps only `items.image_filename` (exposed in JSON as `imageUrl`). Upload `POST /api/items/{id}/image` (multipart field `image`, seller only, max 5 MB, type detected from magic bytes in `ImageStorageService`); `GET /api/images/**` is public because `<img>` can't send the JWT.
+- Item images: one per item, stored in the DB table `item_images` (bytea, V9) because Render's free plan has no persistent disk; `items.image_filename` is an FK to it (exposed in JSON as `imageUrl`). The old `uploads/` folder is no longer used. Upload `POST /api/items/{id}/image` (multipart field `image`, seller only, max 5 MB, type detected from magic bytes in `ImageStorageService`); `GET /api/images/**` is public because `<img>` can't send the JWT.
 - Live updates: `BidService` and `AuctionScheduler` publish an `AuctionEvent` (`bid` / `closed`); `AuctionEventService` forwards it via `@TransactionalEventListener(AFTER_COMMIT)` to all `SseEmitter`s from `GET /api/events` (public, Server-Sent Events, 25s heartbeat). Frontend subscribes with `useAuctionEvents` in `frontend/src/events.jsx`; polling (30s) remains only as a fallback.
 - User objects nested in items/bids (`seller`, `winner`, `bidder`) hide `email` via `@JsonIgnoreProperties`; only `/api/users/me` returns it.
 - All ids are `Integer` end to end (DB `SERIAL`, entities, repositories, controllers); don't introduce `Long` ids.
