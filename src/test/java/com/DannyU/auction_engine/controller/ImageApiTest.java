@@ -20,17 +20,20 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// Teste pentru incarcarea si afisarea imaginilor (salvate in baza de date; tranzactia e anulata la final)
+// Teste pentru pozele obiectelor (maxim 5, salvate in baza de date; tranzactia e anulata la final)
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -81,17 +84,65 @@ class ImageApiTest {
     }
 
     @Test
-    void imagineaNouaOInlocuiestePeCeaVeche() throws Exception {
+    void pozeleSeAdaugaInOrdineSiSuntMaxim5() throws Exception {
         User seller = createUser("vanzator");
         Item item = createItem(seller);
 
-        upload(item, seller, new MockMultipartFile("image", "a.png", "image/png", pngBytes())).andExpect(status().isOk());
-        String primul = item.getImageFilename();
-        upload(item, seller, new MockMultipartFile("image", "b.png", "image/png", pngBytes())).andExpect(status().isOk());
+        for (int i = 0; i < Item.MAX_IMAGES; i++) {
+            uploadPng(item, seller).andExpect(status().isOk());
+        }
+        List<String> poze = item.getImageFilenames();
+        assertThat(poze).hasSize(5).doesNotHaveDuplicates();
 
-        assertThat(item.getImageFilename()).isNotEqualTo(primul);
-        assertThat(itemImageRepository.existsById(primul)).isFalse();
-        assertThat(itemImageRepository.existsById(item.getImageFilename())).isTrue();
+        // Prima poza adaugata e poza principala (cea de pe card)
+        mockMvc.perform(get("/api/items/" + item.getId()))
+                .andExpect(jsonPath("$.imageUrls.length()").value(5))
+                .andExpect(jsonPath("$.imageUrls[0]").value("/api/images/" + poze.getFirst()))
+                .andExpect(jsonPath("$.imageUrl").value("/api/images/" + poze.getFirst()))
+                .andExpect(jsonPath("$.imageFilenames").doesNotExist());
+
+        uploadPng(item, seller)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.eroare").value("Un obiect poate avea maxim 5 poze!"));
+    }
+
+    @Test
+    void stergereaUneiPozeOEliminaSiDinBazaDeDate() throws Exception {
+        User seller = createUser("vanzator");
+        Item item = createItem(seller);
+        uploadPng(item, seller).andExpect(status().isOk());
+        uploadPng(item, seller).andExpect(status().isOk());
+        String prima = item.getImageFilenames().get(0);
+        String aDoua = item.getImageFilenames().get(1);
+
+        mockMvc.perform(delete("/api/items/" + item.getId() + "/images/" + prima).header("Authorization", bearer(seller)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageUrls.length()").value(1))
+                .andExpect(jsonPath("$.imageUrl").value("/api/images/" + aDoua));
+
+        assertThat(itemImageRepository.existsById(prima)).isFalse();
+        assertThat(itemImageRepository.existsById(aDoua)).isTrue();
+
+        mockMvc.perform(delete("/api/items/" + item.getId() + "/images/" + prima).header("Authorization", bearer(seller)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.eroare").value("Poza nu a fost gasita!"));
+    }
+
+    @Test
+    void oricarePozaPoateDeveniPozaPrincipala() throws Exception {
+        User seller = createUser("vanzator");
+        Item item = createItem(seller);
+        for (int i = 0; i < 3; i++) {
+            uploadPng(item, seller).andExpect(status().isOk());
+        }
+        List<String> inainte = List.copyOf(item.getImageFilenames());
+
+        mockMvc.perform(post("/api/items/" + item.getId() + "/images/" + inainte.get(2) + "/main")
+                        .header("Authorization", bearer(seller)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageUrl").value("/api/images/" + inainte.get(2)));
+
+        assertThat(item.getImageFilenames()).containsExactly(inainte.get(2), inainte.get(0), inainte.get(1));
     }
 
     @Test
@@ -102,7 +153,14 @@ class ImageApiTest {
 
         upload(item, altul, new MockMultipartFile("image", "poza.png", "image/png", pngBytes()))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.eroare").value("Doar vanzatorul poate schimba imaginea obiectului!"));
+                .andExpect(jsonPath("$.eroare").value("Doar vanzatorul poate schimba pozele obiectului!"));
+
+        uploadPng(item, seller).andExpect(status().isOk());
+        mockMvc.perform(delete("/api/items/" + item.getId() + "/images/" + item.getImageFilenames().getFirst())
+                        .header("Authorization", bearer(altul)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.eroare").value("Doar vanzatorul poate schimba pozele obiectului!"));
+        assertThat(item.getImageFilenames()).hasSize(1);
     }
 
     @Test
@@ -120,7 +178,7 @@ class ImageApiTest {
         User seller = createUser("vanzator");
         Item item = createItem(seller);
 
-        mockMvc.perform(multipart("/api/items/" + item.getId() + "/image").header("Authorization", bearer(seller)))
+        mockMvc.perform(multipart("/api/items/" + item.getId() + "/images").header("Authorization", bearer(seller)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.eroare").value("Imaginea este obligatorie!"));
     }
@@ -130,7 +188,7 @@ class ImageApiTest {
         User seller = createUser("vanzator");
         Item item = createItem(seller);
 
-        mockMvc.perform(multipart("/api/items/" + item.getId() + "/image")
+        mockMvc.perform(multipart("/api/items/" + item.getId() + "/images")
                         .file(new MockMultipartFile("image", "poza.png", "image/png", pngBytes())))
                 .andExpect(status().isUnauthorized());
     }
@@ -145,9 +203,13 @@ class ImageApiTest {
     // ---------- Metode ajutatoare ----------
 
     private ResultActions upload(Item item, User user, MockMultipartFile file) throws Exception {
-        return mockMvc.perform(multipart("/api/items/" + item.getId() + "/image")
+        return mockMvc.perform(multipart("/api/items/" + item.getId() + "/images")
                 .file(file)
                 .header("Authorization", bearer(user)));
+    }
+
+    private ResultActions uploadPng(Item item, User user) throws Exception {
+        return upload(item, user, new MockMultipartFile("image", "poza.png", "image/png", pngBytes()));
     }
 
     private static byte[] pngBytes() throws Exception {

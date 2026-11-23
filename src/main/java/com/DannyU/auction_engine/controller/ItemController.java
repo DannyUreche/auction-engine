@@ -41,27 +41,52 @@ public class ItemController {
         return bidService.buyNow(id, authentication.getName());
     }
 
-    // Incarcarea (sau inlocuirea) imaginii unui obiect - doar de catre vanzator
-    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Item uploadImage(@PathVariable Integer id,
-                            @RequestParam("image") MultipartFile image,
-                            Authentication authentication) {
+    // ---------- Pozele obiectului (maxim Item.MAX_IMAGES) - le poate schimba doar vanzatorul ----------
+
+    // Adauga o poza la sfarsitul listei (prima poza adaugata devine poza principala)
+    @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Item addImage(@PathVariable Integer id,
+                         @RequestParam("image") MultipartFile image,
+                         Authentication authentication) {
+        Item item = findOwnItem(id, authentication);
+        if (item.getImageFilenames().size() >= Item.MAX_IMAGES) {
+            throw new IllegalArgumentException("Un obiect poate avea maxim " + Item.MAX_IMAGES + " poze!");
+        }
+        item.getImageFilenames().add(imageStorageService.store(image));
+        return itemRepository.save(item);
+    }
+
+    // Sterge o poza (filename = ultima parte din imageUrl, ex: 3f2a...c1.jpg)
+    @DeleteMapping("/{id}/images/{filename}")
+    public Item deleteImage(@PathVariable Integer id, @PathVariable String filename, Authentication authentication) {
+        Item item = findOwnItem(id, authentication);
+        if (!item.getImageFilenames().remove(filename)) {
+            throw new IllegalArgumentException("Poza nu a fost gasita!");
+        }
+        Item saved = itemRepository.saveAndFlush(item);
+        // Imaginea se sterge abia dupa ce obiectul nu o mai foloseste (cheie straina)
+        imageStorageService.delete(filename);
+        return saved;
+    }
+
+    // Muta poza pe primul loc: devine poza principala, afisata pe card
+    @PostMapping("/{id}/images/{filename}/main")
+    public Item setMainImage(@PathVariable Integer id, @PathVariable String filename, Authentication authentication) {
+        Item item = findOwnItem(id, authentication);
+        if (!item.getImageFilenames().remove(filename)) {
+            throw new IllegalArgumentException("Poza nu a fost gasita!");
+        }
+        item.getImageFilenames().addFirst(filename);
+        return itemRepository.save(item);
+    }
+
+    private Item findOwnItem(Integer id, Authentication authentication) {
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
-
         if (!item.getSeller().getUsername().equals(authentication.getName())) {
-            throw new IllegalArgumentException("Doar vanzatorul poate schimba imaginea obiectului!");
+            throw new IllegalArgumentException("Doar vanzatorul poate schimba pozele obiectului!");
         }
-
-        String oldImage = item.getImageFilename();
-        item.setImageFilename(imageStorageService.store(image));
-        Item saved = itemRepository.save(item);
-
-        // Stergem imaginea veche abia dupa ce noua a fost salvata
-        if (oldImage != null) {
-            imageStorageService.delete(oldImage);
-        }
-        return saved;
+        return item;
     }
 
     @GetMapping

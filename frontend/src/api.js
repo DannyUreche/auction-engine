@@ -41,12 +41,25 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   return data
 }
 
-// Incarca imaginea unui obiect (doar vanzatorul are voie)
+// ---------- Pozele unui obiect (doar vanzatorul are voie); fiecare intoarce obiectul actualizat ----------
+
+export const MAX_IMAGES = 5
+
+// Adauga o poza la sfarsitul listei
 export function uploadItemImage(itemId, file) {
   const form = new FormData()
   form.append('image', file)
-  return api(`/items/${itemId}/image`, { method: 'POST', body: form })
+  return api(`/items/${itemId}/images`, { method: 'POST', body: form })
 }
+
+// imageUrl arata ca /api/images/<nume-fisier>; serverul are nevoie doar de numele fisierului
+const imageName = (imageUrl) => imageUrl.split('/').pop()
+
+export const deleteItemImage = (itemId, imageUrl) =>
+  api(`/items/${itemId}/images/${imageName(imageUrl)}`, { method: 'DELETE' })
+
+export const setMainItemImage = (itemId, imageUrl) =>
+  api(`/items/${itemId}/images/${imageName(imageUrl)}/main`, { method: 'POST' })
 
 // Aceleasi reguli ca pe server, ca utilizatorul sa afle imediat daca fisierul nu e bun
 export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']

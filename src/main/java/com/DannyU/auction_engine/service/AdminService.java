@@ -64,15 +64,15 @@ public class AdminService {
         return toRow(item);
     }
 
-    // Sterge obiectul impreuna cu ofertele si imaginea lui
+    // Sterge obiectul impreuna cu ofertele si pozele lui (urmaririle se sterg singure: ON DELETE CASCADE)
     @Transactional
     public void deleteItem(Integer itemId) {
-        String image = findItem(itemId).getImageFilename();
+        List<String> images = List.copyOf(findItem(itemId).getImageFilenames());
         bidRepository.deleteAllForItem(itemId);
         itemRepository.deleteById(itemId);
         itemRepository.flush();
-        // Imaginea se sterge abia dupa obiect (obiectul o referea printr-o cheie straina)
-        imageStorageService.delete(image);
+        // Pozele se sterg abia dupa obiect (obiectul le referea printr-o cheie straina)
+        images.forEach(imageStorageService::delete);
         eventPublisher.publishEvent(AuctionEvent.deleted(itemId));
     }
 

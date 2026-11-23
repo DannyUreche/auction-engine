@@ -4,11 +4,13 @@ import { api, formatDate, formatPrice } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import ItemCard from '../components/ItemCard.jsx'
 import { Alert, Badge, Card, EmptyState, Loading } from '../components/ui.jsx'
+import { useWatchlist } from '../watchlist.jsx'
 
 const TABS = [
   { key: 'items', label: 'Obiectele mele' },
   { key: 'bids', label: 'Ofertele mele' },
   { key: 'won', label: 'Castigate' },
+  { key: 'watched', label: 'Urmarite' },
 ]
 
 export default function Account() {
@@ -16,6 +18,7 @@ export default function Account() {
   const [tab, setTab] = useState('items')
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
+  const watchlist = useWatchlist()
 
   useEffect(() => {
     Promise.all([api('/items/my'), api('/bids/my'), api('/items/won')])
@@ -37,17 +40,21 @@ export default function Account() {
         </div>
       </div>
 
-      <div className="mt-8 flex gap-1 rounded-xl bg-slate-100 p-1 sm:inline-flex">
+      <div className="mt-8 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1 sm:inline-flex">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition sm:flex-none ${
+            className={`flex-1 shrink-0 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition sm:flex-none sm:px-4 ${
               tab === t.key ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             {t.label}
-            {data && <span className="ml-1.5 text-slate-400">{data[t.key].length}</span>}
+            {data && (
+              <span className="ml-1.5 text-slate-400">
+                {t.key === 'watched' ? watchlist.items.length : data[t.key].length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -58,6 +65,7 @@ export default function Account() {
         {data && tab === 'items' && <MyItems items={data.items} />}
         {data && tab === 'bids' && <MyBids bids={data.bids} userId={user?.id} />}
         {data && tab === 'won' && <WonItems items={data.won} />}
+        {data && tab === 'watched' && <WatchedItems items={watchlist.items} loaded={watchlist.loaded} />}
       </div>
     </div>
   )
@@ -148,6 +156,25 @@ function WonItems({ items }) {
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
         <ItemCard key={item.id} item={item} extra={<Badge tone="amber">🏆 Castigat</Badge>} />
+      ))}
+    </div>
+  )
+}
+
+// Obiectele urmarite (lista vine din WatchlistProvider, ca sa se actualizeze imediat la ♥)
+function WatchedItems({ items, loaded }) {
+  if (!loaded) return <Loading />
+  if (items.length === 0) {
+    return (
+      <EmptyState title="Nu urmaresti inca niciun obiect">
+        Apasa pe ♥ la un obiect ca sa-l urmaresti: primesti o notificare cand cineva liciteaza.
+      </EmptyState>
+    )
+  }
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((item) => (
+        <ItemCard key={item.id} item={item} />
       ))}
     </div>
   )

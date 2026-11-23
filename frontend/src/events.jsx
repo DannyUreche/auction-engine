@@ -1,31 +1,61 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Asculta evenimentele in timp real de la server (/api/events) si apeleaza onEvent pentru fiecare.
+// O singura conexiune la /api/events pentru toata pagina, impartita intre toate componentele care asculta.
+// (Browserul permite doar cateva conexiuni deschise in acelasi timp catre un server; cu cate o conexiune
+// pentru fiecare componenta, cateva taburi deschise ar bloca restul cererilor.)
+const listeners = new Set()
+const statusListeners = new Set()
+let source = null
+let connected = false
+
+function setConnected(value) {
+  connected = value
+  statusListeners.forEach((listener) => listener(value))
+}
+
+function subscribe(listener, onStatus) {
+  listeners.add(listener)
+  statusListeners.add(onStatus)
+
+  if (!source) {
+    source = new EventSource('/api/events')
+    const forward = (type) => (message) => {
+      const event = { type, ...JSON.parse(message.data) }
+      listeners.forEach((l) => l(event))
+    }
+    source.addEventListener('connected', () => setConnected(true))
+    for (const type of ['bid', 'closed', 'deleted']) source.addEventListener(type, forward(type))
+    source.onerror = () => setConnected(false)
+  }
+  onStatus(connected)
+
+  return () => {
+    listeners.delete(listener)
+    statusListeners.delete(onStatus)
+    // Nimeni nu mai asculta: inchidem conexiunea
+    if (listeners.size === 0) {
+      source.close()
+      source = null
+      connected = false
+    }
+  }
+}
+
+// Asculta evenimentele in timp real de la server si apeleaza onEvent pentru fiecare.
 // Evenimente: { type: 'bid' | 'closed' | 'deleted', itemId, amount, username }
 // Intoarce true cat timp conexiunea este activa. EventSource se reconecteaza singur daca pica.
 export function useAuctionEvents(onEvent) {
   const handlerRef = useRef(onEvent)
-  const [connected, setConnected] = useState(false)
+  const [isConnected, setIsConnected] = useState(false)
 
   // Pastram mereu ultima versiune a functiei, fara sa redeschidem conexiunea
   useEffect(() => {
     handlerRef.current = onEvent
   })
 
-  useEffect(() => {
-    const source = new EventSource('/api/events')
-    const forward = (type) => (message) => handlerRef.current({ type, ...JSON.parse(message.data) })
+  useEffect(() => subscribe((event) => handlerRef.current(event), setIsConnected), [])
 
-    source.addEventListener('connected', () => setConnected(true))
-    source.addEventListener('bid', forward('bid'))
-    source.addEventListener('closed', forward('closed'))
-    source.addEventListener('deleted', forward('deleted'))
-    source.onerror = () => setConnected(false)
-
-    return () => source.close()
-  }, [])
-
-  return connected
+  return isConnected
 }
 
 // Mic indicator "Live" care arata ca pagina primeste actualizari instant

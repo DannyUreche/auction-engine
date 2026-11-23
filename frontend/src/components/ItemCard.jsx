@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { formatPrice } from '../api.js'
 import { findCategory, useCategories } from '../categories.js'
+import { WatchButton } from '../watchlist.jsx'
 import Countdown from './Countdown.jsx'
 import ItemImage from './ItemImage.jsx'
 
@@ -16,6 +17,9 @@ export default function ItemCard({ item, extra }) {
     >
       <div className="relative overflow-hidden">
         <ItemImage item={item} className="aspect-[4/3] w-full transition duration-300 group-hover:scale-105" />
+        <div className="absolute top-3 left-3">
+          <WatchButton item={item} />
+        </div>
         <div className="absolute top-3 right-3 rounded-full shadow-sm">
           <Countdown endTime={item.endTime} active={item.active} />
         </div>

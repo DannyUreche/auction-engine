@@ -129,6 +129,22 @@ Authorization: Bearer {{loginVanzator.response.body.$.token}}
 GET {{baseUrl}}/api/bids/my
 Authorization: Bearer {{loginCumparator.response.body.$.token}}
 
+### Cumparatorul urmareste obiectul (lista de favorite, "Urmaresc")
+POST {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/watch
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### Obiectele urmarite de cumparator
+GET {{baseUrl}}/api/items/watched
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### EROARE asteptata: vanzatorul isi urmareste propriul obiect (400)
+POST {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/watch
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+### Cumparatorul nu mai urmareste obiectul
+DELETE {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/watch
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
 
 ### ---------- 4. Dupa inchiderea licitatiei ----------
 ### Asteapta ~2-3 minute (durata + verificarea care ruleaza o data pe minut)

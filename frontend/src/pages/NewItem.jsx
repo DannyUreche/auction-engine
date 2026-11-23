@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { api, uploadItemImage } from '../api.js'
+import { api, MAX_IMAGES, uploadItemImage } from '../api.js'
 import { useCategories } from '../categories.js'
 import ImagePicker from '../components/ImagePicker.jsx'
 import { Alert, Button, Card, Field, Input, Select, Textarea } from '../components/ui.jsx'
@@ -26,7 +26,7 @@ export default function NewItem() {
     buyNowPrice: '',
     durationInMinutes: '60',
   })
-  const [image, setImage] = useState(null)
+  const [images, setImages] = useState([])
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -54,16 +54,22 @@ export default function NewItem() {
       return
     }
 
-    // Obiectul exista deja; daca imaginea nu se incarca, vanzatorul poate reincerca de pe pagina obiectului
-    if (image) {
+    // Obiectul exista deja: pozele se incarca pe rand, in ordinea aleasa (prima = poza principala).
+    // Cele care nu se incarca pot fi adaugate din nou de pe pagina obiectului.
+    let failed = 0
+    let lastError = ''
+    for (const file of images) {
       try {
-        await uploadItemImage(item.id, image)
+        await uploadItemImage(item.id, file)
       } catch (err) {
-        navigate(`/items/${item.id}`, {
-          state: { warning: `Licitatia a pornit, dar imaginea nu a putut fi incarcata: ${err.message}` },
-        })
-        return
+        failed++
+        lastError = err.message
       }
+    }
+    if (failed > 0) {
+      const what = failed === 1 ? 'o poza nu a putut fi incarcata' : `${failed} poze nu au putut fi incarcate`
+      navigate(`/items/${item.id}`, { state: { warning: `Licitatia a pornit, dar ${what}: ${lastError}` } })
+      return
     }
     navigate(`/items/${item.id}`)
   }
@@ -80,8 +86,10 @@ export default function NewItem() {
           <Alert>{error}</Alert>
 
           <div>
-            <span className="mb-1.5 block text-sm font-medium text-slate-700">Imagine (optionala)</span>
-            <ImagePicker file={image} onChange={setImage} onError={setError} />
+            <span className="mb-1.5 block text-sm font-medium text-slate-700">
+              Poze (optionale, maxim {MAX_IMAGES})
+            </span>
+            <ImagePicker files={images} onChange={setImages} onError={setError} />
           </div>
 
           <Field label="Nume" hint="Maxim 100 de caractere">

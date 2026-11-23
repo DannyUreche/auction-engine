@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
-import { api, checkImage, formatDate, formatPrice, IMAGE_TYPES, parseDate, uploadItemImage } from '../api.js'
+import {
+  api,
+  checkImage,
+  deleteItemImage,
+  formatDate,
+  formatPrice,
+  IMAGE_TYPES,
+  MAX_IMAGES,
+  parseDate,
+  setMainItemImage,
+  uploadItemImage,
+} from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { findCategory, useCategories } from '../categories.js'
 import Countdown from '../components/Countdown.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
 import { LiveBadge, useAuctionEvents } from '../events.jsx'
+import { WatchButton } from '../watchlist.jsx'
 
 export default function ItemDetail() {
   const { id } = useParams()
@@ -113,14 +125,17 @@ export default function ItemDetail() {
       <div className="mt-4 grid gap-6 lg:grid-cols-3">
         {/* Detaliile obiectului */}
         <div className="space-y-6 lg:col-span-2">
-          <ImageSection item={item} isSeller={isSeller} onUploaded={setItem} />
+          <Gallery item={item} isSeller={isSeller} onChange={setItem} />
 
           <Card>
             <div className="flex flex-wrap items-center gap-2">
               <Countdown endTime={item.endTime} active={item.active} />
               {isSeller && <Badge tone="indigo">Obiectul tau</Badge>}
             </div>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">{item.name}</h1>
+            <div className="mt-3 flex items-start justify-between gap-4">
+              <h1 className="min-w-0 text-3xl font-bold tracking-tight break-words text-slate-900">{item.name}</h1>
+              <WatchButton item={item} large />
+            </div>
             <p className="mt-4 whitespace-pre-line text-slate-600">{item.description || 'Fara descriere.'}</p>
 
             <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3">
@@ -196,66 +211,175 @@ export default function ItemDetail() {
   )
 }
 
-// Imaginea mare a obiectului; vanzatorul o poate adauga sau schimba
-function ImageSection({ item, isSeller, onUploaded }) {
+// Galeria de poze: poza mare, sageti si miniaturi.
+// Vanzatorul poate adauga poze (maxim MAX_IMAGES), sterge poza afisata sau o poate face poza principala.
+function Gallery({ item, isSeller, onChange }) {
+  const urls = item.imageUrls ?? []
   const inputRef = useRef(null)
-  const [uploading, setUploading] = useState(false)
+  const [selected, setSelected] = useState(0)
+  const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  // Dupa stergerea unei poze, pozitia aleasa poate iesi din lista
+  const current = Math.min(selected, Math.max(urls.length - 1, 0))
 
-  async function handleFile(file) {
-    if (!file) return
-    const problem = checkImage(file)
+  async function run(action) {
+    setError('')
+    setBusy(true)
+    try {
+      await action()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function addFiles(fileList) {
+    const files = [...(fileList ?? [])]
+    if (files.length === 0) return
+    const problem = files.map(checkImage).find(Boolean)
     if (problem) {
       setError(problem)
       return
     }
-    setError('')
-    setUploading(true)
-    try {
-      onUploaded(await uploadItemImage(item.id, file))
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setUploading(false)
-    }
+    const room = MAX_IMAGES - urls.length
+    run(async () => {
+      for (const file of files.slice(0, room)) onChange(await uploadItemImage(item.id, file))
+      // Aratam prima poza noua
+      setSelected(urls.length)
+      if (files.length > room) setError(`Un obiect poate avea maxim ${MAX_IMAGES} poze!`)
+    })
   }
 
-  // Cumparatorii nu vad nimic daca obiectul nu are imagine
-  if (!item.imageUrl && !isSeller) return null
+  function removeCurrent() {
+    if (!window.confirm('Stergi aceasta poza?')) return
+    run(async () => onChange(await deleteItemImage(item.id, urls[current])))
+  }
+
+  function makeCurrentMain() {
+    run(async () => {
+      onChange(await setMainItemImage(item.id, urls[current]))
+      setSelected(0)
+    })
+  }
+
+  // Cumparatorii nu vad nimic daca obiectul nu are poze
+  if (urls.length === 0 && !isSeller) return null
+
+  const go = (step) => setSelected((current + step + urls.length) % urls.length)
 
   return (
     <div>
       <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-        <ItemImage item={item} className="aspect-[16/10] w-full" />
+        {urls.length > 0 ? (
+          <img src={urls[current]} alt={item.name} className="aspect-[16/10] w-full bg-slate-100 object-contain" />
+        ) : (
+          <ItemImage item={item} className="aspect-[16/10] w-full" />
+        )}
+
+        {urls.length > 1 && (
+          <>
+            <ArrowButton label="Poza anterioara" className="left-3" onClick={() => go(-1)}>
+              ‹
+            </ArrowButton>
+            <ArrowButton label="Poza urmatoare" className="right-3" onClick={() => go(1)}>
+              ›
+            </ArrowButton>
+            <span className="absolute top-4 left-4 rounded-full bg-slate-900/70 px-2.5 py-0.5 text-xs font-semibold text-white">
+              {current + 1} / {urls.length}
+            </span>
+          </>
+        )}
+
         {isSeller && (
           <>
             <input
               ref={inputRef}
               type="file"
+              multiple
               accept={IMAGE_TYPES.join(',')}
               className="hidden"
               onChange={(e) => {
-                handleFile(e.target.files?.[0])
+                addFiles(e.target.files)
                 e.target.value = ''
               }}
             />
-            <Button
-              variant="secondary"
-              loading={uploading}
-              onClick={() => inputRef.current.click()}
-              className="absolute right-4 bottom-4 bg-white/90 backdrop-blur"
-            >
-              {item.imageUrl ? 'Schimba imaginea' : 'Adauga o imagine'}
-            </Button>
+            {urls.length < MAX_IMAGES && (
+              <Button
+                variant="secondary"
+                loading={busy}
+                onClick={() => inputRef.current.click()}
+                className="absolute right-4 bottom-4 bg-white/90 backdrop-blur"
+              >
+                {urls.length === 0 ? 'Adauga poze' : `Adauga poze (${urls.length}/${MAX_IMAGES})`}
+              </Button>
+            )}
           </>
         )}
       </div>
+
+      {urls.length > 1 && (
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          {urls.map((url, index) => (
+            <button
+              key={url}
+              type="button"
+              onClick={() => setSelected(index)}
+              aria-label={`Poza ${index + 1}`}
+              className={`shrink-0 overflow-hidden rounded-lg ring-2 transition ${
+                index === current ? 'ring-indigo-500' : 'opacity-70 ring-transparent hover:opacity-100'
+              }`}
+            >
+              <img src={url} alt="" className="h-16 w-20 object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {isSeller && urls.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+          {current === 0 ? (
+            <span className="text-slate-500">★ Poza principala (apare pe card)</span>
+          ) : (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={makeCurrentMain}
+              className="font-semibold text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+            >
+              ★ Fa-o poza principala
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={removeCurrent}
+            className="font-semibold text-red-600 hover:text-red-500 disabled:opacity-50"
+          >
+            Sterge poza
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className="mt-3">
           <Alert>{error}</Alert>
         </div>
       )}
     </div>
+  )
+}
+
+function ArrowButton({ label, className, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className={`absolute top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 pb-0.5 text-2xl font-bold text-slate-700 shadow-sm backdrop-blur transition hover:bg-white ${className}`}
+    >
+      {children}
+    </button>
   )
 }
 
