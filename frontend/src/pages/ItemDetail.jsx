@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
-import { api, checkImage, formatDate, formatPrice, IMAGE_TYPES, uploadItemImage } from '../api.js'
+import { api, checkImage, formatDate, formatPrice, IMAGE_TYPES, parseDate, uploadItemImage } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import Countdown from '../components/Countdown.jsx'
 import ItemImage from '../components/ItemImage.jsx'
@@ -39,7 +39,7 @@ export default function ItemDetail() {
   const previousEnd = useRef(null)
   useEffect(() => {
     if (!item) return
-    if (previousEnd.current && item.active && new Date(item.endTime) > new Date(previousEnd.current)) {
+    if (previousEnd.current && item.active && parseDate(item.endTime) > parseDate(previousEnd.current)) {
       setNotice('Oferta de ultim moment: licitatia a fost prelungita cu 2 minute!')
     }
     previousEnd.current = item.endTime
@@ -314,7 +314,7 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
     return <p className="text-sm text-slate-500">Acesta este obiectul tau. Urmareste ofertele in timp real.</p>
   }
 
-  if (new Date(item.endTime) <= new Date()) {
+  if (parseDate(item.endTime) <= new Date()) {
     return <p className="text-sm text-slate-500">Timpul a expirat. Licitatia se inchide in cateva secunde.</p>
   }
 

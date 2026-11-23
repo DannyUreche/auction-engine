@@ -61,5 +61,12 @@ export function checkImage(file) {
 export const formatPrice = (value) =>
   new Intl.NumberFormat('ro-RO', { style: 'currency', currency: 'RON' }).format(value)
 
+// Serverul trimite orele in UTC, dar fara fus orar (ex: "2026-11-23T22:05:00").
+// Fara "Z" la final, browserul le-ar citi ca ora locala si ar gresi cu cateva ore.
+export function parseDate(value) {
+  if (!value) return null
+  return new Date(/[zZ]|[+-]\d\d:\d\d$/.test(value) ? value : `${value}Z`)
+}
+
 export const formatDate = (value) =>
-  new Intl.DateTimeFormat('ro-RO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+  new Intl.DateTimeFormat('ro-RO', { dateStyle: 'medium', timeStyle: 'short' }).format(parseDate(value))

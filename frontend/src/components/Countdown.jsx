@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { parseDate } from '../api.js'
 import { Badge } from './ui.jsx'
 
 // Ora curenta, actualizata la fiecare secunda
@@ -25,7 +26,7 @@ function formatRemaining(ms) {
 // Timpul ramas pana la finalul licitatiei
 export default function Countdown({ endTime, active }) {
   const now = useNow()
-  const remaining = new Date(endTime).getTime() - now
+  const remaining = parseDate(endTime).getTime() - now
 
   if (!active) return <Badge tone="gray">Incheiata</Badge>
   // Timpul a expirat, dar serverul inca n-a inchis licitatia (verifica o data pe minut)
