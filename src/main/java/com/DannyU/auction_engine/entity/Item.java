@@ -33,4 +33,8 @@ public class Item {
     // Timpul cand se termina licitatia
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
+
+    // Statusul licitatiei: true (deschisa), false (inchisa)
+    @Column(nullable = false)
+    private Boolean active = true;
 }
