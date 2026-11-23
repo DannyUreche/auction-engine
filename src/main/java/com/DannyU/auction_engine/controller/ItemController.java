@@ -6,6 +6,7 @@ import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -26,8 +27,9 @@ public class ItemController {
     }
 
     @PostMapping
-    public Item createItem(@RequestBody ItemRequest request) {
-        User seller = userRepository.findById(request.getSellerId())
+    public Item createItem(@RequestBody ItemRequest request, Authentication authentication) {
+        // Luam utilizatorul logat direct din JWT
+        User seller = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException("Vanzatorul nu exista!"));
 
         Item newItem = new Item();
@@ -37,7 +39,6 @@ public class ItemController {
         newItem.setCurrentPrice(request.getStartPrice());
         newItem.setSeller(seller);
 
-        // NOU: Setam timpul de expirare (ora curenta + minutele cerute). Daca nu specifica, punem 60 min default.
         int minutes = (request.getDurationInMinutes() != null && request.getDurationInMinutes() > 0)
                 ? request.getDurationInMinutes() : 60;
         newItem.setEndTime(LocalDateTime.now().plusMinutes(minutes));
@@ -50,7 +51,6 @@ public class ItemController {
         private String name;
         private String description;
         private BigDecimal startPrice;
-        private Integer sellerId;
-        private Integer durationInMinutes; // Camp nou
+        private Integer durationInMinutes;
     }
 }

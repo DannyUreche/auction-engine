@@ -22,22 +22,22 @@ public class BidService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Bid placeBid(Integer itemId, Integer bidderId, BigDecimal bidAmount) {
+    public Bid placeBid(Integer itemId, String bidderUsername, BigDecimal bidAmount) {
 
         // 1. Cautam obiectul
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
 
-        // 2. VERIFICARE NOUA: A expirat timpul licitatiei?
+        // 2. A expirat timpul licitatiei?
         if (LocalDateTime.now().isAfter(item.getEndTime())) {
             throw new IllegalArgumentException("Licitatia pentru acest obiect s-a incheiat deja!");
         }
 
-        // 3. Cautam utilizatorul
-        User bidder = userRepository.findById(bidderId)
+        // 3. Cautam utilizatorul autentificat pe baza username-ului din token-ul JWT
+        User bidder = userRepository.findByUsername(bidderUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Utilizatorul nu a fost gasit!"));
 
-        // 4. Vanzatorul nu liciteaza
+        // 4. Vanzatorul nu liciteaza la propriul obiect
         if (item.getSeller().getId().equals(bidder.getId())) {
             throw new IllegalArgumentException("Nu poti licita pentru propriul obiect!");
         }
