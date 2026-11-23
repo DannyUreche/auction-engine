@@ -13,6 +13,6 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     // Pentru ruta GET /api/bids/{itemId}
     List<Bid> findByItemIdOrderByAmountDesc(Long itemId);
 
-    // Pentru clasa ta AuctionJob (cauta oferta castigatoare)
+    // Pentru AuctionScheduler (cauta oferta castigatoare)
     Optional<Bid> findTopByItemIdOrderByAmountDesc(Integer itemId);
 }

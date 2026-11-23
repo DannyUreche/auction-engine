@@ -37,4 +37,9 @@ public class Item {
     // Statusul licitatiei: true (deschisa), false (inchisa)
     @Column(nullable = false)
     private Boolean active = true;
+
+    // Castigatorul licitatiei: se seteaza la inchidere, ramane null daca nu exista oferte
+    @ManyToOne
+    @JoinColumn(name = "winner_id")
+    private User winner;
 }
