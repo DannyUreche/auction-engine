@@ -8,7 +8,9 @@ export const clearToken = () => localStorage.removeItem(TOKEN_KEY)
 
 export async function api(path, { method = 'GET', body, auth = true } = {}) {
   const headers = {}
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  // FormData (fisiere) se trimite asa cum e: browserul seteaza singur Content-Type cu "boundary"
+  const isFormData = body instanceof FormData
+  if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
 
   const token = getToken()
   if (auth && token) headers.Authorization = `Bearer ${token}`
@@ -16,7 +18,7 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   const response = await fetch(`/api${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
   })
 
   // Unele rute intorc text simplu (ex: inregistrarea), altele JSON
@@ -37,6 +39,23 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   }
 
   return data
+}
+
+// Incarca imaginea unui obiect (doar vanzatorul are voie)
+export function uploadItemImage(itemId, file) {
+  const form = new FormData()
+  form.append('image', file)
+  return api(`/items/${itemId}/image`, { method: 'POST', body: form })
+}
+
+// Aceleasi reguli ca pe server, ca utilizatorul sa afle imediat daca fisierul nu e bun
+export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
+export function checkImage(file) {
+  if (!IMAGE_TYPES.includes(file.type)) return 'Fisierul trebuie sa fie o imagine JPG, PNG, WebP sau GIF!'
+  if (file.size > MAX_IMAGE_BYTES) return 'Imaginea poate avea maxim 5 MB!'
+  return null
 }
 
 export const formatPrice = (value) =>

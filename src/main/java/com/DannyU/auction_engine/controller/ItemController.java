@@ -4,6 +4,7 @@ import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
+import com.DannyU.auction_engine.service.ImageStorageService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -12,8 +13,10 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,6 +29,30 @@ public class ItemController {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ImageStorageService imageStorageService;
+
+    // Incarcarea (sau inlocuirea) imaginii unui obiect - doar de catre vanzator
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Item uploadImage(@PathVariable Integer id,
+                            @RequestParam("image") MultipartFile image,
+                            Authentication authentication) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
+
+        if (!item.getSeller().getUsername().equals(authentication.getName())) {
+            throw new IllegalArgumentException("Doar vanzatorul poate schimba imaginea obiectului!");
+        }
+
+        String oldImage = item.getImageFilename();
+        item.setImageFilename(imageStorageService.store(image));
+        Item saved = itemRepository.save(item);
+
+        // Stergem imaginea veche abia dupa ce noua a fost salvata
+        if (oldImage != null) {
+            imageStorageService.delete(oldImage);
+        }
+        return saved;
+    }
 
     @GetMapping
     public List<Item> getAllItems() {

@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -39,6 +40,8 @@ public class SecurityConfig {
                                 // Pagina interna de erori (altfel un 404/405 apare ca 401)
                                 "/error"
                         ).permitAll()
+                        // Imaginile obiectelor sunt publice (tag-ul <img> din browser nu trimite token-ul)
+                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
                         // ORICE ALTA RUTA necesită acum un token JWT valid!
                         .anyRequest().authenticated()
                 )

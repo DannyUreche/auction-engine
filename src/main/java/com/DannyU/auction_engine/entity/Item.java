@@ -1,5 +1,6 @@
 package com.DannyU.auction_engine.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -46,4 +47,14 @@ public class Item {
     @JoinColumn(name = "winner_id")
     @JsonIgnoreProperties("email")
     private User winner;
+
+    // Numele fisierului imaginii; in raspunsuri apare ca imageUrl (vezi getImageUrl)
+    @JsonIgnore
+    @Column(name = "image_filename")
+    private String imageFilename;
+
+    // Adresa la care browserul poate incarca imaginea (null daca obiectul nu are imagine)
+    public String getImageUrl() {
+        return imageFilename == null ? null : "/api/images/" + imageFilename;
+    }
 }

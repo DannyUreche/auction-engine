@@ -34,5 +34,7 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 ## Known gotchas
 
 - `AuctionScheduler` closes expired auctions every 60s and sets `Item.winner` from the highest bid.
+- Item images: one per item, stored as files in `app.upload-dir` (default `uploads/`, git-ignored; tests use `target/test-uploads`), DB keeps only `items.image_filename` (exposed in JSON as `imageUrl`). Upload `POST /api/items/{id}/image` (multipart field `image`, seller only, max 5 MB, type detected from magic bytes in `ImageStorageService`); `GET /api/images/**` is public because `<img>` can't send the JWT.
+- User objects nested in items/bids (`seller`, `winner`, `bidder`) hide `email` via `@JsonIgnoreProperties`; only `/api/users/me` returns it.
 - All ids are `Integer` end to end (DB `SERIAL`, entities, repositories, controllers); don't introduce `Long` ids.
 - `test-api.http` is written for the VS Code REST Client extension (`# @name` + `{{x.response.body.$.token}}`); keep it in sync when endpoints change.

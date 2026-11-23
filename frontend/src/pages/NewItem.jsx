@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { api } from '../api.js'
+import { api, uploadItemImage } from '../api.js'
+import ImagePicker from '../components/ImagePicker.jsx'
 import { Alert, Button, Card, Field, Input, Select, Textarea } from '../components/ui.jsx'
 
 const DURATIONS = [
@@ -16,6 +17,7 @@ const DURATIONS = [
 export default function NewItem() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', description: '', startPrice: '', durationInMinutes: '60' })
+  const [image, setImage] = useState(null)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -23,8 +25,9 @@ export default function NewItem() {
     event.preventDefault()
     setError('')
     setSubmitting(true)
+    let item
     try {
-      const item = await api('/items', {
+      item = await api('/items', {
         method: 'POST',
         body: {
           name: form.name,
@@ -33,11 +36,24 @@ export default function NewItem() {
           durationInMinutes: Number(form.durationInMinutes),
         },
       })
-      navigate(`/items/${item.id}`)
     } catch (err) {
       setError(err.message)
       setSubmitting(false)
+      return
     }
+
+    // Obiectul exista deja; daca imaginea nu se incarca, vanzatorul poate reincerca de pe pagina obiectului
+    if (image) {
+      try {
+        await uploadItemImage(item.id, image)
+      } catch (err) {
+        navigate(`/items/${item.id}`, {
+          state: { warning: `Licitatia a pornit, dar imaginea nu a putut fi incarcata: ${err.message}` },
+        })
+        return
+      }
+    }
+    navigate(`/items/${item.id}`)
   }
 
   const update = (field) => (event) => setForm({ ...form, [field]: event.target.value })
@@ -50,6 +66,11 @@ export default function NewItem() {
       <Card className="mt-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <Alert>{error}</Alert>
+
+          <div>
+            <span className="mb-1.5 block text-sm font-medium text-slate-700">Imagine (optionala)</span>
+            <ImagePicker file={image} onChange={setImage} onError={setError} />
+          </div>
 
           <Field label="Nume" hint="Maxim 100 de caractere">
             <Input

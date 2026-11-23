@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
-import { api, formatDate, formatPrice } from '../api.js'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useParams } from 'react-router'
+import { api, checkImage, formatDate, formatPrice, IMAGE_TYPES, uploadItemImage } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import Countdown from '../components/Countdown.jsx'
+import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
 
 export default function ItemDetail() {
   const { id } = useParams()
   const { user } = useAuth()
+  // Mesaj venit de pe pagina "Vinde un obiect" (ex: imaginea nu s-a putut incarca)
+  const warning = useLocation().state?.warning
   const [item, setItem] = useState(null)
   const [bids, setBids] = useState([])
   const [error, setError] = useState('')
@@ -51,9 +54,17 @@ export default function ItemDetail() {
         ← Inapoi la licitatii
       </Link>
 
+      {warning && (
+        <div className="mt-4">
+          <Alert>{warning}</Alert>
+        </div>
+      )}
+
       <div className="mt-4 grid gap-6 lg:grid-cols-3">
         {/* Detaliile obiectului */}
         <div className="space-y-6 lg:col-span-2">
+          <ImageSection item={item} isSeller={isSeller} onUploaded={setItem} />
+
           <Card>
             <div className="flex flex-wrap items-center gap-2">
               <Countdown endTime={item.endTime} active={item.active} />
@@ -129,6 +140,69 @@ export default function ItemDetail() {
           </Card>
         </div>
       </div>
+    </div>
+  )
+}
+
+// Imaginea mare a obiectului; vanzatorul o poate adauga sau schimba
+function ImageSection({ item, isSeller, onUploaded }) {
+  const inputRef = useRef(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleFile(file) {
+    if (!file) return
+    const problem = checkImage(file)
+    if (problem) {
+      setError(problem)
+      return
+    }
+    setError('')
+    setUploading(true)
+    try {
+      onUploaded(await uploadItemImage(item.id, file))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // Cumparatorii nu vad nimic daca obiectul nu are imagine
+  if (!item.imageUrl && !isSeller) return null
+
+  return (
+    <div>
+      <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+        <ItemImage item={item} className="aspect-[16/10] w-full" />
+        {isSeller && (
+          <>
+            <input
+              ref={inputRef}
+              type="file"
+              accept={IMAGE_TYPES.join(',')}
+              className="hidden"
+              onChange={(e) => {
+                handleFile(e.target.files?.[0])
+                e.target.value = ''
+              }}
+            />
+            <Button
+              variant="secondary"
+              loading={uploading}
+              onClick={() => inputRef.current.click()}
+              className="absolute right-4 bottom-4 bg-white/90 backdrop-blur"
+            >
+              {item.imageUrl ? 'Schimba imaginea' : 'Adauga o imagine'}
+            </Button>
+          </>
+        )}
+      </div>
+      {error && (
+        <div className="mt-3">
+          <Alert>{error}</Alert>
+        </div>
+      )}
     </div>
   )
 }

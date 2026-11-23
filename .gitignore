@@ -34,3 +34,6 @@ build/
 
 ### Setari locale cu secrete (nu se urca pe GitHub) ###
 local.properties
+
+### Imaginile incarcate de utilizatori ###
+uploads/
