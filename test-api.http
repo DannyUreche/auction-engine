@@ -1,9 +1,178 @@
-### Testare plasare licitatie noua
-POST http://localhost:8080/api/bids
+### =====================================================================
+### Cereri de test pentru Auction Engine (extensia VS Code "REST Client")
+###
+### Rulare: apasa "Send Request" deasupra fiecarei cereri, IN ORDINE.
+### Token-urile si id-ul obiectului se preiau automat din raspunsurile anterioare.
+### La a doua rulare, inregistrarile dau "username deja folosit" - e normal, login-ul merge in continuare.
+### =====================================================================
+
+@baseUrl = http://localhost:8080
+@parola = parola123
+
+
+### ---------- 1. Conturi ----------
+
+### Inregistrare vanzator
+POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
-  "itemId": 1,
-  "bidderId": 2,
-  "amount": 2750.50
+  "username": "vanzator_demo",
+  "email": "vanzator_demo@example.com",
+  "password": "{{parola}}"
 }
+
+### Inregistrare cumparator
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "cumparator_demo",
+  "email": "cumparator_demo@example.com",
+  "password": "{{parola}}"
+}
+
+### Login vanzator (token-ul se salveaza automat)
+# @name loginVanzator
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "vanzator_demo",
+  "password": "{{parola}}"
+}
+
+### Login cumparator (token-ul se salveaza automat)
+# @name loginCumparator
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "cumparator_demo",
+  "password": "{{parola}}"
+}
+
+### Profilul meu
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+
+### ---------- 2. Obiecte ----------
+
+### Vanzatorul pune un obiect la licitatie (2 minute, ca sa vezi inchiderea)
+# @name creareObiect
+POST {{baseUrl}}/api/items
+Content-Type: application/json
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+{
+  "name": "Ceas de buzunar vechi",
+  "description": "Functioneaza, are o zgarietura pe capac",
+  "startPrice": 100.00,
+  "durationInMinutes": 2
+}
+
+### Toate obiectele
+GET {{baseUrl}}/api/items
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### Doar licitatiile deschise
+GET {{baseUrl}}/api/items/active
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### Detaliile obiectului creat mai sus
+GET {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### Obiectele puse la licitatie de vanzator
+GET {{baseUrl}}/api/items/my
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+
+### ---------- 3. Licitare ----------
+
+### Cumparatorul liciteaza (valid)
+POST {{baseUrl}}/api/bids
+Content-Type: application/json
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+{
+  "itemId": {{creareObiect.response.body.$.id}},
+  "amount": 150.00
+}
+
+### EROARE asteptata: oferta prea mica (400)
+POST {{baseUrl}}/api/bids
+Content-Type: application/json
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+{
+  "itemId": {{creareObiect.response.body.$.id}},
+  "amount": 120.00
+}
+
+### EROARE asteptata: vanzatorul liciteaza la propriul obiect (400)
+POST {{baseUrl}}/api/bids
+Content-Type: application/json
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+{
+  "itemId": {{creareObiect.response.body.$.id}},
+  "amount": 500.00
+}
+
+### Istoricul ofertelor pentru obiect (de la cea mai mare)
+GET {{baseUrl}}/api/bids/{{creareObiect.response.body.$.id}}
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+### Ofertele mele
+GET {{baseUrl}}/api/bids/my
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+
+### ---------- 4. Dupa inchiderea licitatiei ----------
+### Asteapta ~2-3 minute (durata + verificarea care ruleaza o data pe minut)
+
+### Obiectele castigate de cumparator
+GET {{baseUrl}}/api/items/won
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### EROARE asteptata: licitatie incheiata (400)
+POST {{baseUrl}}/api/bids
+Content-Type: application/json
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+{
+  "itemId": {{creareObiect.response.body.$.id}},
+  "amount": 1000.00
+}
+
+
+### ---------- 5. Erori de validare si autentificare ----------
+
+### EROARE asteptata: date invalide la inregistrare (400)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "ab",
+  "email": "nu-e-email",
+  "password": "123"
+}
+
+### EROARE asteptata: obiect fara nume si cu pret negativ (400)
+POST {{baseUrl}}/api/items
+Content-Type: application/json
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+{
+  "name": "",
+  "startPrice": -5
+}
+
+### EROARE asteptata: fara token (401)
+GET {{baseUrl}}/api/items
+
+### EROARE asteptata: token invalid (401)
+GET {{baseUrl}}/api/items
+Authorization: Bearer token-inventat
