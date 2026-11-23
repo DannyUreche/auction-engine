@@ -24,7 +24,7 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 
 - `render.yaml` (Blueprint) creates a free Postgres `auction-db` and a Docker web service `auction-engine`, region Frankfurt. Env vars `DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD` come from the DB, `JWT_SECRET` is generated; `PORT` is set by Render. Locally all of these fall back to the defaults in `application.properties`.
 - `Dockerfile` builds the React app, copies `frontend/dist` into `src/main/resources/static`, and packages one Spring Boot jar (tests skipped in Docker — they need Postgres). In production there is no Vite: Spring serves the UI; `SpaController` forwards React routes (`/items/{id}`, `/login`, ...) to `index.html`. When adding a new React route, add it there too.
-- Render deploys automatically on every push to `main`.
+- Render deploys automatically on every push to `main`. Live URL: https://auction-engine.onrender.com (first deployed 2026-11-23). The production DB is separate from the local one and started empty.
 
 ## Database
 
