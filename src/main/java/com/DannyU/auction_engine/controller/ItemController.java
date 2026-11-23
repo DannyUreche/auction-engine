@@ -96,6 +96,28 @@ public class ItemController {
         return itemRepository.findAll();
     }
 
+    // Dupa vanzare, vanzatorul si castigatorul isi vad unul altuia datele de contact (si nimeni altcineva)
+    @GetMapping("/{id}/contact")
+    public Contact getContact(@PathVariable Integer id, Authentication authentication) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
+        if (item.getActive() || item.getWinner() == null) {
+            throw new IllegalArgumentException("Datele de contact apar doar dupa ce obiectul a fost vandut!");
+        }
+        String me = authentication.getName();
+        if (me.equals(item.getSeller().getUsername())) {
+            return new Contact("castigator", item.getWinner().getUsername(), item.getWinner().getEmail());
+        }
+        if (me.equals(item.getWinner().getUsername())) {
+            return new Contact("vanzator", item.getSeller().getUsername(), item.getSeller().getEmail());
+        }
+        throw new IllegalArgumentException("Doar vanzatorul si castigatorul pot vedea datele de contact!");
+    }
+
+    // role = cine este cealalta persoana fata de utilizatorul logat
+    public record Contact(String role, String username, String email) {
+    }
+
     // Doar licitatiile inca deschise
     @GetMapping("/active")
     public List<Item> getActiveItems() {

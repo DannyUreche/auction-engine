@@ -161,7 +161,17 @@ export default function ItemDetail() {
             <p className="mt-4 whitespace-pre-line text-slate-600">{item.description || 'Fara descriere.'}</p>
 
             <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3">
-              <Detail label="Vanzator" value={item.seller?.username} />
+              <Detail
+                label="Vanzator"
+                value={
+                  <Link
+                    to={`/users/${encodeURIComponent(item.seller?.username)}`}
+                    className="text-indigo-600 hover:text-indigo-500 hover:underline"
+                  >
+                    {item.seller?.username}
+                  </Link>
+                }
+              />
               <Detail label="Categorie" value={`${category.icon} ${category.label}`} />
               <Detail label="Pret de pornire" value={formatPrice(item.startPrice)} />
               <Detail label={item.active ? 'Se termina' : 'S-a terminat'} value={formatDate(item.endTime)} />
@@ -222,6 +232,10 @@ export default function ItemDetail() {
                 de {leadingBid.bidder?.username}
                 {leadingBid.bidder?.id === user?.id && ' (tu)'}
               </p>
+            )}
+
+            {!item.active && item.winner && (user?.id === item.seller?.id || user?.id === item.winner.id) && (
+              <ContactInfo itemId={item.id} />
             )}
 
             <div className="mt-6 border-t border-slate-100 pt-6">
@@ -565,5 +579,46 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
         ⏱ O oferta in ultimele 2 minute prelungeste licitatia cu 2 minute.
       </p>
     </form>
+  )
+}
+
+// Dupa vanzare: vanzatorul vede datele castigatorului si invers, ca sa se inteleaga pentru plata si livrare
+function ContactInfo({ itemId }) {
+  const [contact, setContact] = useState(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    api(`/items/${itemId}/contact`)
+      .then(setContact)
+      .catch((err) => setError(err.message))
+  }, [itemId])
+
+  if (error) {
+    return (
+      <div className="mt-6">
+        <Alert>{error}</Alert>
+      </div>
+    )
+  }
+  if (!contact) return null
+
+  return (
+    <div className="mt-6 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
+      <p className="text-sm font-semibold text-emerald-900">
+        {contact.role === 'castigator' ? '🎉 Ai vandut obiectul! Contacteaza castigatorul:' : '🎉 Ai castigat! Contacteaza vanzatorul:'}
+      </p>
+      <p className="mt-2 text-sm text-emerald-900">
+        <Link to={`/users/${encodeURIComponent(contact.username)}`} className="font-semibold hover:underline">
+          {contact.username}
+        </Link>
+      </p>
+      <a
+        href={`mailto:${contact.email}`}
+        className="mt-1 block truncate text-sm font-medium text-emerald-700 underline hover:text-emerald-600"
+      >
+        {contact.email}
+      </a>
+      <p className="mt-2 text-xs text-emerald-800/80">Stabiliti impreuna plata si livrarea. Emailul il vedeti doar voi doi.</p>
+    </div>
   )
 }

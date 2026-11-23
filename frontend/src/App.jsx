@@ -8,6 +8,7 @@ import Home from './pages/Home.jsx'
 import ItemDetail from './pages/ItemDetail.jsx'
 import Login from './pages/Login.jsx'
 import NewItem from './pages/NewItem.jsx'
+import Profile from './pages/Profile.jsx'
 import Register from './pages/Register.jsx'
 
 // Paginile pentru vanzare si cont cer autentificare; licitatiile se pot vedea si fara cont
@@ -31,6 +32,7 @@ export default function App() {
         {/* Publice */}
         <Route path="/" element={<Home />} />
         <Route path="/items/:id" element={<ItemDetail />} />
+        <Route path="/users/:username" element={<Profile />} />
         {/* Doar pentru utilizatori logati */}
         <Route
           path="/sell"

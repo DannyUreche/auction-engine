@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { formatPrice } from '../api.js'
 import { findCategory, useCategories } from '../categories.js'
 import { WatchButton } from '../watchlist.jsx'
@@ -9,6 +9,15 @@ import ItemImage from './ItemImage.jsx'
 export default function ItemCard({ item, extra }) {
   const hasBids = Number(item.currentPrice) > Number(item.startPrice)
   const category = findCategory(useCategories(), item.category)
+  const navigate = useNavigate()
+
+  // Cardul e deja un link (catre obiect), iar link-urile nu pot fi unul in altul:
+  // numele vanzatorului deschide profilul lui din cod
+  function openSeller(event) {
+    event.preventDefault()
+    event.stopPropagation()
+    navigate(`/users/${encodeURIComponent(item.seller.username)}`)
+  }
 
   return (
     <Link
@@ -44,7 +53,12 @@ export default function ItemCard({ item, extra }) {
             </p>
             <p className="text-xl font-bold text-slate-900">{formatPrice(item.currentPrice)}</p>
           </div>
-          <p className="text-xs text-slate-500">de {item.seller?.username}</p>
+          <p className="text-xs text-slate-500">
+            de{' '}
+            <span role="link" onClick={openSeller} className="font-medium hover:text-indigo-600 hover:underline">
+              {item.seller?.username}
+            </span>
+          </p>
         </div>
 
         {extra && <div className="mt-3">{extra}</div>}
