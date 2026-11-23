@@ -52,7 +52,7 @@ public class ItemController {
 
     // Detaliile unui singur obiect
     @GetMapping("/{id}")
-    public Item getItem(@PathVariable Long id) {
+    public Item getItem(@PathVariable Integer id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
     }

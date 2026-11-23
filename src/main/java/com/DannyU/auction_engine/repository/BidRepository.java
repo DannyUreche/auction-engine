@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BidRepository extends JpaRepository<Bid, Long> {
+public interface BidRepository extends JpaRepository<Bid, Integer> {
 
     // Pentru ruta GET /api/bids/{itemId}
-    List<Bid> findByItemIdOrderByAmountDesc(Long itemId);
+    List<Bid> findByItemIdOrderByAmountDesc(Integer itemId);
 
     // Pentru AuctionScheduler (cauta oferta castigatoare)
     Optional<Bid> findTopByItemIdOrderByAmountDesc(Integer itemId);

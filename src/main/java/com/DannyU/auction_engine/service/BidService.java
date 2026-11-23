@@ -23,7 +23,8 @@ public class BidService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Bid placeBid(Long itemId, String bidderUsername, BigDecimal bidAmount) {        // 1. Cautam obiectul
+    public Bid placeBid(Integer itemId, String bidderUsername, BigDecimal bidAmount) {
+        // 1. Cautam obiectul
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
 // Obiectul mai este activ?
@@ -63,7 +64,7 @@ public class BidService {
 
     }
 
-    public List<Bid> getBidsForItem(Long itemId) {
+    public List<Bid> getBidsForItem(Integer itemId) {
         return bidRepository.findByItemIdOrderByAmountDesc(itemId);
     }
 

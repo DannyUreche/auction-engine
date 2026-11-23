@@ -84,7 +84,7 @@ class BidServiceTest {
     void nuSePoateLicitaDupaExpirareaTimpului() {
         Item expirat = createItem(seller, new BigDecimal("100.00"), LocalDateTime.now().minusMinutes(1));
 
-        assertThatThrownBy(() -> bidService.placeBid(expirat.getId().longValue(), bidder.getUsername(), new BigDecimal("150.00")))
+        assertThatThrownBy(() -> bidService.placeBid(expirat.getId(),bidder.getUsername(), new BigDecimal("150.00")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Licitatia pentru acest obiect s-a incheiat deja!");
     }
@@ -101,7 +101,7 @@ class BidServiceTest {
 
     @Test
     void obiectInexistentEsteRespins() {
-        assertThatThrownBy(() -> bidService.placeBid(-1L, bidder.getUsername(), new BigDecimal("150.00")))
+        assertThatThrownBy(() -> bidService.placeBid(-1,bidder.getUsername(), new BigDecimal("150.00")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Obiectul nu a fost gasit!");
     }
@@ -125,8 +125,8 @@ class BidServiceTest {
                 .containsExactly(new BigDecimal("180.00"), new BigDecimal("120.00"));
     }
 
-    private Long itemId() {
-        return item.getId().longValue();
+    private Integer itemId() {
+        return item.getId();
     }
 
     private User createUser(String prefix) {

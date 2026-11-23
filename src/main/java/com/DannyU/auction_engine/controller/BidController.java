@@ -30,7 +30,7 @@ public class BidController {
     @Data
     public static class BidRequest {
         @NotNull(message = "Id-ul obiectului este obligatoriu!")
-        private Long itemId; // Aici am modificat din Integer in Long
+        private Integer itemId;
 
         @NotNull(message = "Suma oferita este obligatorie!")
         @Positive(message = "Suma oferita trebuie sa fie mai mare decat 0!")
@@ -45,7 +45,7 @@ public class BidController {
     }
 
     @GetMapping("/{itemId}")
-    public List<Bid> getItemBids(@PathVariable Long itemId) {
+    public List<Bid> getItemBids(@PathVariable Integer itemId) {
         return bidService.getBidsForItem(itemId);
     }
 }

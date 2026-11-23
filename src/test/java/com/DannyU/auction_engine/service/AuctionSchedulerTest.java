@@ -36,8 +36,8 @@ class AuctionSchedulerTest {
         User cumparator2 = createUser("cumparator2");
         Item item = createItem(seller, LocalDateTime.now().plusHours(1));
 
-        bidService.placeBid(item.getId().longValue(), cumparator1.getUsername(), new BigDecimal("150.00"));
-        bidService.placeBid(item.getId().longValue(), cumparator2.getUsername(), new BigDecimal("200.00"));
+        bidService.placeBid(item.getId(), cumparator1.getUsername(), new BigDecimal("150.00"));
+        bidService.placeBid(item.getId(), cumparator2.getUsername(), new BigDecimal("200.00"));
 
         // Simulam trecerea timpului: licitatia a expirat
         item.setEndTime(LocalDateTime.now().minusMinutes(1));

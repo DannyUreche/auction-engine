@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface ItemRepository extends JpaRepository<Item, Long> {
+public interface ItemRepository extends JpaRepository<Item, Integer> {
 
     // Gaseste toate obiectele care inca sunt active, DAR timpul lor a expirat
     List<Item> findByActiveTrueAndEndTimeBefore(LocalDateTime time);
