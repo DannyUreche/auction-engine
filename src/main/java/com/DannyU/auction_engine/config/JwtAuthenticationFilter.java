@@ -2,6 +2,7 @@ package com.DannyU.auction_engine.config;
 
 import com.DannyU.auction_engine.service.CustomUserDetailsService;
 import com.DannyU.auction_engine.service.JwtService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -43,22 +45,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 2. Extragem token-ul (taiem primele 7 caractere, adica "Bearer ")
         jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt);
 
-        // 3. Daca avem un username si utilizatorul nu este deja autentificat in contextul curent
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+        try {
+            username = jwtService.extractUsername(jwt);
 
-            // 4. Daca token-ul este valid, il autentificam in Spring Security
-            if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            // 3. Daca avem un username si utilizatorul nu este deja autentificat in contextul curent
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+                // 4. Daca token-ul este valid, il autentificam in Spring Security
+                if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException e) {
+            // Token expirat, falsificat sau pentru un utilizator sters:
+            // cererea merge mai departe neautentificata, iar Spring Security raspunde cu 401
         }
 
         // 5. Trimitem request-ul mai departe catre controller

@@ -3,6 +3,7 @@ package com.DannyU.auction_engine.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -12,14 +13,24 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private static final String SECRET = "CheiaMeaSuperSecretaPentruLicitate1234567890!";
-    private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    private final SecretKey key;
+    private final long expirationMs;
+
+    // Secretul vine din configurare (local.properties sau variabila JWT_SECRET), nu din cod
+    public JwtService(@Value("${jwt.secret}") String secret,
+                      @Value("${jwt.expiration-ms}") long expirationMs) {
+        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("jwt.secret trebuie sa aiba minim 32 de caractere!");
+        }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expirationMs = expirationMs;
+    }
 
     public String generateToken(String username) {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 de ore
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
     }

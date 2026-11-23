@@ -1,0 +1,3 @@
+# Copiaza acest fisier ca local.properties si pune un secret propriu (minim 32 de caractere).
+# Alternativ, seteaza variabila de mediu JWT_SECRET.
+jwt.secret=schimba-ma-cu-un-secret-lung-de-minim-32-de-caractere

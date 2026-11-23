@@ -1,5 +1,6 @@
 package com.DannyU.auction_engine.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,10 +35,21 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/api/auth/**"
+                                "/api/auth/**",
+                                // Pagina interna de erori (altfel un 404/405 apare ca 401)
+                                "/error"
                         ).permitAll()
                         // ORICE ALTA RUTA necesită acum un token JWT valid!
                         .anyRequest().authenticated()
+                )
+                // Fara token valid raspundem cu 401 si un mesaj in acelasi format ca restul erorilor
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.setCharacterEncoding("UTF-8");
+                            response.getWriter().write("{\"eroare\":\"Trebuie sa fii autentificat (token lipsa, invalid sau expirat)!\"}");
+                        })
                 )
                 // Nu salvam sesiuni pe server, verificam token-ul la fiecare cerere
                 .sessionManagement(session -> session

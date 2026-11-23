@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Setari locale cu secrete (nu se urca pe GitHub) ###
+local.properties
