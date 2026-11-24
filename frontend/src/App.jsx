@@ -3,6 +3,7 @@ import { useAuth } from './auth.jsx'
 import Layout from './components/Layout.jsx'
 import { Loading } from './components/ui.jsx'
 import Account from './pages/Account.jsx'
+import About from './pages/About.jsx'
 import Admin from './pages/Admin.jsx'
 import Home from './pages/Home.jsx'
 import ItemDetail from './pages/ItemDetail.jsx'
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/items/:id" element={<ItemDetail />} />
         <Route path="/users/:username" element={<Profile />} />
+        <Route path="/despre" element={<About />} />
         {/* Doar pentru utilizatori logati */}
         <Route
           path="/sell"

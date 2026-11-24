@@ -16,6 +16,10 @@
   --animate-gradient: gradient-shift 8s ease infinite;
   --animate-bell: bell 0.8s ease-in-out;
   --animate-grow: grow 0.8s ease-out both;
+  --animate-flow-x: flow-x 0.9s linear infinite;
+  --animate-flow-x-slow: flow-x 1.4s linear infinite;
+  --animate-flow-y: flow-y 0.9s linear infinite;
+  --animate-flow-y-slow: flow-y 1.4s linear infinite;
 
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(14px); }
@@ -55,6 +59,15 @@
   @keyframes grow {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
+  }
+  /* "Datele care curg" din diagrama de pe pagina Despre */
+  @keyframes flow-x {
+    from { background-position: 0 0; }
+    to { background-position: 16px 0; }
+  }
+  @keyframes flow-y {
+    from { background-position: 0 0; }
+    to { background-position: 0 16px; }
   }
   @keyframes gradient-shift {
     0%, 100% { background-position: 0% 50%; }

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class SpaController {
 
-    @GetMapping({"/login", "/register", "/forgot-password", "/reset-password", "/sell", "/account", "/admin", "/items/{id}", "/users/{username}"})
+    @GetMapping({"/login", "/register", "/forgot-password", "/reset-password", "/sell", "/account", "/admin", "/items/{id}", "/users/{username}", "/despre"})
     public String forwardToReact() {
         return "forward:/index.html";
     }

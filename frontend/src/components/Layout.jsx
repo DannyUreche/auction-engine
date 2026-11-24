@@ -23,13 +23,14 @@ function NavItem({ to, children }) {
   )
 }
 
-export function Logo({ dark = false }) {
+// compact: pe telefon se vede doar iconita (textul apare de la ecrane mai late)
+export function Logo({ dark = false, compact = false }) {
   return (
     <span className={`flex items-center gap-2.5 text-lg font-bold tracking-tight ${dark ? 'text-white' : 'text-slate-900'}`}>
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-indigo-500/30">
         🔨
       </span>
-      <span className="whitespace-nowrap">
+      <span className={`whitespace-nowrap ${compact ? 'hidden sm:inline' : ''}`}>
         Licitatii<span className="text-indigo-500">.live</span>
       </span>
     </span>
@@ -57,13 +58,14 @@ export default function Layout() {
       <header className="sticky top-0 z-20 border-b border-white/60 bg-white/60 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
           <Link to="/" aria-label="Pagina principala">
-            <Logo />
+            <Logo compact />
           </Link>
 
           <nav className="hidden items-center gap-1 sm:flex">
             <NavItem to="/">Licitatii active</NavItem>
             <NavItem to="/sell">Vinde un obiect</NavItem>
             <NavItem to="/account">Contul meu</NavItem>
+            <NavItem to="/despre">Despre</NavItem>
             {user?.admin && <NavItem to="/admin">Admin</NavItem>}
           </nav>
 
@@ -125,6 +127,7 @@ export default function Layout() {
           <NavItem to="/">Active</NavItem>
           <NavItem to="/sell">Vinde</NavItem>
           <NavItem to="/account">Contul meu</NavItem>
+          <NavItem to="/despre">Despre</NavItem>
           {user?.admin && <NavItem to="/admin">Admin</NavItem>}
         </nav>
       </header>
@@ -138,7 +141,12 @@ export default function Layout() {
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <Logo />
-            <p className="mt-2 text-xs text-slate-500">Licitatii in timp real · oferte instant · castigator stabilit automat</p>
+            <p className="mt-2 text-xs text-slate-500">
+              Licitatii in timp real · oferte instant · castigator stabilit automat ·{' '}
+              <Link to="/despre" className="font-medium text-indigo-600 hover:underline">
+                Despre proiect
+              </Link>
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {['Spring Boot 4', 'React 19', 'PostgreSQL', 'Server-Sent Events', 'JWT'].map((tech) => (
