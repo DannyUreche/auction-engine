@@ -13,6 +13,7 @@ import NewItem from './pages/NewItem.jsx'
 import Profile from './pages/Profile.jsx'
 import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
+import VerifyEmail from './pages/VerifyEmail.jsx'
 
 // Paginile pentru vanzare si cont cer autentificare; licitatiile se pot vedea si fara cont
 // adminOnly: pagina e doar pentru administratori (ceilalti sunt trimisi pe pagina principala)
@@ -33,6 +34,7 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       <Route element={<Layout />}>
         {/* Publice */}
         <Route path="/" element={<Home />} />

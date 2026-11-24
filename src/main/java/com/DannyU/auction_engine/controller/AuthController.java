@@ -20,6 +20,8 @@ public class AuthController {
 
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
+    private final com.DannyU.auction_engine.service.EmailVerificationService emailVerificationService;
+    private final com.DannyU.auction_engine.service.GoogleTokenVerifier googleTokenVerifier;
 
     // "Am uitat parola": trimite un link pe email (raspunsul e acelasi daca emailul exista sau nu)
     @PostMapping("/forgot-password")
@@ -52,8 +54,43 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public AuthService.RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
+        return authService.register(request);
+    }
+
+    // ---------- Email confirmation ----------
+
+    @PostMapping("/verify-email")
+    public MessageResponse verifyEmail(@Valid @RequestBody TokenRequest request) {
+        emailVerificationService.verify(request.token());
+        return new MessageResponse("Adresa de email a fost confirmata. Acum te poti autentifica.");
+    }
+
+    @PostMapping("/resend-verification")
+    public MessageResponse resendVerification(@Valid @RequestBody ForgotPasswordRequest request) {
+        emailVerificationService.resend(request.email());
+        return new MessageResponse("Daca adresa are un cont neconfirmat, ti-am trimis un link nou.");
+    }
+
+    public record TokenRequest(@NotBlank(message = "Link-ul de confirmare este invalid sau a expirat!") String token) {
+    }
+
+    // ---------- Sign in with Google ----------
+
+    public record GoogleConfig(String clientId) {
+    }
+
+    public record GoogleRequest(@NotBlank(message = "Autentificarea cu Google a esuat!") String credential) {
+    }
+
+    @GetMapping("/google/config")
+    public GoogleConfig googleConfig() {
+        return new GoogleConfig(googleTokenVerifier.clientId());
+    }
+
+    @PostMapping("/google")
+    public AuthResponse google(@Valid @RequestBody GoogleRequest request) {
+        return authService.loginWithGoogle(request.credential());
     }
 
     @PostMapping("/login")

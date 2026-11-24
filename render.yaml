@@ -40,3 +40,6 @@ services:
       # in Render -> auction-engine -> Environment, nu se tine in cod.
       - key: ADMIN_USERNAMES
         sync: false
+      # Optional "Sign in with Google": OAuth client id from Google Cloud Console (empty = button hidden)
+      - key: GOOGLE_CLIENT_ID
+        sync: false

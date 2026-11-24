@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useCallback, createContext, useContext, useEffect, useState } from 'react'
 import { api, clearToken, getToken, setToken } from './api.js'
 
 const AuthContext = createContext(null)
@@ -37,14 +37,22 @@ export function AuthProvider({ children }) {
     setUser(await api('/users/me'))
   }
 
+  // Returns the server answer; when the email must be confirmed first, nobody is logged in yet
   async function register(username, email, password) {
-    await api('/auth/register', {
+    const result = await api('/auth/register', {
       method: 'POST',
       body: { username, email, password },
       auth: false,
     })
-    await login(username, password)
+    if (!result?.verificationRequired) await login(username, password)
+    return result
   }
+
+  const loginWithGoogle = useCallback(async (credential) => {
+    const { token } = await api('/auth/google', { method: 'POST', body: { credential }, auth: false })
+    setToken(token)
+    setUser(await api('/users/me'))
+  }, [])
 
   function logout() {
     clearToken()
@@ -52,7 +60,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, loginWithGoogle }}>
       {children}
     </AuthContext.Provider>
   )

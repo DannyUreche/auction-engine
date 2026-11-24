@@ -28,6 +28,11 @@ public class EmailService {
         this.baseUrl = baseUrl;
     }
 
+    // Is an SMTP server configured? (if not, emails are only logged)
+    public boolean isConfigured() {
+        return configured;
+    }
+
     public String link(String path) {
         return baseUrl + path;
     }
