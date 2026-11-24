@@ -6,10 +6,12 @@ import Account from './pages/Account.jsx'
 import Admin from './pages/Admin.jsx'
 import Home from './pages/Home.jsx'
 import ItemDetail from './pages/ItemDetail.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
 import Login from './pages/Login.jsx'
 import NewItem from './pages/NewItem.jsx'
 import Profile from './pages/Profile.jsx'
 import Register from './pages/Register.jsx'
+import ResetPassword from './pages/ResetPassword.jsx'
 
 // Paginile pentru vanzare si cont cer autentificare; licitatiile se pot vedea si fara cont
 // adminOnly: pagina e doar pentru administratori (ceilalti sunt trimisi pe pagina principala)
@@ -28,6 +30,8 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<Layout />}>
         {/* Publice */}
         <Route path="/" element={<Home />} />

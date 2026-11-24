@@ -44,6 +44,11 @@ export default function Login() {
             required
           />
         </Field>
+        <div className="-mt-2 text-right">
+          <Link to="/forgot-password" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+            Ai uitat parola?
+          </Link>
+        </div>
         <Button type="submit" loading={submitting} className="w-full">
           Intra in cont
         </Button>
