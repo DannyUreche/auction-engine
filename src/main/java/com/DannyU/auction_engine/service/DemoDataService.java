@@ -8,6 +8,8 @@ import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.repository.BidRepository;
 import com.DannyU.auction_engine.repository.ItemImageRepository;
 import com.DannyU.auction_engine.repository.ItemRepository;
+import com.DannyU.auction_engine.repository.ReviewRepository;
+import com.DannyU.auction_engine.entity.Review;
 import com.DannyU.auction_engine.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +45,7 @@ public class DemoDataService {
     private final ItemImageRepository itemImageRepository;
     private final AdminService adminService;
     private final PasswordEncoder passwordEncoder;
+    private final ReviewRepository reviewRepository;
 
     private record DemoItem(String name, String description, Category category, int startPrice, Integer buyNow,
                             Color from, Color to) {
@@ -161,8 +164,23 @@ public class DemoDataService {
                 item.setWinner(last);
             }
             itemRepository.save(item);
+            if (sold && last != null) {
+                review(item, last, seller, 5, "Obiect exact ca in descriere, vanzator foarte amabil. Recomand!", now);
+                review(item, seller, last, 4 + random.nextInt(2), "Plata rapida, comunicare excelenta.", now);
+            }
         }
         return ITEMS.size();
+    }
+
+    private void review(Item item, User author, User target, int rating, String comment, LocalDateTime now) {
+        Review review = new Review();
+        review.setItem(item);
+        review.setAuthor(author);
+        review.setTarget(target);
+        review.setRating((short) rating);
+        review.setComment(comment);
+        review.setCreatedAt(now.minusMinutes(30));
+        reviewRepository.save(review);
     }
 
     // Sterge tot ce tine de utilizatorii demo (obiecte, oferte, poze) si utilizatorii insisi

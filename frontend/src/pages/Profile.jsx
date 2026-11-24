@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import ItemCard from '../components/ItemCard.jsx'
+import { ReviewCard, Stars } from '../components/Reviews.jsx'
 import { Alert, Badge, Card, EmptyState, Loading } from '../components/ui.jsx'
 
 // Profilul public al unui vanzator: obiectele lui la licitatie si cele vandute (fara email)
@@ -42,6 +43,17 @@ export default function Profile() {
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-bold tracking-tight text-slate-900">{profile.username}</h1>
           <p className="text-sm text-slate-500">Membru din {formatDate(profile.createdAt)}</p>
+          {profile.rating.count > 0 ? (
+            <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+              <Stars value={profile.rating.average} />
+              <span className="font-semibold text-slate-900">{profile.rating.average.toFixed(1)}</span>
+              <span>
+                din {profile.rating.count} {profile.rating.count === 1 ? 'recenzie' : 'recenzii'}
+              </span>
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-slate-400">Inca nu are recenzii</p>
+          )}
         </div>
       </div>
 
@@ -63,6 +75,17 @@ export default function Profile() {
           </div>
         )}
       </div>
+
+      {profile.reviews.length > 0 && (
+        <>
+          <h2 className="mt-10 text-lg font-semibold text-slate-900">Recenzii primite</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {profile.reviews.map((review) => (
+              <ReviewCard key={review.id} review={review} showItem />
+            ))}
+          </div>
+        </>
+      )}
 
       {profile.soldItems.length > 0 && (
         <>

@@ -18,6 +18,7 @@ import Countdown, { CountdownTiles } from '../components/Countdown.jsx'
 import EditItemForm from '../components/EditItemForm.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import PriceChart from '../components/PriceChart.jsx'
+import { ItemReviews } from '../components/Reviews.jsx'
 import { launchConfetti } from '../confetti.js'
 import { disintegrate } from '../disintegrate.js'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
@@ -255,6 +256,12 @@ export default function ItemDetail() {
               )}
             </div>
           </Card>
+
+          {!item.active && item.winner && (
+            <Card>
+              <ItemReviews item={item} user={user} />
+            </Card>
+          )}
         </div>
 
         {/* Pretul curent si formularul de licitare */}
