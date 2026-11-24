@@ -77,6 +77,18 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+		<!-- Web Push notifications (message encryption + VAPID signing) -->
+		<dependency>
+			<groupId>nl.martijndwars</groupId>
+			<artifactId>web-push</artifactId>
+			<version>5.1.1</version>
+		</dependency>
+		<!-- Cryptography provider used by web-push (EC keys, ECDH) -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>1.80</version>
+		</dependency>
 		<!-- Emailuri (notificari, resetarea parolei) prin SMTP, ex: Brevo -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
