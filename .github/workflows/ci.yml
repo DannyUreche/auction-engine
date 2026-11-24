@@ -1,0 +1,98 @@
+# Testele automate ruleaza pe GitHub la fiecare push si pull request (tab-ul "Actions" din repository).
+# 1. backend: testele JUnit/MockMvc pe un PostgreSQL adevarat
+# 2. e2e: aplicatia pornita complet + teste Playwright in browser (dupa ce trec testele backend)
+name: Teste
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  # Doar pentru teste; secretul real de pe Render nu apare nicaieri in cod
+  JWT_SECRET: secret-de-test-pentru-github-actions-minim-32-caractere
+
+jobs:
+  backend:
+    name: Teste backend (JUnit)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: auction_db
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: password
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U admin -d auction_db"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Teste
+        run: chmod +x mvnw && ./mvnw -B test
+      - name: Rapoarte teste (la esec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapoarte-junit
+          path: target/surefire-reports/
+
+  e2e:
+    name: Teste in browser (Playwright)
+    needs: backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: auction_db
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: password
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U admin -d auction_db"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Porneste backend-ul
+        run: |
+          chmod +x mvnw && ./mvnw -B -q package -DskipTests
+          nohup java -jar target/*.jar > backend.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:8080/api/stats && exit 0; sleep 2; done
+          cat backend.log; exit 1
+      - name: Instaleaza interfata si browserul
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Build interfata
+        working-directory: frontend
+        run: npm run build
+      - name: Teste Playwright
+        working-directory: frontend
+        run: npm run test:e2e
+      - name: Raport Playwright (la esec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raport-playwright
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+            backend.log

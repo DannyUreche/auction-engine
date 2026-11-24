@@ -13,6 +13,11 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 - Tests are `@SpringBootTest` against the real Postgres — they fail if the docker container isn't running.
 - Swagger UI: `http://localhost:8080/swagger-ui.html`. Public (no token): `/api/auth/**`, Swagger, `/error`, `GET /api/images/**`, `GET /api/events`, and read-only `GET /api/items`, `/api/items/**`, `/api/bids/**` — except `/api/items/my`, `/api/items/won`, `/api/bids/my`, which are declared authenticated *before* the public GET matchers in `SecurityConfig` (order matters). Everything else needs `Authorization: Bearer <jwt>` from `/api/auth/login`. In the frontend, `/` and `/items/:id` are public; `/sell` and `/account` are wrapped in `RequireAuth`.
 
+## CI and browser tests
+
+- `.github/workflows/ci.yml` runs on every push/PR to `main`: job `backend` (`./mvnw -B test` against a `postgres:16` service on port 5433, dummy `JWT_SECRET`), then job `e2e` (packages and starts the jar, then Playwright).
+- Playwright tests live in `frontend/e2e/` (`npm run test:e2e`, config `frontend/playwright.config.js`). They need the backend on 8080; Playwright starts Vite itself (or reuses a running one locally). Locally they use the installed Google Chrome (`channel: 'chrome'`), in CI the downloaded Chromium. Each run registers a fresh `e2e_*` user.
+
 ## Frontend
 
 - React 19 + Vite + Tailwind CSS v4 + React Router, plain JavaScript (no TypeScript), in `frontend/`.
