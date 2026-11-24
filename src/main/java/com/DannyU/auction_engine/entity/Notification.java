@@ -13,8 +13,9 @@ import java.time.LocalDateTime;
 public class Notification {
 
     // OUTBID = oferta ta a fost depasita, NEW_BID = oferta noua la obiectul tau,
-    // WON = ai castigat, SOLD = obiectul tau s-a vandut, UNSOLD = licitatia s-a incheiat fara oferte
-    public enum Type { OUTBID, NEW_BID, WON, SOLD, UNSOLD }
+    // WON = ai castigat, SOLD = obiectul tau s-a vandut, UNSOLD = licitatia s-a incheiat fara oferte,
+    // MESSAGE = mesaj nou in chat-ul unui obiect vandut
+    public enum Type { OUTBID, NEW_BID, WON, SOLD, UNSOLD, MESSAGE }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -6,7 +6,8 @@ import java.math.BigDecimal;
  * Ceva s-a schimbat la o licitatie si browserele conectate trebuie anuntate.
  *
  * @param type     "bid" (oferta noua), "closed" (licitatie inchisa), "deleted" (obiect sters de admin)
- *                 sau "notification" (utilizatorul username are o notificare noua; itemId e null)
+ *                 "notification" (utilizatorul username are o notificare noua; itemId e null)
+ *                 sau "message" (mesaj nou in chat-ul obiectului itemId pentru utilizatorul username)
  * @param itemId   obiectul afectat
  * @param amount   suma ofertei / pretul final
  * @param username cine a licitat / cine a castigat (null daca licitatia s-a inchis fara oferte)
@@ -29,5 +30,10 @@ public record AuctionEvent(String type, Integer itemId, BigDecimal amount, Strin
     // Utilizatorul are o notificare noua (browserul lui isi reincarca lista)
     public static AuctionEvent notification(String username) {
         return new AuctionEvent("notification", null, null, username);
+    }
+
+    // Mesaj nou in chat pentru destinatar (fara text: browserul lui isi cere mesajele)
+    public static AuctionEvent message(Integer itemId, String recipientUsername) {
+        return new AuctionEvent("message", itemId, null, recipientUsername);
     }
 }

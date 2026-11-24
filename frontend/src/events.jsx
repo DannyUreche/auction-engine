@@ -24,7 +24,7 @@ function subscribe(listener, onStatus) {
       listeners.forEach((l) => l(event))
     }
     source.addEventListener('connected', () => setConnected(true))
-    for (const type of ['bid', 'closed', 'deleted', 'notification']) source.addEventListener(type, forward(type))
+    for (const type of ['bid', 'closed', 'deleted', 'notification', 'message']) source.addEventListener(type, forward(type))
     source.onerror = () => setConnected(false)
   }
   onStatus(connected)
@@ -42,7 +42,7 @@ function subscribe(listener, onStatus) {
 }
 
 // Asculta evenimentele in timp real de la server si apeleaza onEvent pentru fiecare.
-// Evenimente: { type: 'bid' | 'closed' | 'deleted' | 'notification', itemId, amount, username }
+// Evenimente: { type: 'bid' | 'closed' | 'deleted' | 'notification' | 'message', itemId, amount, username }
 // Intoarce true cat timp conexiunea este activa. EventSource se reconecteaza singur daca pica.
 export function useAuctionEvents(onEvent) {
   const handlerRef = useRef(onEvent)

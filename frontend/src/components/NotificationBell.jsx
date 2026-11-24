@@ -4,7 +4,7 @@ import { api, timeAgo } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { useAuctionEvents } from '../events.jsx'
 
-const ICONS = { OUTBID: '📉', NEW_BID: '💰', WON: '🏆', SOLD: '🤝', UNSOLD: '⏳' }
+const ICONS = { OUTBID: '📉', NEW_BID: '💰', WON: '🏆', SOLD: '🤝', UNSOLD: '⏳', MESSAGE: '💬' }
 
 // Clopotelul din bara de sus: notificarile utilizatorului logat, cu numarul celor necitite.
 // Lista se reincarca instant cand serverul anunta o notificare noua pentru acest utilizator.

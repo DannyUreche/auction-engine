@@ -19,6 +19,7 @@ import EditItemForm from '../components/EditItemForm.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import PriceChart from '../components/PriceChart.jsx'
 import { ItemReviews } from '../components/Reviews.jsx'
+import ChatBox from '../components/ChatBox.jsx'
 import { launchConfetti } from '../confetti.js'
 import { disintegrate } from '../disintegrate.js'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
@@ -256,6 +257,12 @@ export default function ItemDetail() {
               )}
             </div>
           </Card>
+
+          {!item.active && item.winner && user && (user.id === item.seller?.id || user.id === item.winner.id) && (
+            <Card>
+              <ChatBox item={item} user={user} />
+            </Card>
+          )}
 
           {!item.active && item.winner && (
             <Card>
