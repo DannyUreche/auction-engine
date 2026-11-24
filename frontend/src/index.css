@@ -15,6 +15,7 @@
   --animate-ping-slow: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
   --animate-gradient: gradient-shift 8s ease infinite;
   --animate-bell: bell 0.8s ease-in-out;
+  --animate-grow: grow 0.8s ease-out both;
 
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(14px); }
@@ -49,6 +50,11 @@
     40% { transform: rotate(-14deg); }
     60% { transform: rotate(9deg); }
     80% { transform: rotate(-5deg); }
+  }
+  /* Barele din graficele de admin "cresc" de la stanga la dreapta */
+  @keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
   }
   @keyframes gradient-shift {
     0%, 100% { background-position: 0% 50%; }

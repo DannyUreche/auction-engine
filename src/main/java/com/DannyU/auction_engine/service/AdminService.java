@@ -36,6 +36,33 @@ public class AdminService {
                 itemRepository.sumSoldValue());
     }
 
+    // Graficele: oferte pe zi (ultimele 14 zile, inclusiv zilele fara oferte), vanzari pe categorii, top 5 vanzatori
+    public AdminDtos.Charts charts() {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate first = today.minusDays(13);
+        java.util.Map<java.time.LocalDate, Long> perDay = new java.util.HashMap<>();
+        for (Object[] row : bidRepository.countPerDaySince(first.atStartOfDay())) {
+            java.time.LocalDate day = row[0] instanceof java.sql.Date date ? date.toLocalDate() : (java.time.LocalDate) row[0];
+            perDay.put(day, ((Number) row[1]).longValue());
+        }
+        List<AdminDtos.DayCount> days = first.datesUntil(today.plusDays(1))
+                .map(day -> new AdminDtos.DayCount(day, perDay.getOrDefault(day, 0L)))
+                .toList();
+
+        List<AdminDtos.CategorySales> categories = itemRepository.salesByCategory().stream()
+                .map(row -> {
+                    com.DannyU.auction_engine.entity.Category c = (com.DannyU.auction_engine.entity.Category) row[0];
+                    return new AdminDtos.CategorySales(c.name(), c.getLabel(), c.getIcon(), ((Number) row[1]).longValue(), (java.math.BigDecimal) row[2]);
+                })
+                .toList();
+
+        List<AdminDtos.SellerSales> sellers = itemRepository.topSellers().stream()
+                .limit(5)
+                .map(row -> new AdminDtos.SellerSales((String) row[0], ((Number) row[1]).longValue(), (java.math.BigDecimal) row[2]))
+                .toList();
+        return new AdminDtos.Charts(days, categories, sellers);
+    }
+
     public List<AdminDtos.UserRow> users() {
         return userRepository.findAll(Sort.by("id")).stream()
                 .map(user -> new AdminDtos.UserRow(

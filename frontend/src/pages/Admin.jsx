@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
+import AdminCharts from '../components/AdminCharts.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, Loading } from '../components/ui.jsx'
 import { useAuctionEvents } from '../events.jsx'
@@ -75,6 +76,7 @@ export default function Admin() {
       <p className="mt-2 text-slate-500">Statistici, toate obiectele si toti utilizatorii platformei.</p>
 
       <DemoDataPanel onChange={load} />
+      <AdminCharts refreshKey={data} />
 
       <div className="mt-6 space-y-3">
         <Alert>{error}</Alert>

@@ -26,6 +26,12 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
     List<Bid> findTop8ByOrderByCreatedAtDesc();
 
     // Pentru pagina de administrare
+
+    // Numarul de oferte pe zi, incepand cu o data (graficul "Oferte pe zi")
+    @Query(value = "SELECT CAST(created_at AS DATE) AS day, COUNT(*) AS bids FROM bids WHERE created_at >= :from GROUP BY day ORDER BY day",
+            nativeQuery = true)
+    List<Object[]> countPerDaySince(@Param("from") java.time.LocalDateTime from);
+
     long countByBidderId(Integer bidderId);
 
     long countByItemId(Integer itemId);

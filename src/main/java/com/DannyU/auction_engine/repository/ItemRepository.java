@@ -34,6 +34,14 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
 
     long countBySellerId(Integer sellerId);
 
+    // Vanzari (obiecte cu castigator) pe categorii: [categorie, numar, valoare]
+    @Query("SELECT i.category, COUNT(i), SUM(i.currentPrice) FROM Item i WHERE i.winner IS NOT NULL GROUP BY i.category ORDER BY SUM(i.currentPrice) DESC")
+    List<Object[]> salesByCategory();
+
+    // Vanzatorii cu cea mai mare valoare vanduta: [username, numar, valoare]
+    @Query("SELECT i.seller.username, COUNT(i), SUM(i.currentPrice) FROM Item i WHERE i.winner IS NOT NULL GROUP BY i.seller.username ORDER BY SUM(i.currentPrice) DESC")
+    List<Object[]> topSellers();
+
     // Valoarea totala a obiectelor vandute (pretul final al celor cu castigator)
     @Query("SELECT COALESCE(SUM(i.currentPrice), 0) FROM Item i WHERE i.winner IS NOT NULL")
     BigDecimal sumSoldValue();

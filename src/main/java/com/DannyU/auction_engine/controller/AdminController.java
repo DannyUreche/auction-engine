@@ -42,6 +42,11 @@ public class AdminController {
         return adminService.stats();
     }
 
+    @GetMapping("/charts")
+    public AdminDtos.Charts charts() {
+        return adminService.charts();
+    }
+
     @GetMapping("/users")
     public List<AdminDtos.UserRow> users() {
         return adminService.users();

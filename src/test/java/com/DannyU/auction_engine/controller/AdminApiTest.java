@@ -148,6 +148,20 @@ class AdminApiTest {
     }
 
     @Test
+    void graficeleAuDateleCorecte() throws Exception {
+        mockMvc.perform(get("/api/admin/charts").header("Authorization", bearer(seller))).andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(admin))).andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/charts").header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bidsPerDay.length()").value(14))
+                .andExpect(jsonPath("$.salesByCategory[0].label").isNotEmpty())
+                .andExpect(jsonPath("$.salesByCategory[0].value").isNumber())
+                .andExpect(jsonPath("$.topSellers.length()").value(org.hamcrest.Matchers.lessThanOrEqualTo(5)))
+                .andExpect(jsonPath("$.topSellers[0].username").isNotEmpty());
+    }
+
+    @Test
     void adminulGenereazaSiStergeDateleDemo() throws Exception {
         mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(seller)))
                 .andExpect(status().isForbidden());
