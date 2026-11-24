@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Rutele "ale mele" cer autentificare - trebuie declarate INAINTEA celor publice de mai jos,
                         // altfel /api/items/{id} s-ar potrivi si pe /api/items/my
-                        .requestMatchers("/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/bids/my").authenticated()
+                        .requestMatchers("/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/items/*/auto-bid", "/api/bids/my").authenticated()
                         // Oricine (si fara cont) poate vedea licitatiile si istoricul ofertelor
                         .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats", "/api/users/*/profile").permitAll()
                         // Evenimentele in timp real (EventSource nu poate trimite token-ul)

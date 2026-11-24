@@ -29,6 +29,10 @@ public class Bid {
     @Column(nullable = false)
     private BigDecimal amount;
 
+    // true = oferta plasata de licitarea automata (nu de utilizator, direct)
+    @Column(nullable = false)
+    private boolean automatic = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -3,6 +3,8 @@ package com.DannyU.auction_engine.service;
 import com.DannyU.auction_engine.entity.Bid;
 import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.User;
+import com.DannyU.auction_engine.entity.AutoBid;
+import com.DannyU.auction_engine.repository.AutoBidRepository;
 import com.DannyU.auction_engine.repository.BidRepository;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
@@ -25,6 +27,7 @@ public class BidService {
     private final UserRepository userRepository;
     private final AuctionScheduler auctionScheduler;
     private final ApplicationEventPublisher eventPublisher;
+    private final AutoBidRepository autoBidRepository;
 
     @Transactional
     public Bid placeBid(Integer itemId, String bidderUsername, BigDecimal bidAmount) {
@@ -38,13 +41,76 @@ public class BidService {
                     + " RON (pretul curent + pasul de " + BidRules.increment(item.getCurrentPrice()) + " RON)");
         }
 
-        // Anti-"sniping": o oferta in ultimele minute prelungeste licitatia
-        LocalDateTime now = LocalDateTime.now();
-        if (Duration.between(now, item.getEndTime()).compareTo(BidRules.ANTI_SNIPING_WINDOW) < 0) {
-            item.setEndTime(now.plus(BidRules.ANTI_SNIPING_WINDOW));
+        Bid bid = saveBid(item, bidder, bidAmount, false);
+        // Cei cu licitare automata raspund imediat (oferta manuala poate fi depasita pe loc)
+        resolveAutoBids(item);
+        return bid;
+    }
+
+    // ---------- Licitare automata ----------
+
+    // Seteaza (sau schimba) suma maxima pana la care aplicatia liciteaza pentru utilizator
+    @Transactional
+    public AutoBid setAutoBid(Integer itemId, String username, BigDecimal maxAmount) {
+        Item item = findItem(itemId);
+        User user = checkCanBuy(item, username);
+        BigDecimal minimum = BidRules.minimumNextBid(item.getCurrentPrice());
+        if (maxAmount.compareTo(minimum) < 0) {
+            throw new IllegalArgumentException("Suma maxima trebuie sa fie cel putin " + minimum + " RON!");
         }
 
-        return saveBid(item, bidder, bidAmount);
+        AutoBid autoBid = autoBidRepository.findByItemIdAndUserUsername(itemId, username).orElseGet(() -> {
+            AutoBid created = new AutoBid();
+            created.setItem(item);
+            created.setUser(user);
+            return created;
+        });
+        autoBid.setMaxAmount(maxAmount);
+        AutoBid saved = autoBidRepository.save(autoBid);
+
+        // Daca altcineva conduce, licitarea automata porneste imediat
+        resolveAutoBids(item);
+        return saved;
+    }
+
+    @Transactional
+    public void cancelAutoBid(Integer itemId, String username) {
+        autoBidRepository.findByItemIdAndUserUsername(itemId, username).ifPresent(autoBidRepository::delete);
+    }
+
+    public java.util.Optional<AutoBid> getAutoBid(Integer itemId, String username) {
+        return autoBidRepository.findByItemIdAndUserUsername(itemId, username);
+    }
+
+    // Cat timp cineva cu licitare automata nu conduce si maximul ii permite, liciteaza pentru el
+    // exact cat trebuie ca sa treaca de cel care conduce (fara sa depaseasca propriul maxim).
+    // Exemplu: A are maxim 500, B are maxim 300, pretul e 100 -> B liciteaza 300, A raspunde cu 305 si castiga.
+    private void resolveAutoBids(Item item) {
+        // Limita de siguranta; in practica se opreste dupa 1-3 oferte
+        for (int round = 0; round < 50; round++) {
+            if (!item.getActive() || LocalDateTime.now().isAfter(item.getEndTime())) {
+                return;
+            }
+            String leader = bidRepository.findTopByItemIdOrderByAmountDesc(item.getId())
+                    .map(b -> b.getBidder().getUsername()).orElse(null);
+            BigDecimal minimum = BidRules.minimumNextBid(item.getCurrentPrice());
+            List<AutoBid> autoBids = autoBidRepository.findByItemIdOrderByMaxAmountDescCreatedAtAsc(item.getId());
+
+            AutoBid challenger = autoBids.stream()
+                    .filter(a -> !a.getUser().getUsername().equals(leader))
+                    .filter(a -> a.getMaxAmount().compareTo(minimum) >= 0)
+                    .findFirst().orElse(null);
+            if (challenger == null) {
+                return;
+            }
+
+            // Cat trebuie oferit ca sa treaca si de maximul (secret) al celui care conduce
+            BigDecimal target = autoBids.stream()
+                    .filter(a -> a.getUser().getUsername().equals(leader))
+                    .map(a -> a.getMaxAmount().compareTo(minimum) >= 0 ? BidRules.minimumNextBid(a.getMaxAmount()) : minimum)
+                    .findFirst().orElse(minimum);
+            saveBid(item, challenger.getUser(), challenger.getMaxAmount().min(target), true);
+        }
     }
 
     // "Cumpara acum": oferta la pretul fix si licitatia se inchide imediat, cu cumparatorul castigator
@@ -60,7 +126,7 @@ public class BidService {
             throw new IllegalArgumentException("Cumpararea imediata nu mai este disponibila: ofertele au ajuns la acest pret!");
         }
 
-        Bid bid = saveBid(item, buyer, item.getBuyNowPrice());
+        Bid bid = saveBid(item, buyer, item.getBuyNowPrice(), false);
         auctionScheduler.closeAuction(item);
         return bid;
     }
@@ -98,7 +164,13 @@ public class BidService {
         return user;
     }
 
-    private Bid saveBid(Item item, User bidder, BigDecimal amount) {
+    private Bid saveBid(Item item, User bidder, BigDecimal amount, boolean automatic) {
+        // Anti-"sniping": o oferta in ultimele minute prelungeste licitatia
+        LocalDateTime now = LocalDateTime.now();
+        if (item.getActive()
+                && Duration.between(now, item.getEndTime()).compareTo(BidRules.ANTI_SNIPING_WINDOW) < 0) {
+            item.setEndTime(now.plus(BidRules.ANTI_SNIPING_WINDOW));
+        }
         item.setCurrentPrice(amount);
         itemRepository.save(item);
 
@@ -106,6 +178,7 @@ public class BidService {
         bid.setItem(item);
         bid.setBidder(bidder);
         bid.setAmount(amount);
+        bid.setAutomatic(automatic);
         Bid saved = bidRepository.save(bid);
 
         // Anuntam browserele conectate (se trimite abia dupa salvarea tranzactiei)

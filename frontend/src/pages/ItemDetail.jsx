@@ -233,6 +233,14 @@ export default function ItemDetail() {
                           <p className="truncate text-sm font-medium text-slate-900">
                             {bid.bidder?.username}
                             {bid.bidder?.id === user?.id && <span className="text-slate-400"> (tu)</span>}
+                            {bid.automatic && (
+                              <span
+                                title="Oferta plasata de licitarea automata"
+                                className="ml-1.5 rounded bg-indigo-100 px-1.5 py-0.5 align-middle text-[10px] font-semibold text-indigo-700"
+                              >
+                                🤖 automat
+                              </span>
+                            )}
                           </p>
                           <p className="text-xs text-slate-500">{formatDate(bid.createdAt)}</p>
                         </div>
@@ -610,6 +618,8 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
         Liciteaza
       </Button>
 
+      <AutoBidBox item={item} minimum={minimum} onChange={onBid} />
+
       {item.buyNowAvailable && (
         <div className="border-t border-slate-100 pt-4">
           <button
@@ -668,6 +678,92 @@ function ContactInfo({ itemId }) {
         {contact.email}
       </a>
       <p className="mt-2 text-xs text-emerald-800/80">Stabiliti impreuna plata si livrarea. Emailul il vedeti doar voi doi.</p>
+    </div>
+  )
+}
+
+// Licitare automata: utilizatorul spune suma maxima, iar serverul liciteaza pentru el cu pasul minim
+// de fiecare data cand altcineva il depaseste (maximul il vede doar el)
+function AutoBidBox({ item, minimum, onChange }) {
+  const [current, setCurrent] = useState(undefined) // undefined = se incarca, null = nu are
+  const [open, setOpen] = useState(false)
+  const [max, setMax] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    api(`/items/${item.id}/auto-bid`)
+      .then((data) => setCurrent(data.maxAmount))
+      .catch(() => setCurrent(null))
+  }, [item.id])
+
+  async function save(method, body) {
+    setError('')
+    setBusy(true)
+    try {
+      const data = await api(`/items/${item.id}/auto-bid`, { method, body })
+      setCurrent(data.maxAmount)
+      setOpen(false)
+      await onChange()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (current === undefined) return null
+  const exceeded = current != null && Number(item.currentPrice) > Number(current)
+
+  return (
+    <div className="rounded-xl bg-indigo-50/70 p-3 ring-1 ring-indigo-100">
+      {current != null && !open ? (
+        <div className="space-y-2">
+          <p className="text-sm text-indigo-900">
+            🤖 Licitezi automat pana la <span className="font-semibold">{formatPrice(current)}</span>
+          </p>
+          {exceeded && <p className="text-xs font-medium text-red-600">Maximul tau a fost depasit de alta oferta.</p>}
+          <div className="flex gap-3 text-xs font-semibold">
+            <button type="button" onClick={() => setOpen(true)} className="text-indigo-600 hover:text-indigo-500">
+              Schimba maximul
+            </button>
+            <button type="button" disabled={busy} onClick={() => save('DELETE')} className="text-red-600 hover:text-red-500">
+              Opreste
+            </button>
+          </div>
+        </div>
+      ) : !open ? (
+        <button type="button" onClick={() => setOpen(true)} className="w-full text-left text-sm">
+          <span className="font-semibold text-indigo-700">🤖 Licitare automata</span>
+          <span className="block text-xs text-indigo-900/70">
+            Spune suma maxima si licitam noi pentru tine, cu pasul minim, doar cat e nevoie.
+          </span>
+        </button>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-indigo-700">🤖 Suma maxima pe care o dai</p>
+          {error && <Alert>{error}</Alert>}
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              step="0.01"
+              min={minimum}
+              placeholder={`minim ${minimum}`}
+              value={max}
+              onChange={(e) => setMax(e.target.value)}
+            />
+            <Button type="button" loading={busy} disabled={!max} onClick={() => save('PUT', { maxAmount: Number(max) })}>
+              Activeaza
+            </Button>
+          </div>
+          <p className="text-xs text-indigo-900/70">
+            Maximul ramane secret. Daca altcineva liciteaza, raspundem automat pana la aceasta suma.
+          </p>
+          <button type="button" onClick={() => setOpen(false)} className="text-xs font-medium text-slate-500 hover:text-slate-700">
+            Renunta
+          </button>
+        </div>
+      )}
     </div>
   )
 }
