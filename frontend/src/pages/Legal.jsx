@@ -80,8 +80,10 @@ export function Privacy() {
 
       <h2>Drepturile tale</h2>
       <p>
-        Poti cere oricand o copie a datelor tale, corectarea sau stergerea contului si a datelor asociate. Scrie-ne prin{' '}
-        {contact}. Daca te-ai conectat cu Google, poti retrage oricand accesul aplicatiei din setarile contului tau Google
+        Din <Link to="/account?tab=settings" className="font-medium text-indigo-600 hover:underline">Contul meu → Setari cont</Link>{' '}
+        poti descarca oricand toate datele tale (fisier JSON) si iti poti sterge contul. La stergere, emailul, parola,
+        notificarile si listele tale se sterg, iar ofertele si vanzarile raman pentru ceilalti participanti, fara numele tau.
+        Pentru orice alta cerere (de exemplu corectarea datelor) scrie-ne prin {contact}. Daca te-ai conectat cu Google, poti retrage oricand accesul aplicatiei din setarile contului tau Google
         (Securitate → Aplicatii terte).
       </p>
 

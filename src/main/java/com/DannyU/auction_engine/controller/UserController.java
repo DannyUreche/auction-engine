@@ -4,14 +4,18 @@ import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
+import com.DannyU.auction_engine.service.AccountService;
 import com.DannyU.auction_engine.service.AdminAccess;
 import com.DannyU.auction_engine.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -22,6 +26,28 @@ public class UserController {
     private final AdminAccess adminAccess;
     private final ItemRepository itemRepository;
     private final ReviewService reviewService;
+    private final AccountService accountService;
+
+    public record DeleteRequest(String confirm) {
+    }
+
+    public record Message(String mesaj) {
+    }
+
+    // Everything the app stores about the logged-in user, as JSON (downloaded from the account page)
+    @GetMapping("/me/export")
+    public ResponseEntity<Map<String, Object>> export(Authentication authentication) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"datele-mele-licitatii.json\"")
+                .body(accountService.export(authentication.getName()));
+    }
+
+    // Deletes (anonymizes) the logged-in account; the body must repeat the username as confirmation
+    @DeleteMapping("/me")
+    public Message deleteAccount(@RequestBody DeleteRequest request, Authentication authentication) {
+        accountService.delete(authentication.getName(), request.confirm());
+        return new Message("Contul tau a fost sters.");
+    }
 
     // Profilul utilizatorului logat (inregistrarea se face prin POST /api/auth/register).
     // "admin" spune interfetei daca sa afiseze pagina de administrare.

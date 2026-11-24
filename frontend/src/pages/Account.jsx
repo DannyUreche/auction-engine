@@ -7,6 +7,7 @@ import ItemCard from '../components/ItemCard.jsx'
 import { Alert, Badge, Card, EmptyState, Loading } from '../components/ui.jsx'
 import WalletPanel from '../components/WalletPanel.jsx'
 import { useWallet } from '../wallet.js'
+import AccountSettings from '../components/AccountSettings.jsx'
 import { useWatchlist } from '../watchlist.jsx'
 
 const TABS = [
@@ -15,6 +16,7 @@ const TABS = [
   { key: 'won', label: 'Castigate' },
   { key: 'watched', label: 'Urmarite' },
   { key: 'wallet', label: 'Portofel' },
+  { key: 'settings', label: 'Setari cont' },
 ]
 
 export default function Account() {
@@ -59,7 +61,7 @@ export default function Account() {
             {t.label}
             {data && (
               <span className="ml-1.5 text-slate-400">
-                {t.key === 'watched' ? watchlist.items.length : t.key === 'wallet' ? '' : data[t.key].length}
+                {t.key === 'watched' ? watchlist.items.length : data[t.key]?.length ?? ''}
               </span>
             )}
           </button>
@@ -73,6 +75,7 @@ export default function Account() {
         {data && tab === 'bids' && <MyBids bids={data.bids} userId={user?.id} />}
         {data && tab === 'won' && <WonItems items={data.won} />}
         {data && tab === 'watched' && <WatchedItems items={watchlist.items} loaded={watchlist.loaded} />}
+        {data && tab === 'settings' && <AccountSettings user={user} />}
         {data && tab === 'wallet' && (
           <WalletPanel
             wallet={walletOverride ?? wallet}
