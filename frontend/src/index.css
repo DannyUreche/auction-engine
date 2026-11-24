@@ -77,6 +77,37 @@
   background: radial-gradient(420px circle at var(--x, 50%) var(--y, 50%), rgb(99 102 241 / 0.14), transparent 45%);
 }
 
+/* Contur neon care se roteste in jurul cardurilor (doar in modul intunecat).
+   --angle e declarat cu @property ca sa poata fi animat */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes spin-angle {
+  to { --angle: 360deg; }
+}
+html.dark .neon-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--angle), transparent 0 55%, #6366f1, #d946ef, #38bdf8, transparent 95%);
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: spin-angle 5s linear infinite;
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+html.dark .neon-card:hover::before {
+  opacity: 1;
+}
+html.dark .neon-card:hover {
+  box-shadow: 0 0 40px -8px rgb(99 102 241 / 0.45);
+}
+
 ::selection {
   background: var(--color-indigo-200);
 }

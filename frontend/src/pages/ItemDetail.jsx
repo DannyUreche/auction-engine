@@ -19,6 +19,7 @@ import EditItemForm from '../components/EditItemForm.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import PriceChart from '../components/PriceChart.jsx'
 import { launchConfetti } from '../confetti.js'
+import { disintegrate } from '../disintegrate.js'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
 import { LiveBadge, useAuctionEvents } from '../events.jsx'
 import { WatchButton } from '../watchlist.jsx'
@@ -86,6 +87,8 @@ export default function ItemDetail() {
       setNotice(`Oferta noua: ${formatPrice(event.amount)} de la ${event.username}`)
     }
     if (event.type === 'closed') {
+      // Poza "se dezintegreaza" si apoi reapare: semn vizual ca licitatia s-a terminat
+      disintegrate(document.querySelector('[data-main-image]'))
       setNotice(event.username ? `Licitatia s-a incheiat! Castigator: ${event.username}` : 'Licitatia s-a incheiat.')
     }
   })
@@ -324,7 +327,19 @@ function Gallery({ item, isSeller, onChange }) {
 
   function removeCurrent() {
     if (!window.confirm('Stergi aceasta poza?')) return
-    run(async () => onChange(await deleteItemImage(item.id, urls[current])))
+    const image = document.querySelector('[data-main-image]')
+    run(async () => {
+      try {
+        // Poza se sparge in bilute in timp ce serverul o sterge
+        const [updated] = await Promise.all([
+          deleteItemImage(item.id, urls[current]),
+          disintegrate(image, { keepHidden: true }),
+        ])
+        onChange(updated)
+      } finally {
+        if (image) image.style.visibility = ''
+      }
+    })
   }
 
   function makeCurrentMain() {
@@ -343,7 +358,7 @@ function Gallery({ item, isSeller, onChange }) {
     <div>
       <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
         {urls.length > 0 ? (
-          <img src={urls[current]} alt={item.name} className="aspect-[16/10] w-full bg-slate-100 object-contain" />
+          <img data-main-image src={urls[current]} alt={item.name} className="aspect-[16/10] w-full bg-slate-100 object-contain" />
         ) : (
           <ItemImage item={item} className="aspect-[16/10] w-full" />
         )}

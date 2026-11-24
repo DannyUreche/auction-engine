@@ -25,14 +25,23 @@ export default function ItemCard({ item, extra, index = 0 }) {
     const rect = event.currentTarget.getBoundingClientRect()
     event.currentTarget.style.setProperty('--x', `${event.clientX - rect.left}px`)
     event.currentTarget.style.setProperty('--y', `${event.clientY - rect.top}px`)
+    // Inclinare 3D usoara dupa pozitia mouse-ului (maxim ~6 grade)
+    const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 12
+    const rotateX = -((event.clientY - rect.top) / rect.height - 0.5) * 12
+    event.currentTarget.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
+  }
+
+  function handleMouseLeave(event) {
+    event.currentTarget.style.transform = ''
   }
 
   return (
     <Link
       to={`/items/${item.id}`}
       onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       style={{ animationDelay: `${Math.min(index, 11) * 60}ms` }}
-      className="group relative flex animate-fade-up flex-col overflow-hidden rounded-2xl bg-white/90 shadow-sm ring-1 ring-slate-200/80 backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 hover:ring-indigo-300"
+      className="neon-card group relative flex animate-fade-up flex-col overflow-hidden rounded-2xl bg-white/90 shadow-sm ring-1 ring-slate-200/80 backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 hover:ring-indigo-300"
     >
       <div className="spotlight pointer-events-none absolute inset-0 z-10 opacity-0 transition duration-300 group-hover:opacity-100" />
 
