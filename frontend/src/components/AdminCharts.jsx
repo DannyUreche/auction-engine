@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, formatPrice } from '../api.js'
+import { CategoryIcon } from './icons.jsx'
 import { Card } from './ui.jsx'
 
 // Graficele din pagina de administrare. O singura culoare (indigo) pentru marimi, grila discreta,
@@ -127,8 +128,8 @@ function SalesByCategory({ rows }) {
       {rows.map((r) => (
         <li key={r.category} title={`${r.sold} ${r.sold === 1 ? 'obiect vandut' : 'obiecte vandute'}`}>
           <div className="mb-1 flex justify-between gap-2 text-sm">
-            <span className="truncate text-slate-700">
-              {r.icon} {r.label}
+            <span className="flex min-w-0 items-center gap-1.5 truncate text-slate-700">
+              <CategoryIcon category={{ code: r.category, icon: r.icon }} size={16} /> {r.label}
             </span>
             <span className="shrink-0 font-semibold text-slate-900 tabular-nums">{formatPrice(r.value)}</span>
           </div>

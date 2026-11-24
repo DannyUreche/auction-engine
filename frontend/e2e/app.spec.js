@@ -3,10 +3,10 @@ import { expect, test } from '@playwright/test'
 // Un utilizator nou pentru fiecare rulare (numele trebuie sa fie unic)
 const username = `e2e_${Date.now().toString(36)}`
 
-test('pagina principala se incarca cu licitatiile si cifrele live', async ({ page }) => {
+test('pagina principala se incarca cu vitrina 3D si cifrele live', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /Liciteaza in timp real/ })).toBeVisible()
-  await expect(page.getByText('Activitate live')).toBeVisible()
+  await expect(page.locator('[data-card]').first()).toBeAttached()
   await expect(page.getByText('Licitatii active', { exact: true }).first()).toBeVisible()
 })
 
@@ -22,7 +22,7 @@ test('inregistrare, punere la vanzare si cautare', async ({ page }) => {
 
   await page.goto('/sell')
   await page.getByPlaceholder('ex: Ceas de buzunar vechi').fill(`Obiect E2E ${username}`)
-  await page.locator('select').first().selectOption('ELECTRONICE')
+  await page.getByRole('radio', { name: /Electronice/ }).click()
   await page.getByPlaceholder('100').fill('150')
   await page.getByRole('button', { name: 'Porneste licitatia' }).click()
 

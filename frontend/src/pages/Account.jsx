@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import { useAuth } from '../auth.jsx'
+import { Icon } from '../components/icons.jsx'
 import ItemCard from '../components/ItemCard.jsx'
 import { Alert, Badge, Card, EmptyState, Loading } from '../components/ui.jsx'
 import { useWatchlist } from '../watchlist.jsx'
@@ -155,7 +156,11 @@ function WonItems({ items }) {
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
-        <ItemCard key={item.id} item={item} extra={<Badge tone="amber">🏆 Castigat</Badge>} />
+        <ItemCard key={item.id} item={item} extra={
+            <Badge tone="amber">
+              <Icon name="trophy" size={14} /> Castigat
+            </Badge>
+          } />
       ))}
     </div>
   )

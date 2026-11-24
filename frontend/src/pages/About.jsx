@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { Icon } from '../components/icons.jsx'
 import { Card } from '../components/ui.jsx'
 
 // Pagina "Despre proiect": arhitectura (diagrama animata), functiile si tehnologiile folosite
@@ -39,7 +40,7 @@ export default function About() {
               style={{ animationDelay: `${i * 50}ms` }}
               className="animate-fade-up rounded-2xl bg-white/85 p-5 ring-1 ring-slate-200/80 backdrop-blur transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/10"
             >
-              <span className="text-2xl">{f.icon}</span>
+              <Icon name={f.icon} size={34} />
               <h3 className="mt-2 font-semibold text-slate-900">{f.title}</h3>
               <p className="mt-1 text-sm text-slate-600">{f.text}</p>
             </div>
@@ -92,14 +93,14 @@ function Architecture() {
   return (
     <div className="grid items-stretch gap-3 lg:grid-cols-[1fr_auto_1.3fr_auto_1fr]">
       <Tier
-        icon="🖥️"
+        icon="monitor"
         title="Browser"
         subtitle="React 19 + Vite + Tailwind"
         rows={['Pagini: licitatii, obiect, cont, admin', 'Grafice SVG si animatii canvas', 'JWT pastrat in localStorage', 'O singura conexiune live (EventSource)']}
       />
       <Flow labels={['REST / JSON + JWT', 'Server-Sent Events']} />
       <Tier
-        icon="⚙️"
+        icon="server"
         title="Server Spring Boot 4"
         subtitle="Java 21"
         highlight
@@ -113,8 +114,8 @@ function Architecture() {
       />
       <Flow labels={['JPA / Hibernate', 'SMTP']} />
       <div className="grid gap-3">
-        <Tier icon="🐘" title="PostgreSQL" subtitle="Neon, schema prin Flyway" rows={['Obiecte, oferte, poze (bytea)', 'Notificari, recenzii, mesaje']} />
-        <Tier icon="✉️" title="Email" subtitle="SMTP (ex: Brevo)" rows={['Oferta depasita, castigat, resetare parola']} />
+        <Tier icon="database" title="PostgreSQL" subtitle="Neon, schema prin Flyway" rows={['Obiecte, oferte, poze (bytea)', 'Notificari, recenzii, mesaje']} />
+        <Tier icon="mail" title="Email" subtitle="SMTP (ex: Brevo)" rows={['Oferta depasita, castigat, resetare parola']} />
       </div>
     </div>
   )
@@ -128,7 +129,7 @@ function Tier({ icon, title, subtitle, rows, highlight }) {
       }`}
     >
       <p className="flex items-center gap-2 font-semibold text-slate-900">
-        <span className="text-xl">{icon}</span>
+        <Icon name={icon} size={24} />
         {title}
       </p>
       <p className="text-xs text-slate-500">{subtitle}</p>
@@ -165,15 +166,15 @@ function Flow({ labels }) {
 }
 
 const FEATURES = [
-  { icon: '⚡', title: 'Licitatii in timp real', text: 'Ofertele apar instant pe ecranul tuturor, fara reincarcarea paginii (Server-Sent Events).' },
-  { icon: '🤖', title: 'Licitare automata', text: 'Spui suma maxima, iar serverul liciteaza pentru tine cu pasul minim, ca pe eBay.' },
-  { icon: '⏱', title: 'Reguli corecte', text: 'Pas minim in functie de pret si prelungire anti-sniping cand cineva liciteaza in ultimele minute.' },
-  { icon: '🛒', title: 'Cumpara acum', text: 'Pret fix optional: cine il plateste castiga imediat, iar licitatia se inchide.' },
-  { icon: '🔔', title: 'Notificari si email', text: 'Clopotel cu istoric si emailuri cand esti depasit, cand castigi sau cand vinzi.' },
-  { icon: '💬', title: 'Chat si recenzii', text: 'Dupa vanzare, cumparatorul si vanzatorul vorbesc direct si isi dau note de la 1 la 5.' },
-  { icon: '❤️', title: 'Favorite', text: 'Urmaresti obiecte si primesti notificari live cand cineva liciteaza la ele.' },
-  { icon: '📈', title: 'Grafice', text: 'Evolutia pretului pe fiecare obiect si statistici pentru administratori.' },
-  { icon: '🛡️', title: 'Securitate', text: 'JWT, parole criptate (BCrypt), limita de incercari la login, resetare parola cu link unic.' },
+  { icon: 'bolt', title: 'Licitatii in timp real', text: 'Ofertele apar instant pe ecranul tuturor, fara reincarcarea paginii (Server-Sent Events).' },
+  { icon: 'robot', title: 'Licitare automata', text: 'Spui suma maxima, iar serverul liciteaza pentru tine cu pasul minim, ca pe eBay.' },
+  { icon: 'timer', title: 'Reguli corecte', text: 'Pas minim in functie de pret si prelungire anti-sniping cand cineva liciteaza in ultimele minute.' },
+  { icon: 'cart', title: 'Cumpara acum', text: 'Pret fix optional: cine il plateste castiga imediat, iar licitatia se inchide.' },
+  { icon: 'bell', title: 'Notificari si email', text: 'Clopotel cu istoric si emailuri cand esti depasit, cand castigi sau cand vinzi.' },
+  { icon: 'chat', title: 'Chat si recenzii', text: 'Dupa vanzare, cumparatorul si vanzatorul vorbesc direct si isi dau note de la 1 la 5.' },
+  { icon: 'heart', title: 'Favorite', text: 'Urmaresti obiecte si primesti notificari live cand cineva liciteaza la ele.' },
+  { icon: 'chart', title: 'Grafice', text: 'Evolutia pretului pe fiecare obiect si statistici pentru administratori.' },
+  { icon: 'shield', title: 'Securitate', text: 'JWT, parole criptate (BCrypt), limita de incercari la login, resetare parola cu link unic.' },
 ]
 
 const STACK = [
@@ -191,7 +192,7 @@ const STACK = [
     items: [
       ['React 19 + React Router', 'aplicatie cu o singura pagina'],
       ['Tailwind CSS v4', 'design, animatii, mod intunecat'],
-      ['SVG + Canvas', 'grafice, cer instelat, efecte (fara biblioteci)'],
+      ['SVG + Canvas + CSS 3D', 'grafice, grila magnetica, vitrina 3D, iconite proprii (fara biblioteci)'],
       ['EventSource', 'actualizari live de la server'],
     ],
   },

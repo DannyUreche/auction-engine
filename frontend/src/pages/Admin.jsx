@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import AdminCharts from '../components/AdminCharts.jsx'
+import { Icon } from '../components/icons.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, Loading } from '../components/ui.jsx'
 import { useAuctionEvents } from '../events.jsx'
@@ -126,7 +127,7 @@ function Stat({ label, value }) {
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
+      <p className="mt-1 text-xl font-bold [overflow-wrap:anywhere] text-slate-900 xl:text-2xl">{value}</p>
     </div>
   )
 }
@@ -165,7 +166,9 @@ function ItemsTable({ items, onClose, onDelete }) {
               {item.active ? (
                 <Badge tone="green">Activa</Badge>
               ) : item.winner ? (
-                <Badge tone="amber">🏆 {item.winner}</Badge>
+                <Badge tone="amber">
+                    <Icon name="trophy" size={14} /> {item.winner}
+                  </Badge>
               ) : (
                 <Badge tone="gray">Fara oferte</Badge>
               )}
@@ -261,7 +264,9 @@ function DemoDataPanel({ onChange }) {
   return (
     <div className="mt-6 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-indigo-50 to-fuchsia-50 p-5 ring-1 ring-indigo-100 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="font-semibold text-slate-900">🎬 Date demo pentru prezentare</p>
+        <p className="flex items-center gap-2 font-semibold text-slate-900">
+          <Icon name="clapper" size={22} /> Date demo pentru prezentare
+        </p>
         <p className="mt-0.5 text-sm text-slate-600">
           16 obiecte in toate categoriile, cu poze, oferte de-a lungul a 2 zile si cateva vanzari. Utilizatorii au numele
           „demo_...” si nu se poate intra in contul lor.

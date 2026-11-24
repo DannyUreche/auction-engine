@@ -20,6 +20,7 @@ import ItemImage from '../components/ItemImage.jsx'
 import PriceChart from '../components/PriceChart.jsx'
 import { ItemReviews } from '../components/Reviews.jsx'
 import ChatBox from '../components/ChatBox.jsx'
+import { CategoryIcon, Icon } from '../components/icons.jsx'
 import { launchConfetti } from '../confetti.js'
 import { disintegrate } from '../disintegrate.js'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
@@ -129,8 +130,8 @@ export default function ItemDetail() {
 
       {notice && (
         <div className="fixed inset-x-0 top-20 z-20 flex justify-center px-4">
-          <div className="stay-dark animate-bounce rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg">
-            🔔 {notice}
+          <div className="stay-dark flex animate-bounce items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg">
+            <Icon name="bell" size={20} /> {notice}
           </div>
         </div>
       )}
@@ -165,9 +166,9 @@ export default function ItemDetail() {
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  className="ml-auto text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                  className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-500"
                 >
-                  ✏️ Editeaza
+                  <Icon name="pencil" size={18} /> Editeaza
                 </button>
               )}
             </div>
@@ -189,7 +190,14 @@ export default function ItemDetail() {
                   </Link>
                 }
               />
-              <Detail label="Categorie" value={`${category.icon} ${category.label}`} />
+              <Detail
+                label="Categorie"
+                value={
+                  <span className="inline-flex items-center gap-1.5">
+                    <CategoryIcon category={category} size={18} /> {category.label}
+                  </span>
+                }
+              />
               <Detail label="Pret de pornire" value={formatPrice(item.startPrice)} />
               <Detail label={item.active ? 'Se termina' : 'S-a terminat'} value={formatDate(item.endTime)} />
               {item.buyNowPrice && <Detail label="Cumpara acum" value={formatPrice(item.buyNowPrice)} />}
@@ -238,9 +246,9 @@ export default function ItemDetail() {
                             {bid.automatic && (
                               <span
                                 title="Oferta plasata de licitarea automata"
-                                className="ml-1.5 rounded bg-indigo-100 px-1.5 py-0.5 align-middle text-[10px] font-semibold text-indigo-700"
+                                className="ml-1.5 inline-flex items-center gap-1 rounded bg-indigo-100 px-1.5 py-0.5 align-middle text-[10px] font-semibold text-indigo-700"
                               >
-                                🤖 automat
+                                <Icon name="robot" size={13} /> automat
                               </span>
                             )}
                           </p>
@@ -447,15 +455,17 @@ function Gallery({ item, isSeller, onChange }) {
       {isSeller && urls.length > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           {current === 0 ? (
-            <span className="text-slate-500">★ Poza principala (apare pe card)</span>
+            <span className="inline-flex items-center gap-1.5 text-slate-500">
+              <Icon name="star" size={16} /> Poza principala (apare pe card)
+            </span>
           ) : (
             <button
               type="button"
               disabled={busy}
               onClick={makeCurrentMain}
-              className="font-semibold text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 font-semibold text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
             >
-              ★ Fa-o poza principala
+              <Icon name="star" size={16} /> Fa-o poza principala
             </button>
           )}
           <button
@@ -520,7 +530,7 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
     const iWon = item.winner.id === user?.id
     return (
       <div className={`rounded-xl p-4 text-center ${iWon ? 'bg-amber-50' : 'bg-slate-50'}`}>
-        <p className="text-3xl">🏆</p>
+        <Icon name="trophy" size={44} className="mx-auto" />
         <p className="mt-2 font-semibold text-slate-900">
           {iWon ? 'Felicitari, ai castigat!' : `Castigat de ${item.winner.username}`}
         </p>
@@ -640,16 +650,16 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
             type="button"
             onClick={handleBuyNow}
             disabled={submitting}
-            className="w-full rounded-lg bg-amber-500 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-400 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-amber-500 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-400 disabled:opacity-50"
           >
-            ⚡ Cumpara acum cu {formatPrice(item.buyNowPrice)}
+            <Icon name="bolt" size={20} mono /> Cumpara acum cu {formatPrice(item.buyNowPrice)}
           </button>
           <p className="mt-1.5 text-center text-xs text-slate-500">Castigi imediat, fara sa astepti finalul.</p>
         </div>
       )}
 
-      <p className="text-center text-xs text-slate-400">
-        ⏱ O oferta in ultimele 2 minute prelungeste licitatia cu 2 minute.
+      <p className="flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
+        <Icon name="timer" size={15} /> O oferta in ultimele 2 minute prelungeste licitatia cu 2 minute.
       </p>
     </form>
   )
@@ -677,8 +687,9 @@ function ContactInfo({ itemId }) {
 
   return (
     <div className="mt-6 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
-      <p className="text-sm font-semibold text-emerald-900">
-        {contact.role === 'castigator' ? '🎉 Ai vandut obiectul! Contacteaza castigatorul:' : '🎉 Ai castigat! Contacteaza vanzatorul:'}
+      <p className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+        <Icon name="sparkles" size={20} />
+        {contact.role === 'castigator' ? 'Ai vandut obiectul! Contacteaza castigatorul:' : 'Ai castigat! Contacteaza vanzatorul:'}
       </p>
       <p className="mt-2 text-sm text-emerald-900">
         <Link to={`/users/${encodeURIComponent(contact.username)}`} className="font-semibold hover:underline">
@@ -733,8 +744,8 @@ function AutoBidBox({ item, minimum, onChange }) {
     <div className="rounded-xl bg-indigo-50/70 p-3 ring-1 ring-indigo-100">
       {current != null && !open ? (
         <div className="space-y-2">
-          <p className="text-sm text-indigo-900">
-            🤖 Licitezi automat pana la <span className="font-semibold">{formatPrice(current)}</span>
+          <p className="flex items-center gap-1.5 text-sm text-indigo-900">
+            <Icon name="robot" size={18} /> Licitezi automat pana la <span className="font-semibold">{formatPrice(current)}</span>
           </p>
           {exceeded && <p className="text-xs font-medium text-red-600">Maximul tau a fost depasit de alta oferta.</p>}
           <div className="flex gap-3 text-xs font-semibold">
@@ -748,14 +759,18 @@ function AutoBidBox({ item, minimum, onChange }) {
         </div>
       ) : !open ? (
         <button type="button" onClick={() => setOpen(true)} className="w-full text-left text-sm">
-          <span className="font-semibold text-indigo-700">🤖 Licitare automata</span>
+          <span className="flex items-center gap-1.5 font-semibold text-indigo-700">
+            <Icon name="robot" size={20} /> Licitare automata
+          </span>
           <span className="block text-xs text-indigo-900/70">
             Spune suma maxima si licitam noi pentru tine, cu pasul minim, doar cat e nevoie.
           </span>
         </button>
       ) : (
         <div className="space-y-2">
-          <p className="text-sm font-semibold text-indigo-700">🤖 Suma maxima pe care o dai</p>
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-indigo-700">
+            <Icon name="robot" size={18} /> Suma maxima pe care o dai
+          </p>
           {error && <Alert>{error}</Alert>}
           <div className="flex gap-2">
             <Input

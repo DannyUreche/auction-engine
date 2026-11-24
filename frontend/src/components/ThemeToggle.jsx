@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Icon } from './icons.jsx'
 
 // Butonul soare / luna: comuta intre modul luminos si cel intunecat si tine minte alegerea.
 // Clasa .dark pe <html> activeaza culorile din dark.css (vezi si scriptul din index.html).
@@ -20,8 +21,8 @@ export default function ThemeToggle() {
       title={dark ? 'Mod luminos' : 'Mod intunecat'}
       className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/80 text-slate-600 ring-1 ring-slate-200 transition hover:text-indigo-600 hover:ring-indigo-300"
     >
-      <span key={String(dark)} className="animate-fade-in text-base leading-none">
-        {dark ? '☀️' : '🌙'}
+      <span key={String(dark)} className="grid animate-fade-in place-items-center">
+        <Icon name={dark ? 'sun' : 'moon'} size={19} />
       </span>
     </button>
   )

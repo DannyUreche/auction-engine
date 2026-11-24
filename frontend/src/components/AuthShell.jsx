@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import Backdrop from './Backdrop.jsx'
+import { Icon } from './icons.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 import { Logo } from './Layout.jsx'
 
@@ -45,9 +46,15 @@ export default function AuthShell({ title, subtitle, children }) {
           </div>
 
           <ul className="mt-4 space-y-3 text-sm text-indigo-100/80">
-            <li>⏱ Cronometru live si prelungire automata in ultimele minute</li>
-            <li>📈 Grafic cu evolutia pretului si istoricul ofertelor</li>
-            <li>🏆 Castigatorul este stabilit automat la final</li>
+            <li className="flex items-center gap-2.5">
+              <Icon name="timer" size={20} /> Cronometru live si prelungire automata in ultimele minute
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Icon name="chart" size={20} /> Grafic cu evolutia pretului si istoricul ofertelor
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Icon name="trophy" size={20} /> Castigatorul este stabilit automat la final
+            </li>
           </ul>
         </div>
       </div>

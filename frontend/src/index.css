@@ -16,6 +16,7 @@
   --animate-gradient: gradient-shift 8s ease infinite;
   --animate-bell: bell 0.8s ease-in-out;
   --animate-grow: grow 0.8s ease-out both;
+  --animate-stamp: stamp 2.7s ease-out both;
   --animate-flow-x: flow-x 0.9s linear infinite;
   --animate-flow-x-slow: flow-x 1.4s linear infinite;
   --animate-flow-y: flow-y 0.9s linear infinite;
@@ -68,6 +69,14 @@
   @keyframes flow-y {
     from { background-position: 0 0; }
     to { background-position: 0 16px; }
+  }
+  /* The "ADJUDECAT!" stamp of the 3D gavel: slams in, stays, fades out */
+  @keyframes stamp {
+    0% { opacity: 0; transform: scale(2.2) rotate(-14deg); }
+    12% { opacity: 1; transform: scale(0.92) rotate(-7deg); }
+    18% { transform: scale(1) rotate(-8deg); }
+    85% { opacity: 1; transform: scale(1) rotate(-8deg); }
+    100% { opacity: 0; transform: scale(1.04) rotate(-8deg); }
   }
   @keyframes gradient-shift {
     0%, 100% { background-position: 0% 50%; }
@@ -134,6 +143,15 @@ html.dark .neon-card:hover::before {
 }
 html.dark .neon-card:hover {
   box-shadow: 0 0 40px -8px rgb(99 102 241 / 0.45);
+}
+
+/* Neon glow of the custom icons (components/icons.jsx) */
+.icon-neon {
+  filter: drop-shadow(0 0 1px currentColor) drop-shadow(0 0 2.5px color-mix(in srgb, currentColor 55%, transparent));
+}
+html.dark .icon-neon,
+.stay-dark .icon-neon {
+  filter: drop-shadow(0 0 1.5px currentColor) drop-shadow(0 0 6px currentColor);
 }
 
 ::selection {

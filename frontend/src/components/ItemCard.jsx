@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router'
 import { formatPrice } from '../api.js'
 import { findCategory, useCategories } from '../categories.js'
 import { WatchButton } from '../watchlist.jsx'
+import { CategoryIcon, Icon } from './icons.jsx'
 import Countdown from './Countdown.jsx'
 import ItemImage from './ItemImage.jsx'
 
@@ -55,20 +56,20 @@ export default function ItemCard({ item, extra, index = 0 }) {
           <Countdown endTime={item.endTime} active={item.active} />
         </div>
         {item.buyNowAvailable && (
-          <div className="absolute bottom-3 left-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-md">
-            ⚡ Cumpara acum {formatPrice(item.buyNowPrice)}
+          <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-md">
+            <Icon name="bolt" size={13} mono /> Cumpara acum {formatPrice(item.buyNowPrice)}
           </div>
         )}
         {item.imageUrls?.length > 1 && (
-          <div className="absolute right-3 bottom-3 rounded-full bg-black/50 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
-            📷 {item.imageUrls.length}
+          <div className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
+            <Icon name="camera" size={13} mono /> {item.imageUrls.length}
           </div>
         )}
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <p className="text-xs font-medium text-slate-400">
-          {category.icon} {category.label}
+        <p className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+          <CategoryIcon category={category} size={15} /> {category.label}
         </p>
         <h3 className="mt-0.5 line-clamp-1 font-semibold text-slate-900 transition group-hover:text-indigo-600">{item.name}</h3>
         <p className="mt-1 line-clamp-2 min-h-10 text-sm text-slate-500">{item.description || 'Fara descriere'}</p>

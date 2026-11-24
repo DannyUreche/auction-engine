@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { checkImage, IMAGE_TYPES, MAX_IMAGES } from '../api.js'
+import { Icon } from './icons.jsx'
 
 // Alegerea pozelor (maxim MAX_IMAGES): click sau drag & drop, cu previzualizare.
 // Prima poza este poza principala (apare pe card); click pe alta o muta pe primul loc.
@@ -68,7 +69,7 @@ export default function ImagePicker({ files, onChange, onError }) {
           {...dropHandlers}
           className={`flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed transition ${dropZone}`}
         >
-          <span className="text-4xl">🖼️</span>
+          <Icon name="image" size={46} />
           <span className="text-sm font-semibold text-slate-700">Alege pana la {MAX_IMAGES} poze sau trage-le aici</span>
           <span className="text-xs text-slate-500">JPG, PNG, WebP sau GIF, maxim 5 MB fiecare</span>
         </button>

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { api } from '../api.js'
 import { useCategories } from '../categories.js'
-import { Alert, Button, Card, Field, Input, Select, Textarea } from './ui.jsx'
+import CategoryPicker from './CategoryPicker.jsx'
+import { Alert, Button, Card, Field, Input, Textarea } from './ui.jsx'
 
 // Formularul de editare al vanzatorului (doar cat timp licitatia nu are oferte; serverul verifica si el).
 // Data de incheiere nu se schimba; pozele se modifica direct din galerie.
@@ -59,15 +60,10 @@ export default function EditItemForm({ item, onSaved, onCancel }) {
           <Textarea value={form.description} onChange={update('description')} />
         </Field>
 
-        <Field label="Categorie">
-          <Select value={form.category} onChange={update('category')} required>
-            {categories.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.icon} {c.label}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        <div>
+          <span className="mb-1.5 block text-sm font-medium text-slate-700">Categorie</span>
+          <CategoryPicker categories={categories} value={form.category} onChange={(category) => setForm({ ...form, category })} />
+        </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Pret de pornire (RON)">

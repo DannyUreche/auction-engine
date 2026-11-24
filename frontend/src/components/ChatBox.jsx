@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, formatDate } from '../api.js'
 import { useAuctionEvents } from '../events.jsx'
+import { Icon } from './icons.jsx'
 import { Alert } from './ui.jsx'
 
 // Chat-ul dintre castigator si vanzator (dupa vanzare). Mesajele noi apar instant:
@@ -51,7 +52,9 @@ export default function ChatBox({ item, user }) {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900">💬 Mesaje cu {other}</h2>
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+          <Icon name="chat" size={24} /> Mesaje cu {other}
+        </h2>
         <span className="text-xs text-slate-400">vizibile doar pentru voi doi</span>
       </div>
 

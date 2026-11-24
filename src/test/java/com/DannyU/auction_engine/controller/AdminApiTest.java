@@ -150,6 +150,7 @@ class AdminApiTest {
     @Test
     void graficeleAuDateleCorecte() throws Exception {
         mockMvc.perform(get("/api/admin/charts").header("Authorization", bearer(seller))).andExpect(status().isForbidden());
+        removeExistingDemoData();
         mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(admin))).andExpect(status().isOk());
 
         mockMvc.perform(get("/api/admin/charts").header("Authorization", bearer(admin)))
@@ -163,6 +164,7 @@ class AdminApiTest {
 
     @Test
     void adminulGenereazaSiStergeDateleDemo() throws Exception {
+        removeExistingDemoData();
         mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(seller)))
                 .andExpect(status().isForbidden());
 
@@ -187,6 +189,12 @@ class AdminApiTest {
     }
 
     // ---------- Metode ajutatoare ----------
+
+    // The local database may already contain demo data (e.g. generated for a presentation).
+    // Remove it inside the test transaction; the rollback at the end brings it back.
+    private void removeExistingDemoData() throws Exception {
+        mockMvc.perform(delete("/api/admin/demo-data").header("Authorization", bearer(admin))).andExpect(status().isOk());
+    }
 
     private String bearer(User user) {
         return "Bearer " + jwtService.generateToken(user.getUsername());

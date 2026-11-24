@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { api, MAX_IMAGES, uploadItemImage } from '../api.js'
 import { useCategories } from '../categories.js'
+import CategoryPicker from '../components/CategoryPicker.jsx'
 import ImagePicker from '../components/ImagePicker.jsx'
 import { Alert, Button, Card, Field, Input, Select, Textarea } from '../components/ui.jsx'
 
@@ -33,6 +34,10 @@ export default function NewItem() {
   async function handleSubmit(event) {
     event.preventDefault()
     setError('')
+    if (!form.category) {
+      setError('Alege o categorie pentru obiect!')
+      return
+    }
     setSubmitting(true)
     let item
     try {
@@ -110,18 +115,10 @@ export default function NewItem() {
             />
           </Field>
 
-          <Field label="Categorie">
-            <Select value={form.category} onChange={update('category')} required>
-              <option value="" disabled>
-                Alege categoria...
-              </option>
-              {categories.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.icon} {c.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          <div>
+            <span className="mb-1.5 block text-sm font-medium text-slate-700">Categorie</span>
+            <CategoryPicker categories={categories} value={form.category} onChange={(category) => setForm({ ...form, category })} />
+          </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
             <Field label="Pret de pornire (RON)">

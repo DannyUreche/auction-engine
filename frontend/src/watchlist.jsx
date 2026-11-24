@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Link, useLocation, useNavigate } from 'react-router'
 import { api, formatPrice } from './api.js'
 import { useAuth } from './auth.jsx'
+import { Icon } from './components/icons.jsx'
 import { useAuctionEvents } from './events.jsx'
 
 const WatchlistContext = createContext(null)
@@ -53,10 +54,10 @@ export function WatchlistProvider({ children }) {
   const dismiss = useCallback((id) => setToasts((list) => list.filter((t) => t.id !== id)), [])
 
   const notify = useCallback(
-    (text, itemId) => {
+    (text, itemId, icon = 'bell') => {
       const id = nextId.current++
       // Cel mult 3 mesaje deodata; fiecare dispare singur dupa 8 secunde
-      setToasts((list) => [...list.slice(-2), { id, text, itemId }])
+      setToasts((list) => [...list.slice(-2), { id, text, itemId, icon }])
       setTimeout(() => dismiss(id), 8000)
     },
     [dismiss],
@@ -77,12 +78,12 @@ export function WatchlistProvider({ children }) {
     if (location.pathname === `/items/${event.itemId}`) return
     const name = `"${watched.name}"`
     if (event.type === 'bid' && event.username !== user.username) {
-      notify(`Oferta noua la ${name}: ${formatPrice(event.amount)} de la ${event.username}`, event.itemId)
+      notify(`Oferta noua la ${name}: ${formatPrice(event.amount)} de la ${event.username}`, event.itemId, 'coins')
     }
     if (event.type === 'closed') {
-      if (event.username === user.username) notify(`🏆 Ai castigat ${name}!`, event.itemId)
-      else if (event.username) notify(`Licitatia pentru ${name} s-a incheiat la ${formatPrice(event.amount)}`, event.itemId)
-      else notify(`Licitatia pentru ${name} s-a incheiat fara oferte`, event.itemId)
+      if (event.username === user.username) notify(`Ai castigat ${name}!`, event.itemId, 'trophy')
+      else if (event.username) notify(`Licitatia pentru ${name} s-a incheiat la ${formatPrice(event.amount)}`, event.itemId, 'tagCheck')
+      else notify(`Licitatia pentru ${name} s-a incheiat fara oferte`, event.itemId, 'hourglass')
     }
   })
 
@@ -97,7 +98,7 @@ export function WatchlistProvider({ children }) {
             role="status"
             className="stay-dark pointer-events-auto flex animate-slide-in items-start gap-3 rounded-xl bg-slate-900/95 px-4 py-3 text-sm text-white shadow-2xl ring-1 ring-white/10 backdrop-blur"
           >
-            <span aria-hidden="true">🔔</span>
+            <Icon name={toast.icon} size={22} />
             <div className="min-w-0 flex-1">
               <p>{toast.text}</p>
               <Link

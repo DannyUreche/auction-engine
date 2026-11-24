@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../auth.jsx'
 import { useAuctionEvents } from '../events.jsx'
+import { Icon } from './icons.jsx'
 import Backdrop from './Backdrop.jsx'
 import NotificationBell from './NotificationBell.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
@@ -28,7 +29,7 @@ export function Logo({ dark = false, compact = false }) {
   return (
     <span className={`flex items-center gap-2.5 text-lg font-bold tracking-tight ${dark ? 'text-white' : 'text-slate-900'}`}>
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-indigo-500/30">
-        🔨
+        <Icon name="gavel" size={20} mono />
       </span>
       <span className={`whitespace-nowrap ${compact ? 'hidden sm:inline' : ''}`}>
         Licitatii<span className="text-indigo-500">.live</span>

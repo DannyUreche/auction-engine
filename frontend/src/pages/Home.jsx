@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { api, formatPrice } from '../api.js'
+import { api } from '../api.js'
 import { useCategories } from '../categories.js'
 import ItemCard from '../components/ItemCard.jsx'
-import ActivityFeed from '../components/ActivityFeed.jsx'
 import CountUp from '../components/CountUp.jsx'
+import { CategoryIcon } from '../components/icons.jsx'
 import { Alert, CardSkeleton, EmptyState, Input, Select } from '../components/ui.jsx'
 import { useAuctionEvents } from '../events.jsx'
+import Hero3D from '../hero/Hero3D.jsx'
 
 const SORTS = {
   ending: { label: 'Se termina curand', compare: (a, b) => a.endTime.localeCompare(b.endTime) },
@@ -110,7 +111,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(255_255_255/0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.04)_1px,transparent_1px)] bg-[size:40px_40px]" />
         </div>
 
-        <div className="relative grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
+        <div
+          className="relative grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-center"
+        >
           <div className="min-w-0 animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-indigo-100 ring-1 ring-white/15 backdrop-blur">
               <span className="relative flex h-2 w-2">
@@ -142,16 +145,16 @@ export default function Home() {
               </a>
             </div>
 
-            <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-[1fr_1fr_1fr_1.5fr]">
               <HeroStat label="Licitatii active" value={stats?.activeItems} />
               <HeroStat label="Oferte plasate" value={stats?.bids} />
               <HeroStat label="Obiecte vandute" value={stats?.soldItems} />
-              <HeroStat label="Valoare vanduta" value={stats?.soldValue} format={(n) => formatPrice(Math.round(n))} />
+              <HeroStat label="Valoare vanduta" value={stats?.soldValue} format={formatMoneyShort} />
             </dl>
           </div>
 
           <div className="min-w-0 animate-fade-up [animation-delay:150ms]">
-            <ActivityFeed />
+            <Hero3D items={items} />
           </div>
         </div>
       </section>
@@ -163,7 +166,7 @@ export default function Home() {
         </CategoryChip>
         {categories.map((c) => (
           <CategoryChip key={c.code} active={category === c.code} onClick={() => setFilter('cat', c.code)}>
-            {c.icon} {c.label} <span className="opacity-60">{countFor(c.code)}</span>
+            <CategoryIcon category={c} size={18} /> {c.label} <span className="opacity-60">{countFor(c.code)}</span>
           </CategoryChip>
         ))}
       </div>
@@ -240,11 +243,15 @@ export default function Home() {
   )
 }
 
+// Whole lei, and a short form for big sums, so the value always fits its tile
+const compactMoney = new Intl.NumberFormat('ro-RO', { notation: 'compact', maximumFractionDigits: 1 })
+const formatMoneyShort = (n) => (n < 100000 ? `${Math.round(n).toLocaleString('ro-RO')} RON` : `${compactMoney.format(n)} RON`)
+
 // O cifra din partea de sus a paginii; numarul "urca" animat pana la valoarea reala
 function HeroStat({ label, value, format }) {
   return (
     <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10 backdrop-blur">
-      <dd className="text-xl font-bold tracking-tight sm:text-2xl">
+      <dd className="text-lg font-bold tracking-tight whitespace-nowrap sm:text-xl">
         {value == null ? <span className="text-white/40">—</span> : <CountUp value={value} format={format} />}
       </dd>
       <dt className="mt-0.5 text-xs text-indigo-200/70">{label}</dt>
@@ -256,7 +263,7 @@ function CategoryChip({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition ${
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition ${
         active
           ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25'
           : 'bg-white/80 text-slate-600 ring-1 ring-slate-200 backdrop-blur hover:bg-white hover:text-slate-900'
