@@ -48,7 +48,7 @@ public class SecurityConfig {
                         // altfel /api/items/{id} s-ar potrivi si pe /api/items/my
                         .requestMatchers("/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/items/*/auto-bid", "/api/items/*/messages", "/api/items/recommended", "/api/bids/my").authenticated()
                         // Oricine (si fara cont) poate vedea licitatiile si istoricul ofertelor
-                        .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats", "/api/users/*/profile", "/api/push/public-key").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats", "/api/health", "/api/users/*/profile", "/api/push/public-key").permitAll()
                         // Evenimentele in timp real (EventSource nu poate trimite token-ul)
                         .requestMatchers(HttpMethod.GET, "/api/events").permitAll()
                         // Orice alta ruta din API necesita un token JWT valid
