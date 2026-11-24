@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { api } from '../api.js'
+import { api, parseDate } from '../api.js'
 import { useCategories } from '../categories.js'
 import ItemCard from '../components/ItemCard.jsx'
 import CountUp from '../components/CountUp.jsx'
 import Recommendations from '../components/Recommendations.jsx'
-import { CategoryIcon } from '../components/icons.jsx'
+import { CategoryIcon, Icon } from '../components/icons.jsx'
 import { Alert, CardSkeleton, EmptyState, Input, Select } from '../components/ui.jsx'
 import { useAuctionEvents } from '../events.jsx'
 import Hero3D from '../hero/Hero3D.jsx'
@@ -16,6 +16,23 @@ const SORTS = {
   'price-asc': { label: 'Pret crescator', compare: (a, b) => Number(a.currentPrice) - Number(b.currentPrice) },
   'price-desc': { label: 'Pret descrescator', compare: (a, b) => Number(b.currentPrice) - Number(a.currentPrice) },
   newest: { label: 'Cele mai noi', compare: (a, b) => b.id - a.id },
+}
+
+// Auction type filter: [key, label, icon]
+const TYPES = [
+  ['', 'Toate tipurile', null],
+  ['buy', 'Cu Cumpara acum', 'bolt'],
+  ['dutch', 'Olandeze', 'trendDown'],
+  ['today', 'Se termina azi', 'hourglass'],
+  ['soon', 'Incep curand', 'timer'],
+]
+
+function matchesType(item, type) {
+  if (type === 'buy') return item.buyNowAvailable && item.auctionType !== 'DUTCH'
+  if (type === 'dutch') return item.auctionType === 'DUTCH'
+  if (type === 'soon') return !item.started
+  if (type === 'today') return item.started && parseDate(item.endTime).getTime() - Date.now() < 24 * 3600 * 1000
+  return true
 }
 
 export default function Home() {
@@ -33,9 +50,10 @@ export default function Home() {
     q: params.get('q') ?? '',
     min: params.get('min') ?? '',
     max: params.get('max') ?? '',
+    type: TYPES.some(([key]) => key === params.get('type')) ? params.get('type') : '',
     sort: SORTS[params.get('sort')] ? params.get('sort') : 'ending',
   }))
-  const { cat: category, q: search, min: minPrice, max: maxPrice, sort } = filters
+  const { cat: category, q: search, min: minPrice, max: maxPrice, type, sort } = filters
 
   useEffect(() => {
     const next = new URLSearchParams()
@@ -47,7 +65,7 @@ export default function Home() {
   }, [filters, setParams])
 
   const setFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }))
-  const clearFilters = () => setFilters((current) => ({ cat: '', q: '', min: '', max: '', sort: current.sort }))
+  const clearFilters = () => setFilters((current) => ({ cat: '', q: '', min: '', max: '', type: '', sort: current.sort }))
 
   const load = useCallback(
     () =>
@@ -93,7 +111,8 @@ export default function Home() {
   const matchesOtherFilters = (item) =>
     (!term || item.name.toLowerCase().includes(term) || (item.description ?? '').toLowerCase().includes(term)) &&
     (!minPrice || Number(item.currentPrice) >= Number(minPrice)) &&
-    (!maxPrice || Number(item.currentPrice) <= Number(maxPrice))
+    (!maxPrice || Number(item.currentPrice) <= Number(maxPrice)) &&
+    matchesType(item, type)
 
   const filteredWithoutCategory = all.filter(matchesOtherFilters)
   const visible = filteredWithoutCategory
@@ -101,7 +120,7 @@ export default function Home() {
     .sort(SORTS[sort].compare)
 
   const countFor = (code) => filteredWithoutCategory.filter((item) => item.category === code).length
-  const hasFilters = Boolean(category || term || minPrice || maxPrice)
+  const hasFilters = Boolean(category || term || minPrice || maxPrice || type)
 
   return (
     <div>
@@ -163,59 +182,105 @@ export default function Home() {
 
       <Recommendations />
 
-      {/* Categorii */}
-      <div id="licitatii" className="mt-8 -mx-4 flex scroll-mt-24 gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-        <CategoryChip active={!category} onClick={() => setFilter('cat', '')}>
-          {t('Toate')} <span className="opacity-60">{filteredWithoutCategory.length}</span>
-        </CategoryChip>
-        {categories.map((c) => (
-          <CategoryChip key={c.code} active={category === c.code} onClick={() => setFilter('cat', c.code)}>
-            <CategoryIcon category={c} size={18} /> {t(c.label)} <span className="opacity-60">{countFor(c.code)}</span>
-          </CategoryChip>
-        ))}
-      </div>
-
-      {/* Cautare, pret, sortare */}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_9rem_9rem_12rem]">
-        <Input placeholder={t('Cauta un obiect...')} value={search} onChange={(e) => setFilter('q', e.target.value)} />
-        <Input
-          type="number"
-          min="0"
-          placeholder={t('Pret minim')}
-          value={minPrice}
-          onChange={(e) => setFilter('min', e.target.value)}
-        />
-        <Input
-          type="number"
-          min="0"
-          placeholder={t('Pret maxim')}
-          value={maxPrice}
-          onChange={(e) => setFilter('max', e.target.value)}
-        />
-        <Select value={sort} onChange={(e) => setFilter('sort', e.target.value)}>
-          {Object.entries(SORTS).map(([key, s]) => (
-            <option key={key} value={key}>
-              {t(s.label)}
-            </option>
-          ))}
-        </Select>
-      </div>
-
-      {items && (
-        <div className="mt-3 flex items-center justify-between text-sm text-slate-500">
-          <span>
-            {visible.length} {t(visible.length === 1 ? 'rezultat' : 'rezultate')}
-          </span>
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="font-semibold text-indigo-600 hover:text-indigo-500"
-            >
-              {t('Sterge filtrele')}
-            </button>
+      {/* Filters: one highlighted panel (search, categories, auction type, price, sorting) */}
+      <section
+        id="licitatii"
+        className="relative mt-10 scroll-mt-24 overflow-hidden rounded-3xl bg-white/90 p-4 shadow-xl ring-1 shadow-indigo-500/10 ring-indigo-200/70 backdrop-blur sm:p-6"
+      >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500" />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 sm:text-xl">
+            <Icon name="filter" size={24} /> {t('Gaseste ce cauti')}
+          </h2>
+          {items && (
+            <div className="flex items-center gap-3 text-sm">
+              <span className="rounded-full bg-indigo-50 px-3 py-1 font-semibold text-indigo-700 ring-1 ring-indigo-200">
+                {visible.length} {t(visible.length === 1 ? 'rezultat' : 'rezultate')}
+              </span>
+              {hasFilters && (
+                <button onClick={clearFilters} className="font-semibold text-indigo-600 hover:text-indigo-500">
+                  {t('Sterge filtrele')}
+                </button>
+              )}
+            </div>
           )}
         </div>
-      )}
+
+        {/* Search */}
+        <label className="relative mt-4 block">
+          <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
+            <Icon name="search" size={22} />
+          </span>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setFilter('q', e.target.value)}
+            placeholder={t('Cauta un obiect...')}
+            className="block w-full rounded-2xl border-0 bg-white py-3.5 pr-4 pl-12 text-base text-slate-900 shadow-inner ring-2 ring-indigo-100 transition placeholder:text-slate-400 focus:ring-indigo-500 focus:outline-none"
+          />
+        </label>
+
+        {/* Categories */}
+        <p className="mt-5 text-xs font-semibold tracking-wide text-slate-500 uppercase">{t('Categorii')}</p>
+        <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          <CategoryChip active={!category} onClick={() => setFilter('cat', '')}>
+            {t('Toate')} <span className="opacity-70">{filteredWithoutCategory.length}</span>
+          </CategoryChip>
+          {categories.map((c) => (
+            <CategoryChip key={c.code} active={category === c.code} onClick={() => setFilter('cat', c.code)}>
+              <CategoryIcon category={c} size={18} /> {t(c.label)} <span className="opacity-70">{countFor(c.code)}</span>
+            </CategoryChip>
+          ))}
+        </div>
+
+        {/* Auction type, price, sorting */}
+        <div className="mt-5 grid gap-4">
+          <div>
+            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">{t('Tip de licitatie')}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {TYPES.map(([key, label, icon]) => (
+                <button
+                  key={key}
+                  onClick={() => setFilter('type', key)}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium transition ${
+                    type === key
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
+                      : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:text-indigo-700 hover:ring-indigo-300'
+                  }`}
+                >
+                  {icon && <Icon name={icon} size={16} mono={type === key} />} {t(label)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-[9rem_9rem_14rem]">
+            <Input type="number" min="0" placeholder={t('Pret minim')} value={minPrice} onChange={(e) => setFilter('min', e.target.value)} />
+            <Input type="number" min="0" placeholder={t('Pret maxim')} value={maxPrice} onChange={(e) => setFilter('max', e.target.value)} />
+            <div className="col-span-2 sm:col-span-1">
+              <Select value={sort} onChange={(e) => setFilter('sort', e.target.value)} aria-label={t('Sortare')}>
+                {Object.entries(SORTS).map(([key, s]) => (
+                  <option key={key} value={key}>
+                    {t(s.label)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Active filters as removable pills */}
+        {hasFilters && (
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+            {category && (
+              <FilterPill onRemove={() => setFilter('cat', '')}>{t(categories.find((c) => c.code === category)?.label ?? category)}</FilterPill>
+            )}
+            {term && <FilterPill onRemove={() => setFilter('q', '')}>„{search.trim()}”</FilterPill>}
+            {type && <FilterPill onRemove={() => setFilter('type', '')}>{t(TYPES.find(([key]) => key === type)[1])}</FilterPill>}
+            {minPrice && <FilterPill onRemove={() => setFilter('min', '')}>{t('de la')} {minPrice} RON</FilterPill>}
+            {maxPrice && <FilterPill onRemove={() => setFilter('max', '')}>{t('pana la')} {maxPrice} RON</FilterPill>}
+          </div>
+        )}
+      </section>
 
       <div className="mt-4">
         <Alert>{error}</Alert>
@@ -267,13 +332,30 @@ function CategoryChip({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition ${
+      aria-pressed={active}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition ${
         active
-          ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25'
-          : 'bg-white/80 text-slate-600 ring-1 ring-slate-200 backdrop-blur hover:bg-white hover:text-slate-900'
+          ? 'scale-[1.03] bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30'
+          : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:-translate-y-0.5 hover:text-indigo-700 hover:shadow-md hover:ring-indigo-300'
       }`}
     >
       {children}
     </button>
+  )
+}
+
+// An applied filter; the x removes just that one
+function FilterPill({ children, onRemove }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 py-1 pr-1 pl-3 text-sm font-medium text-indigo-700 ring-1 ring-indigo-200">
+      {children}
+      <button
+        onClick={onRemove}
+        aria-label="Sterge filtrul"
+        className="grid h-5 w-5 place-items-center rounded-full text-indigo-500 transition hover:bg-indigo-100 hover:text-indigo-800"
+      >
+        ×
+      </button>
+    </span>
   )
 }

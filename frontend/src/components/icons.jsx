@@ -390,6 +390,21 @@ Object.assign(ICONS, {
       { t: 'line', d: 'M3 12h18M12 3c2.5 2.5 3.8 5.6 3.8 9s-1.3 6.5-3.8 9M12 3c-2.5 2.5-3.8 5.6-3.8 9s1.3 6.5 3.8 9' },
     ],
   },
+  search: {
+    hue: 'indigo',
+    parts: [
+      { t: 'base', circle: [10.5, 10.5, 6.8] },
+      { t: 'accent', circle: [10.5, 10.5, 4.4] },
+      { t: 'line', d: 'M15.6 15.6 21 21' },
+    ],
+  },
+  filter: {
+    hue: 'violet',
+    parts: [
+      { t: 'base', d: 'M3.5 4.5h17l-6.6 7.6v6.1l-3.8 2v-8.1z' },
+      { t: 'accent', hue: 'fuchsia', d: 'M8.6 8.2h6.8l-2.4 2.8h-2z' },
+    ],
+  },
   download: {
     hue: 'emerald',
     parts: [
