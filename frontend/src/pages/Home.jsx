@@ -101,7 +101,7 @@ export default function Home() {
 
   return (
     <div>
-      <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-10 text-white shadow-2xl shadow-indigo-950/20 sm:px-10 sm:py-12">
+      <section className="stay-dark relative overflow-hidden rounded-3xl bg-slate-950 ring-1 ring-white/10 px-6 py-10 text-white shadow-2xl shadow-indigo-950/20 sm:px-10 sm:py-12">
         {/* Fundal animat: pete de culoare care plutesc + grila fina */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div className="absolute -top-32 -left-20 h-96 w-96 animate-float rounded-full bg-indigo-600/40 blur-3xl" />

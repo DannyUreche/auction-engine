@@ -103,7 +103,7 @@ export default function PriceChart({ startPrice, bids }) {
 
       {active && (
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900 px-3 py-2 text-xs whitespace-nowrap text-white shadow-lg"
+          className="stay-dark pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900 px-3 py-2 text-xs whitespace-nowrap text-white shadow-lg"
           style={{ left: Math.min(Math.max(x(hover), 80), width - 80), top: y(active.amount) - 10 }}
         >
           <p className="text-sm font-semibold">{formatPrice(active.amount)}</p>

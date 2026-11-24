@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import Backdrop from './Backdrop.jsx'
+import ThemeToggle from './ThemeToggle.jsx'
 import { Logo } from './Layout.jsx'
 
 // Cadrul paginilor de login si inregistrare: formular in stanga, prezentare in dreapta
@@ -8,6 +9,9 @@ export default function AuthShell({ title, subtitle, children }) {
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative flex items-center justify-center px-6 py-12">
         <Backdrop />
+        <div className="absolute top-5 right-5">
+          <ThemeToggle />
+        </div>
         <div className="w-full max-w-sm">
           <Link to="/" className="mb-8 flex w-fit items-center gap-2 text-lg font-bold">
             <Logo />
@@ -18,7 +22,7 @@ export default function AuthShell({ title, subtitle, children }) {
         </div>
       </div>
 
-      <div className="relative hidden overflow-hidden bg-slate-950 lg:block">
+      <div className="stay-dark relative hidden overflow-hidden bg-slate-950 lg:block">
         {/* Fundal animat */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div className="absolute -top-32 -right-24 h-[30rem] w-[30rem] animate-float rounded-full bg-indigo-600/40 blur-3xl" />

@@ -4,7 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔨</text></svg>" />
-    <title>Licitatii</title>
+    <title>Licitatii.live</title>
+    <script>
+      // Tema se aplica inainte sa apara pagina (altfel modul intunecat ar "clipi" alb la incarcare).
+      // Alegerea salvata are prioritate; altfel urmam setarea sistemului.
+      try {
+        var saved = localStorage.getItem('theme')
+        var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+        if (dark) document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
     <div id="root"></div>

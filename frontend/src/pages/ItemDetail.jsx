@@ -124,7 +124,7 @@ export default function ItemDetail() {
 
       {notice && (
         <div className="fixed inset-x-0 top-20 z-20 flex justify-center px-4">
-          <div className="animate-bounce rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg">
+          <div className="stay-dark animate-bounce rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg">
             🔔 {notice}
           </div>
         </div>
@@ -356,7 +356,7 @@ function Gallery({ item, isSeller, onChange }) {
             <ArrowButton label="Poza urmatoare" className="right-3" onClick={() => go(1)}>
               ›
             </ArrowButton>
-            <span className="absolute top-4 left-4 rounded-full bg-slate-900/70 px-2.5 py-0.5 text-xs font-semibold text-white">
+            <span className="stay-dark absolute top-4 left-4 rounded-full bg-slate-900/70 px-2.5 py-0.5 text-xs font-semibold text-white">
               {current + 1} / {urls.length}
             </span>
           </>
