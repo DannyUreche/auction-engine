@@ -21,6 +21,18 @@ services:
         sync: false
       - key: DATABASE_PASSWORD
         sync: false
+      # Emailuri (optional): datele SMTP de la Brevo (https://www.brevo.com), completate in Render -> Environment.
+      # Fara ele, aplicatia merge normal, doar ca nu trimite emailuri.
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: APP_BASE_URL
+        value: https://auction-engine.onrender.com
       # Secret JWT generat aleator de Render (nu apare nicaieri in cod)
       - key: JWT_SECRET
         generateValue: true
