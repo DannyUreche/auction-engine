@@ -107,14 +107,14 @@ function Architecture() {
         rows={[
           'Spring Security + JWT (roluri USER / ADMIN)',
           'Controllere REST + validare (Bean Validation)',
-          'Servicii: licitare, licitare automata, recenzii, chat',
-          'Scheduler: inchide licitatiile expirate la 60s',
-          'Evenimente dupa commit -> SSE, notificari, email',
+          'Servicii: licitare, licitare automata, portofel, recenzii, chat',
+          'Scheduler: inchide licitatiile, porneste cele programate, scade pretul olandez',
+          'Evenimente dupa commit -> SSE, notificari, email, push',
         ]}
       />
-      <Flow labels={['JPA / Hibernate', 'SMTP']} />
+      <Flow labels={['JPA / Hibernate', 'SMTP', 'Web Push']} />
       <div className="grid gap-3">
-        <Tier icon="database" title="PostgreSQL" subtitle="Neon, schema prin Flyway" rows={['Obiecte, oferte, poze (bytea)', 'Notificari, recenzii, mesaje']} />
+        <Tier icon="database" title="PostgreSQL" subtitle="Neon, schema prin Flyway" rows={['Obiecte, oferte, poze (bytea)', 'Portofele, notificari, recenzii, mesaje, intrebari']} />
         <Tier icon="mail" title="Email" subtitle="SMTP (ex: Brevo)" rows={['Oferta depasita, castigat, resetare parola']} />
       </div>
     </div>
@@ -175,6 +175,12 @@ const FEATURES = [
   { icon: 'heart', title: 'Favorite', text: 'Urmaresti obiecte si primesti notificari live cand cineva liciteaza la ele.' },
   { icon: 'chart', title: 'Grafice', text: 'Evolutia pretului pe fiecare obiect si statistici pentru administratori.' },
   { icon: 'shield', title: 'Securitate', text: 'JWT, parole criptate (BCrypt), limita de incercari la login, resetare parola cu link unic.' },
+  { icon: 'trendDown', title: 'Licitatii olandeze si programate', text: 'Pretul scade in fiecare minut pana cumpara cineva; licitatiile pot incepe la o ora aleasa.' },
+  { icon: 'wallet', title: 'Portofel virtual', text: 'Licitezi doar cu banii disponibili; la final suma trece automat de la cumparator la vanzator.' },
+  { icon: 'chat', title: 'Intrebari publice', text: 'Oricine intreaba vanzatorul despre obiect, iar raspunsul apare pentru toti.' },
+  { icon: 'download', title: 'Aplicatie instalabila', text: 'Se instaleaza pe telefon (PWA) si trimite notificari push chiar si cu site-ul inchis.' },
+  { icon: 'flag', title: 'Moderare', text: 'Obiectele pot fi raportate; administratorii le verifica si pot bloca conturi.' },
+  { icon: 'globe', title: 'Cont rapid, in doua limbi', text: 'Intrare cu Google, confirmarea emailului si interfata in romana sau engleza.' },
 ]
 
 const STACK = [
@@ -194,6 +200,7 @@ const STACK = [
       ['Tailwind CSS v4', 'design, animatii, mod intunecat'],
       ['SVG + Canvas + CSS 3D', 'grafice, grila magnetica, vitrina 3D, iconite proprii (fara biblioteci)'],
       ['EventSource', 'actualizari live de la server'],
+      ['Service Worker + Web Push', 'aplicatie instalabila si notificari push'],
     ],
   },
   {

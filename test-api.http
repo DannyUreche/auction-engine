@@ -146,6 +146,79 @@ DELETE {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/watch
 Authorization: Bearer {{loginCumparator.response.body.$.token}}
 
 
+### ---------- 3b. Wallet, questions, reports, recommendations ----------
+
+### Buyer's wallet (balance, reserved for auctions they lead, available)
+GET {{baseUrl}}/api/wallet
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### Buyer tops up the wallet (test credits, max 5000 at once)
+POST {{baseUrl}}/api/wallet/top-up
+Content-Type: application/json
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+{
+  "amount": 500
+}
+
+### Buyer asks a public question about the item
+# @name intrebare
+POST {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/questions
+Content-Type: application/json
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+{
+  "text": "Are factura si garantie?"
+}
+
+### Seller answers (only the seller, only once)
+POST {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/questions/{{intrebare.response.body.$.id}}/answer
+Content-Type: application/json
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+{
+  "text": "Da, garantie inca un an."
+}
+
+### Questions and answers (public)
+GET {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/questions
+
+### Buyer reports the item (FRAUD, PROHIBITED, WRONG_CATEGORY, OFFENSIVE, OTHER)
+POST {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/report
+Content-Type: application/json
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+{
+  "reason": "WRONG_CATEGORY",
+  "details": "Ar trebui la Electronice"
+}
+
+### Recommendations for the buyer (active items from the categories they bid on / watch)
+GET {{baseUrl}}/api/items/recommended
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### Dutch auction: the price drops by 10 RON per minute down to 100 RON; "buy-now" buys at the current price
+POST {{baseUrl}}/api/items
+Content-Type: application/json
+Authorization: Bearer {{loginVanzator.response.body.$.token}}
+
+{
+  "name": "Lampa vintage (olandeza)",
+  "description": "Licitatie olandeza de test",
+  "startPrice": 300.00,
+  "durationInMinutes": 60,
+  "auctionType": "DUTCH",
+  "floorPrice": 100.00,
+  "priceDrop": 10.00
+}
+
+### Public VAPID key for browser push notifications
+GET {{baseUrl}}/api/push/public-key
+
+### Is "Sign in with Google" configured? (clientId is null when GOOGLE_CLIENT_ID is empty)
+GET {{baseUrl}}/api/auth/google/config
+
+
 ### ---------- 4. Dupa inchiderea licitatiei ----------
 ### Asteapta ~2-3 minute (durata + verificarea care ruleaza o data pe minut)
 
