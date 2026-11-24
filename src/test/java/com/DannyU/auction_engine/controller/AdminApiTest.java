@@ -166,6 +166,19 @@ class AdminApiTest {
     }
 
     @Test
+    void emailStatusAndTestEmailWithoutSmtp() throws Exception {
+        mockMvc.perform(get("/api/admin/email").header("Authorization", bearer(seller)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/email").header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.configured").value(false));
+        // Without MAIL_HOST the test email explains what is missing instead of failing silently
+        mockMvc.perform(post("/api/admin/email/test").header("Authorization", bearer(admin)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.eroare").value(org.hamcrest.Matchers.containsString("MAIL_HOST")));
+    }
+
+    @Test
     void adminulGenereazaSiStergeDateleDemo() throws Exception {
         removeExistingDemoData();
         mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(seller)))

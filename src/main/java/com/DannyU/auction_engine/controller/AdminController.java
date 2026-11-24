@@ -3,6 +3,9 @@ package com.DannyU.auction_engine.controller;
 import com.DannyU.auction_engine.dto.AdminDtos;
 import com.DannyU.auction_engine.service.AdminService;
 import com.DannyU.auction_engine.service.DemoDataService;
+import com.DannyU.auction_engine.service.EmailService;
+import com.DannyU.auction_engine.repository.UserRepository;
+import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +20,30 @@ public class AdminController {
 
     private final AdminService adminService;
     private final DemoDataService demoDataService;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
+
+    public record EmailStatus(boolean configured, String from) {
+    }
+
+    public record Message(String mesaj) {
+    }
+
+    // Is SMTP configured? (the admin panel shows it next to the "send test email" button)
+    @GetMapping("/email")
+    public EmailStatus emailStatus() {
+        return new EmailStatus(emailService.isConfigured(), emailService.isConfigured() ? emailService.from() : null);
+    }
+
+    // Sends a test email to the logged-in admin, to check the SMTP settings (e.g. Brevo)
+    @PostMapping("/email/test")
+    public Message sendTestEmail(Authentication authentication) {
+        String to = userRepository.findByUsername(authentication.getName()).orElseThrow().getEmail();
+        emailService.sendOrThrow(to, "Test Licitatii.live",
+                "Salut!\n\nAcesta este un email de test trimis din pagina de administrare.\n"
+                        + "Daca il primesti, notificarile pe email functioneaza.\n\n" + emailService.link("/"));
+        return new Message("Emailul de test a fost trimis la " + to + ". Verifica si folderul Spam.");
+    }
 
     public record DemoStatus(boolean exists, int items) {
     }

@@ -101,6 +101,7 @@ export default function Admin() {
       <p className="mt-2 text-slate-500">Statistici, toate obiectele si toti utilizatorii platformei.</p>
 
       <DemoDataPanel onChange={load} />
+      <EmailPanel />
       <AdminCharts refreshKey={data} />
 
       <div className="mt-6 space-y-3">
@@ -312,6 +313,55 @@ function ReportsTable({ reports, onDismiss, onDeleteItem }) {
         </li>
       ))}
     </ul>
+  )
+}
+
+// SMTP status and a "send test email" button (to check the Brevo settings after setting them in Render)
+function EmailPanel() {
+  const [status, setStatus] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState({ ok: true, text: '' })
+
+  useEffect(() => {
+    api('/admin/email')
+      .then(setStatus)
+      .catch(() => setStatus(null))
+  }, [])
+
+  async function sendTest() {
+    setBusy(true)
+    setResult({ ok: true, text: '' })
+    try {
+      const data = await api('/admin/email/test', { method: 'POST' })
+      setResult({ ok: true, text: data.mesaj })
+    } catch (err) {
+      setResult({ ok: false, text: err.message })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!status) return null
+  return (
+    <div className="mt-4 flex flex-col gap-3 rounded-2xl bg-white/80 p-5 ring-1 ring-slate-200 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="flex items-center gap-2 font-semibold text-slate-900">
+          <Icon name="mail" size={22} /> Email
+          <Badge tone={status.configured ? 'green' : 'amber'}>{status.configured ? 'Configurat' : 'Neconfigurat'}</Badge>
+        </p>
+        <p className="mt-0.5 text-sm text-slate-600">
+          {status.configured
+            ? `Emailurile pleaca de la ${status.from}. Trimite un email de test catre adresa ta ca sa verifici setarile.`
+            : 'Emailurile doar se scriu in log. Pune MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD si MAIL_FROM in Render (de exemplu de la Brevo).'}
+        </p>
+        {result.text && <p className={`mt-1 text-sm font-medium ${result.ok ? 'text-emerald-700' : 'text-red-600'}`}>{result.text}</p>}
+      </div>
+      {status.configured && (
+        <Button variant="secondary" loading={busy} onClick={sendTest} className="shrink-0">
+          Trimite email de test
+        </Button>
+      )}
+    </div>
   )
 }
 

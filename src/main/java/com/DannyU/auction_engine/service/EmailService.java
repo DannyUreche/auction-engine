@@ -37,6 +37,30 @@ public class EmailService {
         return baseUrl + path;
     }
 
+    // Sender address shown in the admin panel
+    public String from() {
+        return from;
+    }
+
+    // Sends right away and reports failures (unlike send); used by the admin "test email" button
+    public void sendOrThrow(String to, String subject, String text) {
+        JavaMailSender sender = configured ? mailSender.getIfAvailable() : null;
+        if (sender == null) {
+            throw new IllegalArgumentException("Emailul nu este configurat: seteaza MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD si MAIL_FROM in Render.");
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+        try {
+            sender.send(message);
+        } catch (RuntimeException e) {
+            log.warn("Test email to {} failed", to, e);
+            throw new IllegalArgumentException("Serverul de email a refuzat mesajul: " + e.getMessage());
+        }
+    }
+
     public void send(String to, String subject, String text) {
         JavaMailSender sender = configured ? mailSender.getIfAvailable() : null;
         if (sender == null) {

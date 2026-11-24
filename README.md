@@ -83,3 +83,8 @@ npm run dev                                   # UI on http://localhost:5173
 Optional environment variables: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` (email
 and email verification), `GOOGLE_CLIENT_ID` (sign-in with Google), `ADMIN_USERNAMES` (admin accounts), `APP_BASE_URL`.
 Without them the app still runs: emails are only logged, and the Google button is hidden.
+
+**Emails with Brevo (free, 300 emails/day):** create an account at brevo.com, then in *SMTP & API → SMTP* generate an
+SMTP key and verify a sender address. Set `MAIL_HOST=smtp-relay.brevo.com`, `MAIL_PORT=587`, `MAIL_USERNAME` (the SMTP
+login shown by Brevo), `MAIL_PASSWORD` (the SMTP key) and `MAIL_FROM` (the verified sender). The admin page then shows
+"Email: Configurat" and a *send test email* button.
