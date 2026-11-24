@@ -65,8 +65,10 @@ class BidServiceTest {
     void ofertaValidaPublicaUnEvenimentPentruBrowsere() {
         bidService.placeBid(itemId(), bidder.getUsername(), new BigDecimal("150.00"));
 
+        // Oferta noua (pentru toti) + notificarea vanzatorului (doar pentru browserul lui)
         assertThat(events.stream(AuctionEvent.class))
-                .containsExactly(AuctionEvent.bid(item.getId(), new BigDecimal("150.00"), bidder.getUsername()));
+                .containsExactly(AuctionEvent.bid(item.getId(), new BigDecimal("150.00"), bidder.getUsername()),
+                        AuctionEvent.notification(seller.getUsername()));
     }
 
     @Test

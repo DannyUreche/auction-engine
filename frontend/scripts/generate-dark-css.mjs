@@ -3,7 +3,7 @@
 import { writeFileSync } from 'node:fs'
 
 const HUES = ['amber', 'blue', 'emerald', 'fuchsia', 'indigo', 'orange', 'pink', 'red', 'rose', 'sky', 'teal', 'violet']
-const WHITE_OPACITIES = [50, 60, 80, 85, 90]
+const WHITE_OPACITIES = [50, 60, 80, 85, 90, 95]
 // Nuantele deschise devin cele inchise si invers; 400-600 raman la fel
 const SWAP_HUE = { 50: 950, 100: 900, 200: 800, 300: 700, 700: 300, 800: 200, 900: 100, 950: 50 }
 // La gri, si 600 (text secundar) trebuie sa devina deschis

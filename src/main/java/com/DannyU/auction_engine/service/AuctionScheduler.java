@@ -2,6 +2,7 @@ package com.DannyU.auction_engine.service;
 
 import com.DannyU.auction_engine.entity.Bid;
 import com.DannyU.auction_engine.entity.Item;
+import com.DannyU.auction_engine.entity.Notification;
 import com.DannyU.auction_engine.repository.BidRepository;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class AuctionScheduler {
     private final ItemRepository itemRepository;
     private final BidRepository bidRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationService notificationService;
 
     // Se executa automat o data la 60.000 milisecunde (1 minut)
     @Scheduled(fixedRate = 60000)
@@ -48,6 +50,17 @@ public class AuctionScheduler {
         // 4. Anuntam browserele conectate (se trimite abia dupa salvarea tranzactiei)
         eventPublisher.publishEvent(AuctionEvent.closed(item.getId(), item.getCurrentPrice(),
                 item.getWinner() == null ? null : item.getWinner().getUsername()));
+
+        // 5. Notificari pentru castigator si vanzator
+        if (winningBid.isPresent()) {
+            notificationService.notify(item.getWinner(), Notification.Type.WON, item,
+                    "Ai castigat \"" + item.getName() + "\" cu " + item.getCurrentPrice() + " RON! Vezi datele de contact ale vanzatorului.");
+            notificationService.notify(item.getSeller(), Notification.Type.SOLD, item,
+                    "\"" + item.getName() + "\" s-a vandut cu " + item.getCurrentPrice() + " RON lui " + item.getWinner().getUsername() + ".");
+        } else {
+            notificationService.notify(item.getSeller(), Notification.Type.UNSOLD, item,
+                    "Licitatia pentru \"" + item.getName() + "\" s-a incheiat fara oferte.");
+        }
 
         if (winningBid.isPresent()) {
             Bid winner = winningBid.get();

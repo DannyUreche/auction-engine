@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../auth.jsx'
 import { useAuctionEvents } from '../events.jsx'
 import Backdrop from './Backdrop.jsx'
+import NotificationBell from './NotificationBell.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 
 function NavItem({ to, children }) {
@@ -68,6 +69,7 @@ export default function Layout() {
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
+            <NotificationBell />
             <span
               title={live ? 'Conectat: preturile se actualizeaza instant' : 'Se reconecteaza...'}
               className="hidden items-center gap-1.5 text-xs font-medium text-slate-500 lg:flex"

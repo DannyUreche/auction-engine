@@ -341,3 +341,4 @@ html.dark .bg-white\/60:not(.stay-dark, .stay-dark *) { background-color: color-
 html.dark .bg-white\/80:not(.stay-dark, .stay-dark *) { background-color: color-mix(in oklab, var(--orig-slate-900) 80%, transparent); }
 html.dark .bg-white\/85:not(.stay-dark, .stay-dark *) { background-color: color-mix(in oklab, var(--orig-slate-900) 85%, transparent); }
 html.dark .bg-white\/90:not(.stay-dark, .stay-dark *) { background-color: color-mix(in oklab, var(--orig-slate-900) 90%, transparent); }
+html.dark .bg-white\/95:not(.stay-dark, .stay-dark *) { background-color: color-mix(in oklab, var(--orig-slate-900) 95%, transparent); }

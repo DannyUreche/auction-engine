@@ -14,6 +14,7 @@
   --animate-price-flash: price-flash 1.2s ease-out;
   --animate-ping-slow: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
   --animate-gradient: gradient-shift 8s ease infinite;
+  --animate-bell: bell 0.8s ease-in-out;
 
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(14px); }
@@ -40,6 +41,14 @@
   @keyframes price-flash {
     0% { color: var(--color-emerald-600); transform: scale(1.08); }
     100% { transform: scale(1); }
+  }
+  /* Clopotelul "suna" cand vine o notificare noua */
+  @keyframes bell {
+    0%, 100% { transform: rotate(0); }
+    20% { transform: rotate(18deg); }
+    40% { transform: rotate(-14deg); }
+    60% { transform: rotate(9deg); }
+    80% { transform: rotate(-5deg); }
   }
   @keyframes gradient-shift {
     0%, 100% { background-position: 0% 50%; }

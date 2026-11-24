@@ -1,16 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { api, formatPrice, parseDate } from '../api.js'
+import { api, formatPrice, timeAgo } from '../api.js'
 import { useAuctionEvents } from '../events.jsx'
-
-// "acum 12s", "acum 3 min"...
-function timeAgo(value, now) {
-  const seconds = Math.max(0, Math.round((now - parseDate(value).getTime()) / 1000))
-  if (seconds < 60) return `acum ${seconds}s`
-  if (seconds < 3600) return `acum ${Math.floor(seconds / 60)} min`
-  if (seconds < 86400) return `acum ${Math.floor(seconds / 3600)} h`
-  return `acum ${Math.floor(seconds / 86400)} z`
-}
 
 // Ultimele oferte de pe tot site-ul, actualizate in timp real (pe fundal inchis, in partea de sus a paginii)
 export default function ActivityFeed() {

@@ -83,3 +83,12 @@ export function parseDate(value) {
 
 export const formatDate = (value) =>
   new Intl.DateTimeFormat('ro-RO', { dateStyle: 'medium', timeStyle: 'short' }).format(parseDate(value))
+
+// "acum 12s", "acum 3 min"...
+export function timeAgo(value, now) {
+  const seconds = Math.max(0, Math.round((now - parseDate(value).getTime()) / 1000))
+  if (seconds < 60) return `acum ${seconds}s`
+  if (seconds < 3600) return `acum ${Math.floor(seconds / 60)} min`
+  if (seconds < 86400) return `acum ${Math.floor(seconds / 3600)} h`
+  return `acum ${Math.floor(seconds / 86400)} z`
+}

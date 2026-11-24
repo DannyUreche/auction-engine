@@ -2,6 +2,7 @@ package com.DannyU.auction_engine.service;
 
 import com.DannyU.auction_engine.entity.Bid;
 import com.DannyU.auction_engine.entity.Item;
+import com.DannyU.auction_engine.entity.Notification;
 import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.entity.AutoBid;
 import com.DannyU.auction_engine.repository.AutoBidRepository;
@@ -28,6 +29,7 @@ public class BidService {
     private final AuctionScheduler auctionScheduler;
     private final ApplicationEventPublisher eventPublisher;
     private final AutoBidRepository autoBidRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Bid placeBid(Integer itemId, String bidderUsername, BigDecimal bidAmount) {
@@ -171,6 +173,10 @@ public class BidService {
                 && Duration.between(now, item.getEndTime()).compareTo(BidRules.ANTI_SNIPING_WINDOW) < 0) {
             item.setEndTime(now.plus(BidRules.ANTI_SNIPING_WINDOW));
         }
+        // Cine conducea inainte de aceasta oferta (primeste notificarea "oferta depasita")
+        User previousLeader = bidRepository.findTopByItemIdOrderByAmountDesc(item.getId())
+                .map(Bid::getBidder).orElse(null);
+
         item.setCurrentPrice(amount);
         itemRepository.save(item);
 
@@ -183,6 +189,13 @@ public class BidService {
 
         // Anuntam browserele conectate (se trimite abia dupa salvarea tranzactiei)
         eventPublisher.publishEvent(AuctionEvent.bid(item.getId(), amount, bidder.getUsername()));
+
+        if (previousLeader != null && !previousLeader.getId().equals(bidder.getId())) {
+            notificationService.notify(previousLeader, Notification.Type.OUTBID, item,
+                    "Oferta ta la \"" + item.getName() + "\" a fost depasita: " + amount + " RON de la " + bidder.getUsername());
+        }
+        notificationService.notify(item.getSeller(), Notification.Type.NEW_BID, item,
+                "Oferta noua la \"" + item.getName() + "\": " + amount + " RON de la " + bidder.getUsername());
         return saved;
     }
 }
