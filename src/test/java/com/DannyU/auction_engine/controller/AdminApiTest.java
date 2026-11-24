@@ -147,6 +147,31 @@ class AdminApiTest {
                 .andExpect(jsonPath("$.eroare").value("Obiectul nu a fost gasit!"));
     }
 
+    @Test
+    void adminulGenereazaSiStergeDateleDemo() throws Exception {
+        mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(seller)))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").value(16));
+        mockMvc.perform(get("/api/users/demo_ana/profile"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").doesNotExist());
+        mockMvc.perform(get("/api/admin/demo-data").header("Authorization", bearer(admin)))
+                .andExpect(jsonPath("$.exists").value(true));
+        // A doua oara nu se dubleaza
+        mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(admin)))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(delete("/api/admin/demo-data").header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").value(16));
+        mockMvc.perform(get("/api/admin/demo-data").header("Authorization", bearer(admin)))
+                .andExpect(jsonPath("$.exists").value(false));
+        mockMvc.perform(get("/api/users/demo_ana/profile")).andExpect(status().isBadRequest());
+    }
+
     // ---------- Metode ajutatoare ----------
 
     private String bearer(User user) {

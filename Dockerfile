@@ -22,6 +22,8 @@ RUN ./mvnw -q package -DskipTests
 
 # 3. Imaginea finala: doar Java + aplicatia
 FROM eclipse-temurin:21-jre-alpine
+# Fonturi pentru pozele generate de server (datele demo deseneaza text cu Java2D)
+RUN apk add --no-cache fontconfig ttf-dejavu
 WORKDIR /app
 COPY --from=backend /app/target/*.jar app.jar
 # Java foloseste maxim 75% din memoria serverului (planul gratuit Render are 512 MB)

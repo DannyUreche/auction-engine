@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import ItemImage from '../components/ItemImage.jsx'
-import { Alert, Badge, Card, Loading } from '../components/ui.jsx'
+import { Alert, Badge, Button, Card, Loading } from '../components/ui.jsx'
 import { useAuctionEvents } from '../events.jsx'
 
 const TABS = [
@@ -73,6 +73,8 @@ export default function Admin() {
         <Badge tone="indigo">Admin</Badge>
       </div>
       <p className="mt-2 text-slate-500">Statistici, toate obiectele si toti utilizatorii platformei.</p>
+
+      <DemoDataPanel onChange={load} />
 
       <div className="mt-6 space-y-3">
         <Alert>{error}</Alert>
@@ -220,5 +222,60 @@ function UsersTable({ users }) {
         ))}
       </tbody>
     </table>
+  )
+}
+
+// Date demo pentru prezentari: umple site-ul cu obiecte, poze si oferte realiste (si le sterge la loc)
+function DemoDataPanel({ onChange }) {
+  const [exists, setExists] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState('')
+  const [failure, setFailure] = useState('')
+
+  useEffect(() => {
+    api('/admin/demo-data')
+      .then((data) => setExists(data.exists))
+      .catch(() => setExists(null))
+  }, [])
+
+  async function run(method) {
+    if (method === 'DELETE' && !window.confirm('Stergi toate obiectele si utilizatorii demo?')) return
+    setBusy(true)
+    setFailure('')
+    setResult('')
+    try {
+      const data = await api('/admin/demo-data', { method })
+      setExists(data.exists)
+      setResult(data.exists ? `Gata: ${data.items} obiecte demo create.` : `Gata: ${data.items} obiecte demo sterse.`)
+      onChange()
+    } catch (err) {
+      setFailure(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (exists === null) return null
+  return (
+    <div className="mt-6 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-indigo-50 to-fuchsia-50 p-5 ring-1 ring-indigo-100 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="font-semibold text-slate-900">🎬 Date demo pentru prezentare</p>
+        <p className="mt-0.5 text-sm text-slate-600">
+          16 obiecte in toate categoriile, cu poze, oferte de-a lungul a 2 zile si cateva vanzari. Utilizatorii au numele
+          „demo_...” si nu se poate intra in contul lor.
+        </p>
+        {result && <p className="mt-1 text-sm font-medium text-emerald-700">{result}</p>}
+        {failure && <p className="mt-1 text-sm font-medium text-red-600">{failure}</p>}
+      </div>
+      {exists ? (
+        <Button variant="secondary" loading={busy} onClick={() => run('DELETE')} className="shrink-0">
+          Sterge datele demo
+        </Button>
+      ) : (
+        <Button loading={busy} onClick={() => run('POST')} className="shrink-0">
+          Genereaza date demo
+        </Button>
+      )}
+    </div>
   )
 }
