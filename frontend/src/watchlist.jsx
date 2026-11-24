@@ -4,6 +4,7 @@ import { api, formatPrice } from './api.js'
 import { useAuth } from './auth.jsx'
 import { Icon } from './components/icons.jsx'
 import { useAuctionEvents } from './events.jsx'
+import { useT } from './i18n.jsx'
 
 const WatchlistContext = createContext(null)
 
@@ -128,6 +129,7 @@ export const useWatchlist = () => useContext(WatchlistContext)
 // Butonul cu inima: urmareste / nu mai urmari un obiect.
 // large: varianta cu text (pagina obiectului); altfel doar iconita rotunda (pe carduri)
 export function WatchButton({ item, large = false }) {
+  const t = useT()
   const { user } = useAuth()
   const { isWatched, toggle } = useWatchlist()
   const navigate = useNavigate()
@@ -164,7 +166,7 @@ export function WatchButton({ item, large = false }) {
         }`}
       >
         <Heart filled={watching} />
-        {watching ? 'Urmaresti' : 'Urmareste'}
+        {t(watching ? 'Urmaresti' : 'Urmareste')}
       </button>
     )
   }

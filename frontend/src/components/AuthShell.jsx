@@ -3,9 +3,11 @@ import Backdrop from './Backdrop.jsx'
 import { Icon } from './icons.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 import { Logo } from './Layout.jsx'
+import { useT } from '../i18n.jsx'
 
 // Cadrul paginilor de login si inregistrare: formular in stanga, prezentare in dreapta
 export default function AuthShell({ title, subtitle, children }) {
+  const t = useT()
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative flex items-center justify-center px-6 py-12">
@@ -33,9 +35,9 @@ export default function AuthShell({ title, subtitle, children }) {
 
         <div className="relative flex h-full flex-col justify-center px-16 text-white">
           <p className="text-4xl leading-tight font-bold tracking-tight">
-            Vinde si cumpara
+            {t('Vinde si cumpara')}
             <br />
-            prin licitatii <span className="text-gradient">in timp real</span>.
+            {t('prin licitatii')} <span className="text-gradient">{t('in timp real')}</span>.
           </p>
 
           {/* Exemple de activitate care plutesc (doar decor) */}

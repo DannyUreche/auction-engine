@@ -4,10 +4,12 @@ import { api } from '../api.js'
 import { useCategories } from '../categories.js'
 import ItemCard from '../components/ItemCard.jsx'
 import CountUp from '../components/CountUp.jsx'
+import Recommendations from '../components/Recommendations.jsx'
 import { CategoryIcon } from '../components/icons.jsx'
 import { Alert, CardSkeleton, EmptyState, Input, Select } from '../components/ui.jsx'
 import { useAuctionEvents } from '../events.jsx'
 import Hero3D from '../hero/Hero3D.jsx'
+import { useT } from '../i18n.jsx'
 
 const SORTS = {
   ending: { label: 'Se termina curand', compare: (a, b) => a.endTime.localeCompare(b.endTime) },
@@ -20,6 +22,7 @@ export default function Home() {
   const [items, setItems] = useState(null)
   const [error, setError] = useState('')
   const categories = useCategories()
+  const t = useT()
 
   // Filtrele stau in adresa paginii (ex: /?cat=ELECTRONICE&max=500), ca sa poata fi trimise ca link
   // Filtrele sunt tinute local (sursa de adevar) si copiate in adresa paginii (ex: /?cat=ELECTRONICE&max=500),
@@ -120,36 +123,35 @@ export default function Home() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
-              {items ? `${items.length} licitatii active chiar acum` : 'Se conecteaza la licitatii...'}
+              {items ? t('{n} licitatii active chiar acum', { n: items.length }) : t('Se conecteaza la licitatii...')}
             </span>
             <h1 className="mt-5 text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
-              Liciteaza <span className="text-gradient">in timp real</span>.
-              <br className="hidden sm:block" /> Castiga ce iti place.
+              {t('Liciteaza')} <span className="text-gradient">{t('in timp real')}</span>.
+              <br className="hidden sm:block" /> {t('Castiga ce iti place.')}
             </h1>
             <p className="mt-4 max-w-xl text-indigo-100/80">
-              Ofertele apar instant pe ecranul tuturor. Cronometru live, prelungire automata in ultimele minute si
-              optiunea „Cumpara acum” pentru cei grabiti.
+              {t('Ofertele apar instant pe ecranul tuturor. Cronometru live, prelungire automata in ultimele minute si optiunea „Cumpara acum” pentru cei grabiti.')}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 to="/sell"
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-indigo-700 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
               >
-                + Vinde un obiect
+                + {t('Vinde un obiect')}
               </Link>
               <a
                 href="#licitatii"
                 className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/25 transition hover:bg-white/10"
               >
-                Exploreaza licitatiile ↓
+                {t('Exploreaza licitatiile')} ↓
               </a>
             </div>
 
             <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-[1fr_1fr_1fr_1.5fr]">
-              <HeroStat label="Licitatii active" value={stats?.activeItems} />
-              <HeroStat label="Oferte plasate" value={stats?.bids} />
-              <HeroStat label="Obiecte vandute" value={stats?.soldItems} />
-              <HeroStat label="Valoare vanduta" value={stats?.soldValue} format={formatMoneyShort} />
+              <HeroStat label={t('Licitatii active')} value={stats?.activeItems} />
+              <HeroStat label={t('Oferte plasate')} value={stats?.bids} />
+              <HeroStat label={t('Obiecte vandute')} value={stats?.soldItems} />
+              <HeroStat label={t('Valoare vanduta')} value={stats?.soldValue} format={formatMoneyShort} />
             </dl>
           </div>
 
@@ -159,39 +161,41 @@ export default function Home() {
         </div>
       </section>
 
+      <Recommendations />
+
       {/* Categorii */}
       <div id="licitatii" className="mt-8 -mx-4 flex scroll-mt-24 gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
         <CategoryChip active={!category} onClick={() => setFilter('cat', '')}>
-          Toate <span className="opacity-60">{filteredWithoutCategory.length}</span>
+          {t('Toate')} <span className="opacity-60">{filteredWithoutCategory.length}</span>
         </CategoryChip>
         {categories.map((c) => (
           <CategoryChip key={c.code} active={category === c.code} onClick={() => setFilter('cat', c.code)}>
-            <CategoryIcon category={c} size={18} /> {c.label} <span className="opacity-60">{countFor(c.code)}</span>
+            <CategoryIcon category={c} size={18} /> {t(c.label)} <span className="opacity-60">{countFor(c.code)}</span>
           </CategoryChip>
         ))}
       </div>
 
       {/* Cautare, pret, sortare */}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_9rem_9rem_12rem]">
-        <Input placeholder="Cauta un obiect..." value={search} onChange={(e) => setFilter('q', e.target.value)} />
+        <Input placeholder={t('Cauta un obiect...')} value={search} onChange={(e) => setFilter('q', e.target.value)} />
         <Input
           type="number"
           min="0"
-          placeholder="Pret minim"
+          placeholder={t('Pret minim')}
           value={minPrice}
           onChange={(e) => setFilter('min', e.target.value)}
         />
         <Input
           type="number"
           min="0"
-          placeholder="Pret maxim"
+          placeholder={t('Pret maxim')}
           value={maxPrice}
           onChange={(e) => setFilter('max', e.target.value)}
         />
         <Select value={sort} onChange={(e) => setFilter('sort', e.target.value)}>
           {Object.entries(SORTS).map(([key, s]) => (
             <option key={key} value={key}>
-              {s.label}
+              {t(s.label)}
             </option>
           ))}
         </Select>
@@ -200,14 +204,14 @@ export default function Home() {
       {items && (
         <div className="mt-3 flex items-center justify-between text-sm text-slate-500">
           <span>
-            {visible.length} {visible.length === 1 ? 'rezultat' : 'rezultate'}
+            {visible.length} {t(visible.length === 1 ? 'rezultat' : 'rezultate')}
           </span>
           {hasFilters && (
             <button
               onClick={clearFilters}
               className="font-semibold text-indigo-600 hover:text-indigo-500"
             >
-              Sterge filtrele
+              {t('Sterge filtrele')}
             </button>
           )}
         </div>
@@ -224,10 +228,10 @@ export default function Home() {
         )}
 
         {items && visible.length === 0 && (
-          <EmptyState title={hasFilters ? 'Niciun obiect nu se potriveste filtrelor' : 'Nu exista licitatii active'}>
+          <EmptyState title={t(hasFilters ? 'Niciun obiect nu se potriveste filtrelor' : 'Nu exista licitatii active')}>
             {!hasFilters && (
               <Link to="/sell" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                Pune primul obiect la licitatie
+                {t('Pune primul obiect la licitatie')}
               </Link>
             )}
           </EmptyState>

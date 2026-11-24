@@ -1,10 +1,14 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../auth.jsx'
 import { useAuctionEvents } from '../events.jsx'
+import { formatPrice } from '../api.js'
+import { useWallet } from '../wallet.js'
 import { Icon } from './icons.jsx'
 import Backdrop from './Backdrop.jsx'
+import InstallButton from './InstallButton.jsx'
 import NotificationBell from './NotificationBell.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
+import { LanguageToggle, useT } from '../i18n.jsx'
 
 function NavItem({ to, children }) {
   return (
@@ -44,6 +48,7 @@ export default function Layout() {
   const location = useLocation()
   // Conexiunea live e una singura pe pagina (vezi events.jsx); aici doar ii afisam starea
   const live = useAuctionEvents(() => {})
+  const t = useT()
 
   function handleLogout() {
     logout()
@@ -63,41 +68,47 @@ export default function Layout() {
           </Link>
 
           <nav className="hidden items-center gap-1 sm:flex">
-            <NavItem to="/">Licitatii active</NavItem>
-            <NavItem to="/sell">Vinde un obiect</NavItem>
-            <NavItem to="/account">Contul meu</NavItem>
-            <NavItem to="/despre">Despre</NavItem>
+            <NavItem to="/">{t('Licitatii active')}</NavItem>
+            <NavItem to="/sell">{t('Vinde un obiect')}</NavItem>
+            <NavItem to="/account">{t('Contul meu')}</NavItem>
+            <NavItem to="/despre">{t('Despre')}</NavItem>
             {user?.admin && <NavItem to="/admin">Admin</NavItem>}
           </nav>
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <LanguageToggle />
+            <span className="hidden sm:contents">
+              <InstallButton />
+            </span>
             <ThemeToggle />
             <NotificationBell />
             <span
-              title={live ? 'Conectat: preturile se actualizeaza instant' : 'Se reconecteaza...'}
-              className="hidden items-center gap-1.5 text-xs font-medium text-slate-500 lg:flex"
+              title={t(live ? 'Conectat: preturile se actualizeaza instant' : 'Se reconecteaza...')}
+              className="hidden items-center gap-1.5 text-xs font-medium text-slate-500 2xl:flex"
             >
               <span className={`h-2 w-2 rounded-full ${live ? 'animate-pulse bg-emerald-500' : 'bg-slate-300'}`} />
-              {live ? 'Live' : 'Offline'}
+              {live ? 'Live' : t('Offline')}
             </span>
 
             {user ? (
               <>
+                <WalletChip user={user} />
                 <Link
                   to={`/users/${encodeURIComponent(user.username)}`}
-                  className="hidden items-center gap-2 rounded-full bg-white/80 py-1 pr-3 pl-1 text-sm ring-1 ring-slate-200 transition hover:ring-indigo-300 md:flex"
-                  title="Profilul tau public"
+                  className="hidden items-center gap-2 rounded-full bg-white/80 p-1 text-sm ring-1 ring-slate-200 transition hover:ring-indigo-300 md:flex 2xl:pr-3"
+                  title={`${t('Profilul tau public')}: ${user.username}`}
+                  aria-label={`${t('Profilul tau public')}: ${user.username}`}
                 >
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-xs font-bold text-white">
                     {user.username[0]?.toUpperCase()}
                   </span>
-                  <span className="max-w-32 truncate font-semibold text-slate-800">{user.username}</span>
+                  <span className="hidden max-w-32 truncate font-semibold text-slate-800 2xl:inline">{user.username}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-white/70 hover:text-slate-900"
+                  className="rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-slate-600 hover:bg-white/70 hover:text-slate-900"
                 >
-                  Iesire
+                  {t('Iesire')}
                 </button>
               </>
             ) : (
@@ -109,13 +120,13 @@ export default function Layout() {
                     state={{ from: location.pathname }}
                     className="rounded-lg px-2 py-2 text-sm font-medium whitespace-nowrap text-slate-600 hover:bg-white/70 hover:text-slate-900 sm:px-3"
                   >
-                    Intra in cont
+                    {t('Intra in cont')}
                   </Link>
                   <Link
                     to="/register"
                     className="rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-2 text-sm whitespace-nowrap font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:shadow-lg hover:shadow-indigo-500/40"
                   >
-                    Creeaza cont
+                    {t('Creeaza cont')}
                   </Link>
                 </>
               )
@@ -125,11 +136,14 @@ export default function Layout() {
 
         {/* Navigare pe telefon */}
         <nav className="flex gap-1 overflow-x-auto border-t border-white/60 px-4 py-2 sm:hidden">
-          <NavItem to="/">Active</NavItem>
-          <NavItem to="/sell">Vinde</NavItem>
-          <NavItem to="/account">Contul meu</NavItem>
-          <NavItem to="/despre">Despre</NavItem>
+          <NavItem to="/">{t('Active')}</NavItem>
+          <NavItem to="/sell">{t('Vinde')}</NavItem>
+          <NavItem to="/account">{t('Contul meu')}</NavItem>
+          <NavItem to="/despre">{t('Despre')}</NavItem>
           {user?.admin && <NavItem to="/admin">Admin</NavItem>}
+          <span className="ml-auto">
+            <InstallButton />
+          </span>
         </nav>
       </header>
 
@@ -143,9 +157,9 @@ export default function Layout() {
           <div>
             <Logo />
             <p className="mt-2 text-xs text-slate-500">
-              Licitatii in timp real · oferte instant · castigator stabilit automat ·{' '}
+              {t('Licitatii in timp real · oferte instant · castigator stabilit automat ·')}{' '}
               <Link to="/despre" className="font-medium text-indigo-600 hover:underline">
-                Despre proiect
+                {t('Despre proiect')}
               </Link>
             </p>
           </div>
@@ -159,5 +173,22 @@ export default function Layout() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// Money available for bids, in the header (opens the wallet tab of the account page)
+function WalletChip({ user }) {
+  const { wallet } = useWallet(user)
+  const t = useT()
+  if (!wallet) return null
+  return (
+    <Link
+      to="/account?tab=wallet"
+      title={t('Portofelul tau (disponibil pentru oferte)')}
+      className="hidden items-center gap-1.5 rounded-full bg-white/80 py-1 pr-3 pl-1.5 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition hover:ring-indigo-300 lg:flex"
+    >
+      <Icon name="wallet" size={20} />
+      {formatPrice(wallet.available)}
+    </Link>
   )
 }

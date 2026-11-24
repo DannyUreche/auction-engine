@@ -4,6 +4,7 @@ import { formatPrice } from '../api.js'
 import { findCategory, useCategories } from '../categories.js'
 import { CategoryIcon, Icon } from '../components/icons.jsx'
 import ItemImage from '../components/ItemImage.jsx'
+import { useT } from '../i18n.jsx'
 
 // "Showcase" hero: the real active auctions as cards on a 3D carousel (CSS 3D transforms, no WebGL).
 // It spins slowly, follows the cursor, can be dragged, and every 10-15 s (or when an item gets a live bid)
@@ -12,6 +13,7 @@ import ItemImage from '../components/ItemImage.jsx'
 const PLACEHOLDER_CODES = ['ELECTRONICE', 'CEASURI_BIJUTERII', 'ARTA_COLECTII', 'MODA', 'SPORT', 'VEHICULE']
 
 export default function ShowcaseScene({ items, onLiveBid }) {
+  const t = useT()
   const navigate = useNavigate()
   const categories = useCategories()
   const stageRef = useRef(null)
@@ -193,7 +195,7 @@ export default function ShowcaseScene({ items, onLiveBid }) {
                   )}
                   <div className="p-2.5 sm:p-3">
                     <p className="flex items-center gap-1 truncate text-[10px] text-indigo-200/80">
-                      <CategoryIcon category={category} size={12} /> {category.label}
+                      <CategoryIcon category={category} size={12} /> {t(category.label)}
                     </p>
                     <p className="mt-0.5 truncate text-xs leading-snug font-semibold text-white sm:text-sm">{card.name}</p>
                     {!card.placeholder && (
@@ -223,9 +225,9 @@ export default function ShowcaseScene({ items, onLiveBid }) {
         >
           <Icon name="sparkles" size={16} />
           <span className="truncate">
-            In prim-plan: <b className="text-white">{featuredCard.name}</b> · {formatPrice(featuredCard.currentPrice)}
+            {t('In prim-plan:')} <b className="text-white">{featuredCard.name}</b> · {formatPrice(featuredCard.currentPrice)}
           </span>
-          <span className="shrink-0 font-semibold text-amber-200">Liciteaza →</span>
+          <span className="shrink-0 font-semibold text-amber-200">{t('Liciteaza')} →</span>
         </Link>
       )}
     </div>
