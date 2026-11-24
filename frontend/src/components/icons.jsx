@@ -350,6 +350,64 @@ export const ICONS = {
   },
 }
 
+// Extra icons (sharing, QR code, reports, language, install, wallet)
+Object.assign(ICONS, {
+  share: {
+    hue: 'sky',
+    parts: [
+      { t: 'line', d: 'M8.6 10.6l6.8-4M8.6 13.4l6.8 4' },
+      { t: 'base', circle: [18, 5.2, 3] },
+      { t: 'base', circle: [6, 12, 3] },
+      { t: 'base', circle: [18, 18.8, 3] },
+    ],
+  },
+  qr: {
+    hue: 'indigo',
+    parts: [
+      { t: 'base', rect: [3, 3, 7.5, 7.5, 1.6] },
+      { t: 'base', rect: [13.5, 3, 7.5, 7.5, 1.6] },
+      { t: 'base', rect: [3, 13.5, 7.5, 7.5, 1.6] },
+      { t: 'accent', rect: [5.3, 5.3, 2.9, 2.9, 0.6] },
+      { t: 'accent', rect: [15.8, 5.3, 2.9, 2.9, 0.6] },
+      { t: 'accent', rect: [5.3, 15.8, 2.9, 2.9, 0.6] },
+      { t: 'base', rect: [13.5, 13.5, 3, 3, 0.6] },
+      { t: 'base', rect: [18, 18, 3, 3, 0.6] },
+      { t: 'base', rect: [18, 13.5, 3, 3, 0.6] },
+      { t: 'base', rect: [13.5, 18, 3, 3, 0.6] },
+    ],
+  },
+  flag: {
+    hue: 'rose',
+    parts: [
+      { t: 'line', hue: 'slate', d: 'M5 3v18' },
+      { t: 'base', d: 'M5.5 4h11.5l-2.4 4.2L17 12.4H5.5z' },
+    ],
+  },
+  globe: {
+    hue: 'sky',
+    parts: [
+      { t: 'base', circle: [12, 12, 9] },
+      { t: 'line', d: 'M3 12h18M12 3c2.5 2.5 3.8 5.6 3.8 9s-1.3 6.5-3.8 9M12 3c-2.5 2.5-3.8 5.6-3.8 9s1.3 6.5 3.8 9' },
+    ],
+  },
+  download: {
+    hue: 'emerald',
+    parts: [
+      { t: 'base', d: 'M4 15.5v3A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5v-3' },
+      { t: 'line', d: 'M12 3v11.5M7.5 10l4.5 4.5 4.5-4.5' },
+    ],
+  },
+  wallet: {
+    hue: 'violet',
+    parts: [
+      { t: 'base', hue: 'amber', d: 'M5 6.5 15.5 3.2a1 1 0 0 1 1.3.7l.7 2.6z' },
+      { t: 'base', rect: [2.5, 6.3, 19, 14, 3] },
+      { t: 'accent', rect: [14.2, 10.6, 7.3, 5.4, 2] },
+      { t: 'base', hue: 'amber', circle: [17, 13.3, 1.1] },
+    ],
+  },
+})
+
 // Category code (from the backend) -> icon name
 export const CATEGORY_ICONS = {
   ELECTRONICE: 'phone',

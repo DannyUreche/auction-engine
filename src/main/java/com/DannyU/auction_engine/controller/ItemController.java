@@ -6,6 +6,7 @@ import com.DannyU.auction_engine.repository.BidRepository;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.entity.Bid;
+import com.DannyU.auction_engine.entity.AuctionType;
 import com.DannyU.auction_engine.entity.Category;
 import com.DannyU.auction_engine.service.BidService;
 import com.DannyU.auction_engine.service.ImageStorageService;
@@ -165,9 +166,37 @@ public class ItemController {
         // Categoria e optionala: implicit "Altele"
         newItem.setCategory(request.getCategory() != null ? request.getCategory() : Category.ALTELE);
 
-        // Durata este optionala: implicit 60 de minute
+        // Scheduled start (optional): between 1 minute and 30 days from now
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = request.getStartTime();
+        if (start != null) {
+            if (start.isBefore(now.plusMinutes(1)) || start.isAfter(now.plusDays(30))) {
+                throw new IllegalArgumentException("Inceputul licitatiei trebuie sa fie intre 1 minut si 30 de zile de acum!");
+            }
+            newItem.setStartTime(start);
+            newItem.setStartNotified(false);
+        }
+
+        // Dutch auction: the price drops every minute from the start price down to the floor price
+        if (request.getAuctionType() == AuctionType.DUTCH) {
+            if (request.getFloorPrice() == null || request.getPriceDrop() == null) {
+                throw new IllegalArgumentException("Pentru licitatia olandeza completeaza pretul minim si scaderea pe minut!");
+            }
+            if (request.getFloorPrice().compareTo(request.getStartPrice()) >= 0) {
+                throw new IllegalArgumentException("Pretul minim trebuie sa fie mai mic decat pretul de pornire!");
+            }
+            newItem.setAuctionType(AuctionType.DUTCH);
+            newItem.setFloorPrice(request.getFloorPrice());
+            newItem.setPriceDrop(request.getPriceDrop());
+            newItem.setBuyNowPrice(null);
+            if (start == null) {
+                newItem.setStartTime(now);
+            }
+        }
+
+        // Durata este optionala: implicit 60 de minute (counted from the start)
         int minutes = request.getDurationInMinutes() != null ? request.getDurationInMinutes() : 60;
-        newItem.setEndTime(LocalDateTime.now().plusMinutes(minutes));
+        newItem.setEndTime((start != null ? start : now).plusMinutes(minutes));
 
         return itemRepository.save(newItem);
     }
@@ -187,6 +216,9 @@ public class ItemController {
         }
         if (bidRepository.countByItemId(id) > 0) {
             throw new IllegalArgumentException("Obiectul are deja oferte si nu mai poate fi modificat!");
+        }
+        if (item.getAuctionType() == AuctionType.DUTCH) {
+            throw new IllegalArgumentException("Licitatiile olandeze nu se pot modifica!");
         }
         if (request.getBuyNowPrice() != null && request.getBuyNowPrice().compareTo(request.getStartPrice()) <= 0) {
             throw new IllegalArgumentException("Pretul \"Cumpara acum\" trebuie sa fie mai mare decat pretul de pornire!");
@@ -248,5 +280,20 @@ public class ItemController {
         @Positive(message = "Pretul \"Cumpara acum\" trebuie sa fie mai mare decat 0!")
         @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
         private BigDecimal buyNowPrice;
+
+        // Optional: when bidding opens (UTC); missing = right away
+        private LocalDateTime startTime;
+
+        // ENGLISH (default) or DUTCH
+        private AuctionType auctionType;
+
+        // Dutch auction only
+        @Positive(message = "Pretul minim trebuie sa fie mai mare decat 0!")
+        @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
+        private BigDecimal floorPrice;
+
+        @Positive(message = "Scaderea pe minut trebuie sa fie mai mare decat 0!")
+        @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
+        private BigDecimal priceDrop;
     }
 }

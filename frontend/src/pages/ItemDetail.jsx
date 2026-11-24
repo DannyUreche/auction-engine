@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router'
 import {
   api,
   checkImage,
+  dutchPrice,
   deleteItemImage,
   formatDate,
   formatPrice,
@@ -14,20 +15,26 @@ import {
 } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { findCategory, useCategories } from '../categories.js'
-import Countdown, { CountdownTiles } from '../components/Countdown.jsx'
+import Countdown, { CountdownTiles, useNow } from '../components/Countdown.jsx'
+import { useWallet } from '../wallet.js'
 import EditItemForm from '../components/EditItemForm.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import PriceChart from '../components/PriceChart.jsx'
 import { ItemReviews } from '../components/Reviews.jsx'
 import ChatBox from '../components/ChatBox.jsx'
+import Questions from '../components/Questions.jsx'
+import ReportButton from '../components/ReportButton.jsx'
+import ShareButton from '../components/ShareButton.jsx'
 import { CategoryIcon, Icon } from '../components/icons.jsx'
 import { launchConfetti } from '../confetti.js'
 import { disintegrate } from '../disintegrate.js'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
 import { LiveBadge, useAuctionEvents } from '../events.jsx'
 import { WatchButton } from '../watchlist.jsx'
+import { useT } from '../i18n.jsx'
 
 export default function ItemDetail() {
+  const t = useT()
   const { id } = useParams()
   const { user } = useAuth()
   const categories = useCategories()
@@ -144,7 +151,7 @@ export default function ItemDetail() {
 
       <div className="mt-4 grid gap-6 lg:grid-cols-3">
         {/* Detaliile obiectului */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <Gallery item={item} isSeller={isSeller} onChange={setItem} />
 
           {editing ? (
@@ -159,8 +166,8 @@ export default function ItemDetail() {
           ) : (
           <Card>
             <div className="flex flex-wrap items-center gap-2">
-              <Countdown endTime={item.endTime} active={item.active} />
-              {isSeller && <Badge tone="indigo">Obiectul tau</Badge>}
+              <Countdown endTime={item.endTime} active={item.active} startTime={item.startTime} />
+              {isSeller && <Badge tone="indigo">{t('Obiectul tau')}</Badge>}
               {/* Editarea e permisa doar pana la prima oferta */}
               {isSeller && item.active && bids.length === 0 && (
                 <button
@@ -177,10 +184,14 @@ export default function ItemDetail() {
               <WatchButton item={item} large />
             </div>
             <p className="mt-4 whitespace-pre-line text-slate-600">{item.description || 'Fara descriere.'}</p>
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+              <ShareButton item={item} />
+              {user && !isSeller && <ReportButton item={item} />}
+            </div>
 
             <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3">
               <Detail
-                label="Vanzator"
+                label={t('Vanzator')}
                 value={
                   <Link
                     to={`/users/${encodeURIComponent(item.seller?.username)}`}
@@ -191,16 +202,16 @@ export default function ItemDetail() {
                 }
               />
               <Detail
-                label="Categorie"
+                label={t('Categorie')}
                 value={
                   <span className="inline-flex items-center gap-1.5">
                     <CategoryIcon category={category} size={18} /> {category.label}
                   </span>
                 }
               />
-              <Detail label="Pret de pornire" value={formatPrice(item.startPrice)} />
+              <Detail label={t('Pret de pornire')} value={formatPrice(item.startPrice)} />
               <Detail label={item.active ? 'Se termina' : 'S-a terminat'} value={formatDate(item.endTime)} />
-              {item.buyNowPrice && <Detail label="Cumpara acum" value={formatPrice(item.buyNowPrice)} />}
+              {item.buyNowPrice && <Detail label={t('Cumpara acum')} value={formatPrice(item.buyNowPrice)} />}
             </dl>
           </Card>
           )}
@@ -208,7 +219,7 @@ export default function ItemDetail() {
           {bids.length > 0 && (
             <Card>
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Evolutia pretului</h2>
+                <h2 className="text-lg font-semibold text-slate-900">{t('Evolutia pretului')}</h2>
                 <span className="text-sm font-medium text-emerald-600">
                   +{formatPrice(Number(item.currentPrice) - Number(item.startPrice))} fata de pornire
                 </span>
@@ -221,12 +232,12 @@ export default function ItemDetail() {
 
           <Card>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Istoricul ofertelor</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t('Istoricul ofertelor')}</h2>
               <span className="text-sm text-slate-500">{bids.length} oferte</span>
             </div>
             <div className="mt-4">
               {bids.length === 0 ? (
-                <EmptyState title="Nicio oferta inca">Fii primul care liciteaza!</EmptyState>
+                <EmptyState title={t('Nicio oferta inca')}>{t('Fii primul care liciteaza!')}</EmptyState>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {bids.map((bid, index) => (
@@ -266,6 +277,8 @@ export default function ItemDetail() {
             </div>
           </Card>
 
+          <Questions item={item} user={user} />
+
           {!item.active && item.winner && user && (user.id === item.seller?.id || user.id === item.winner.id) && (
             <Card>
               <ChatBox item={item} user={user} />
@@ -280,15 +293,19 @@ export default function ItemDetail() {
         </div>
 
         {/* Pretul curent si formularul de licitare */}
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           <Card>
             <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">
-              {item.active ? (leadingBid ? 'Oferta curenta' : 'Pret de pornire') : 'Pret final'}
+              {!item.active ? 'Pret final' : item.auctionType === 'DUTCH' ? 'Pret curent (scade)' : leadingBid ? 'Oferta curenta' : 'Pret de pornire'}
             </p>
-            {/* key = pretul: la o oferta noua animatia porneste din nou */}
-            <p key={item.currentPrice} className="mt-1 origin-left animate-price-flash text-4xl font-bold tracking-tight text-slate-900">
-              {formatPrice(item.currentPrice)}
-            </p>
+            {item.active && item.started && item.auctionType === 'DUTCH' ? (
+              <LiveDutchPrice item={item} />
+            ) : (
+              /* key = pretul: la o oferta noua animatia porneste din nou */
+              <p key={item.currentPrice} className="mt-1 origin-left animate-price-flash text-4xl font-bold tracking-tight text-slate-900">
+                {formatPrice(item.currentPrice)}
+              </p>
+            )}
             {leadingBid && (
               <p className="mt-1 text-sm text-slate-500">
                 de {leadingBid.bidder?.username}
@@ -297,7 +314,8 @@ export default function ItemDetail() {
             )}
             {item.active && (
               <div className="mt-5">
-                <CountdownTiles endTime={item.endTime} />
+                {!item.started && <p className="mb-2 text-xs font-medium text-indigo-600">{t('Licitatia incepe in')}</p>}
+                <CountdownTiles endTime={item.started ? item.endTime : item.startTime} />
               </div>
             )}
 
@@ -511,6 +529,7 @@ function Detail({ label, value }) {
 }
 
 function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
+  const t = useT()
   // Oferta minima vine de la server (pretul curent + pasul minim)
   const minimum = Number(item.minimumBid)
   const step = minimum - Number(item.currentPrice)
@@ -518,6 +537,7 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const { wallet } = useWallet(user)
 
   // Daca altcineva a licitat intre timp, ridicam suma propusa la noul minim
   useEffect(() => {
@@ -526,7 +546,7 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
 
   // Licitatia s-a incheiat: aratam rezultatul
   if (!item.active) {
-    if (!item.winner) return <p className="text-sm text-slate-500">Licitatia s-a incheiat fara nicio oferta.</p>
+    if (!item.winner) return <p className="text-sm text-slate-500">{t('Licitatia s-a incheiat fara nicio oferta.')}</p>
     const iWon = item.winner.id === user?.id
     return (
       <div className={`rounded-xl p-4 text-center ${iWon ? 'bg-amber-50' : 'bg-slate-50'}`}>
@@ -538,16 +558,27 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
     )
   }
 
+  // Scheduled auction that has not opened yet
+  if (!item.started) {
+    return (
+      <div className="space-y-2 rounded-xl bg-indigo-50/70 p-4 text-center ring-1 ring-indigo-100">
+        <Icon name="timer" size={36} className="mx-auto" />
+        <p className="font-semibold text-slate-900">Licitatia incepe pe {formatDate(item.startTime)}</p>
+        <p className="text-sm text-slate-500">Apasa pe „Urmareste” ca sa primesti o notificare cand porneste.</p>
+      </div>
+    )
+  }
+
   if (!user) {
     return (
       <div className="space-y-3 text-center">
-        <p className="text-sm text-slate-500">Ai nevoie de un cont ca sa licitezi.</p>
+        <p className="text-sm text-slate-500">{t('Ai nevoie de un cont ca sa licitezi.')}</p>
         <Link
           to="/login"
           state={{ from: `/items/${item.id}` }}
           className="block rounded-lg bg-indigo-600 py-3 text-base font-semibold text-white shadow-sm hover:bg-indigo-500"
         >
-          Intra in cont ca sa licitezi
+          {t('Intra in cont ca sa licitezi')}
         </Link>
         <Link to="/register" className="block text-sm font-semibold text-indigo-600 hover:text-indigo-500">
           sau creeaza un cont nou
@@ -557,12 +588,14 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
   }
 
   if (isSeller) {
-    return <p className="text-sm text-slate-500">Acesta este obiectul tau. Urmareste ofertele in timp real.</p>
+    return <p className="text-sm text-slate-500">{t('Acesta este obiectul tau. Urmareste ofertele in timp real.')}</p>
   }
 
   if (parseDate(item.endTime) <= new Date()) {
-    return <p className="text-sm text-slate-500">Timpul a expirat. Licitatia se inchide in cateva secunde.</p>
+    return <p className="text-sm text-slate-500">{t('Timpul a expirat. Licitatia se inchide in cateva secunde.')}</p>
   }
+
+  if (item.auctionType === 'DUTCH') return <DutchPanel item={item} wallet={wallet} onBuy={onBid} />
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -602,7 +635,7 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {iAmLeading && <Alert tone="success">Ai cea mai mare oferta in acest moment.</Alert>}
+      {iAmLeading && <Alert tone="success">{t('Ai cea mai mare oferta in acest moment.')}</Alert>}
       <Alert tone="success">{success}</Alert>
       <Alert>{error}</Alert>
 
@@ -623,6 +656,11 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
           Oferta minima: <span className="font-semibold text-slate-700">{formatPrice(minimum)}</span> (pas de{' '}
           {formatPrice(step)})
         </p>
+        {wallet && (
+          <p className="mt-0.5 text-xs text-slate-500">
+            Disponibil in portofel: <span className="font-semibold text-slate-700">{formatPrice(wallet.available)}</span>
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -654,7 +692,7 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
           >
             <Icon name="bolt" size={20} mono /> Cumpara acum cu {formatPrice(item.buyNowPrice)}
           </button>
-          <p className="mt-1.5 text-center text-xs text-slate-500">Castigi imediat, fara sa astepti finalul.</p>
+          <p className="mt-1.5 text-center text-xs text-slate-500">{t('Castigi imediat, fara sa astepti finalul.')}</p>
         </div>
       )}
 
@@ -792,6 +830,78 @@ function AutoBidBox({ item, minimum, onChange }) {
             Renunta
           </button>
         </div>
+      )}
+    </div>
+  )
+}
+
+// Live price of a running Dutch auction (ticks every second, drops every minute)
+function LiveDutchPrice({ item }) {
+  const price = dutchPrice(item, useNow())
+  return (
+    <p key={price} className="mt-1 origin-left animate-price-flash text-4xl font-bold tracking-tight text-sky-700">
+      {formatPrice(price)}
+    </p>
+  )
+}
+
+// Dutch auction: no bids; the first one to accept the current (dropping) price wins
+function DutchPanel({ item, wallet, onBuy }) {
+  const now = useNow()
+  const [error, setError] = useState('')
+  const [buying, setBuying] = useState(false)
+  const price = dutchPrice(item, now)
+  const start = Number(item.startPrice)
+  const floor = Number(item.floorPrice)
+  const progress = start > floor ? (start - price) / (start - floor) : 1
+  const secondsToDrop = 60 - (Math.floor((now - parseDate(item.startTime).getTime()) / 1000) % 60)
+
+  async function buy() {
+    if (!window.confirm(`Cumperi "${item.name}" acum cu ${formatPrice(price)}? Licitatia se incheie imediat.`)) return
+    setError('')
+    setBuying(true)
+    try {
+      await api(`/items/${item.id}/buy-now`, { method: 'POST' })
+      await onBuy()
+    } catch (err) {
+      setError(err.message)
+      setBuying(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl bg-sky-50 p-4 ring-1 ring-sky-100">
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-sky-900">
+          <Icon name="trendDown" size={18} /> Licitatie olandeza
+        </p>
+        <p className="mt-1 text-xs text-sky-900/75">
+          Pretul scade cu {formatPrice(item.priceDrop)} in fiecare minut, pana la {formatPrice(item.floorPrice)}. Primul
+          care cumpara castiga.
+        </p>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-sky-100">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 transition-all duration-700"
+            style={{ width: `${Math.min(100, progress * 100)}%` }}
+          />
+        </div>
+        <p className="mt-2 text-xs font-medium text-sky-900/80">
+          {price <= floor ? 'Pretul a ajuns la minim.' : `Urmatoarea scadere in ${secondsToDrop}s`}
+        </p>
+      </div>
+      <Alert>{error}</Alert>
+      <button
+        type="button"
+        onClick={buy}
+        disabled={buying}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 py-3 text-base font-semibold text-white shadow-md transition hover:brightness-110 disabled:opacity-50"
+      >
+        <Icon name="bolt" size={20} mono /> Cumpara acum cu {formatPrice(price)}
+      </button>
+      {wallet && (
+        <p className="text-center text-xs text-slate-500">
+          Disponibil in portofel: <span className="font-semibold text-slate-700">{formatPrice(wallet.available)}</span>
+        </p>
       )}
     </div>
   )

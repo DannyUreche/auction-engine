@@ -23,8 +23,37 @@ public class AuctionScheduler {
     private final BidRepository bidRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final NotificationService notificationService;
+    private final WalletService walletService;
+    private final com.DannyU.auction_engine.repository.WatchedItemRepository watchedItemRepository;
 
     // Se executa automat o data la 60.000 milisecunde (1 minut)
+    // Every 15 s: open the scheduled auctions whose time has come and lower the Dutch prices
+    @Scheduled(fixedRate = 15000)
+    @org.springframework.transaction.annotation.Transactional
+    public void updateRunningAuctions() {
+        LocalDateTime now = LocalDateTime.now();
+        for (Item item : itemRepository.findByActiveTrueAndStartNotifiedFalseAndStartTimeBefore(now)) {
+            item.setStartNotified(true);
+            itemRepository.save(item);
+            String message = "Licitatia pentru \"" + item.getName() + "\" a inceput!";
+            notificationService.notify(item.getSeller(), Notification.Type.STARTED, item, message);
+            watchedItemRepository.findByItemId(item.getId())
+                    .forEach(watch -> notificationService.notify(watch.getUser(), Notification.Type.STARTED, item, message));
+            eventPublisher.publishEvent(AuctionEvent.update(item.getId(), item.getCurrentPrice()));
+        }
+        for (Item item : itemRepository.findByActiveTrueAndAuctionType(com.DannyU.auction_engine.entity.AuctionType.DUTCH)) {
+            if (!item.isStarted() || now.isAfter(item.getEndTime())) {
+                continue;
+            }
+            java.math.BigDecimal price = item.dutchPriceAt(now);
+            if (price.compareTo(item.getCurrentPrice()) != 0) {
+                item.setCurrentPrice(price);
+                itemRepository.save(item);
+                eventPublisher.publishEvent(AuctionEvent.update(item.getId(), price));
+            }
+        }
+    }
+
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void closeExpiredAuctions() {
@@ -51,8 +80,9 @@ public class AuctionScheduler {
         eventPublisher.publishEvent(AuctionEvent.closed(item.getId(), item.getCurrentPrice(),
                 item.getWinner() == null ? null : item.getWinner().getUsername()));
 
-        // 5. Notificari pentru castigator si vanzator
+        // 5. The winner pays the seller (virtual wallet); notifications for both
         if (winningBid.isPresent()) {
+            walletService.settle(item);
             notificationService.notify(item.getWinner(), Notification.Type.WON, item,
                     "Ai castigat \"" + item.getName() + "\" cu " + item.getCurrentPrice() + " RON! Vezi datele de contact ale vanzatorului.");
             notificationService.notify(item.getSeller(), Notification.Type.SOLD, item,

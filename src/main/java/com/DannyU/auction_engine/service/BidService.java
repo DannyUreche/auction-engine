@@ -4,6 +4,7 @@ import com.DannyU.auction_engine.entity.Bid;
 import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.Notification;
 import com.DannyU.auction_engine.entity.User;
+import com.DannyU.auction_engine.entity.AuctionType;
 import com.DannyU.auction_engine.entity.AutoBid;
 import com.DannyU.auction_engine.repository.AutoBidRepository;
 import com.DannyU.auction_engine.repository.BidRepository;
@@ -30,11 +31,13 @@ public class BidService {
     private final ApplicationEventPublisher eventPublisher;
     private final AutoBidRepository autoBidRepository;
     private final NotificationService notificationService;
+    private final WalletService walletService;
 
     @Transactional
     public Bid placeBid(Integer itemId, String bidderUsername, BigDecimal bidAmount) {
         Item item = findItem(itemId);
         User bidder = checkCanBuy(item, bidderUsername);
+        rejectDutch(item);
 
         // Oferta trebuie sa fie cel putin pretul curent + pasul minim (vezi BidRules)
         BigDecimal minimum = BidRules.minimumNextBid(item.getCurrentPrice());
@@ -42,6 +45,7 @@ public class BidService {
             throw new IllegalArgumentException("Oferta respinsa! Oferta minima este " + minimum
                     + " RON (pretul curent + pasul de " + BidRules.increment(item.getCurrentPrice()) + " RON)");
         }
+        walletService.checkFunds(bidder, item, bidAmount);
 
         Bid bid = saveBid(item, bidder, bidAmount, false);
         // Cei cu licitare automata raspund imediat (oferta manuala poate fi depasita pe loc)
@@ -56,6 +60,7 @@ public class BidService {
     public AutoBid setAutoBid(Integer itemId, String username, BigDecimal maxAmount) {
         Item item = findItem(itemId);
         User user = checkCanBuy(item, username);
+        rejectDutch(item);
         BigDecimal minimum = BidRules.minimumNextBid(item.getCurrentPrice());
         if (maxAmount.compareTo(minimum) < 0) {
             throw new IllegalArgumentException("Suma maxima trebuie sa fie cel putin " + minimum + " RON!");
@@ -98,9 +103,10 @@ public class BidService {
             BigDecimal minimum = BidRules.minimumNextBid(item.getCurrentPrice());
             List<AutoBid> autoBids = autoBidRepository.findByItemIdOrderByMaxAmountDescCreatedAtAsc(item.getId());
 
+            // An auto-bid can only go as high as its owner's wallet allows
             AutoBid challenger = autoBids.stream()
                     .filter(a -> !a.getUser().getUsername().equals(leader))
-                    .filter(a -> a.getMaxAmount().compareTo(minimum) >= 0)
+                    .filter(a -> effectiveMax(a, item).compareTo(minimum) >= 0)
                     .findFirst().orElse(null);
             if (challenger == null) {
                 return;
@@ -109,9 +115,10 @@ public class BidService {
             // Cat trebuie oferit ca sa treaca si de maximul (secret) al celui care conduce
             BigDecimal target = autoBids.stream()
                     .filter(a -> a.getUser().getUsername().equals(leader))
-                    .map(a -> a.getMaxAmount().compareTo(minimum) >= 0 ? BidRules.minimumNextBid(a.getMaxAmount()) : minimum)
+                    .map(a -> effectiveMax(a, item))
+                    .map(max -> max.compareTo(minimum) >= 0 ? BidRules.minimumNextBid(max) : minimum)
                     .findFirst().orElse(minimum);
-            saveBid(item, challenger.getUser(), challenger.getMaxAmount().min(target), true);
+            saveBid(item, challenger.getUser(), effectiveMax(challenger, item).min(target), true);
         }
     }
 
@@ -121,14 +128,22 @@ public class BidService {
         Item item = findItem(itemId);
         User buyer = checkCanBuy(item, buyerUsername);
 
-        if (item.getBuyNowPrice() == null) {
-            throw new IllegalArgumentException("Acest obiect nu are pret de cumparare imediata!");
+        // Dutch auction: you buy at the current (dropping) price
+        BigDecimal price;
+        if (item.getAuctionType() == AuctionType.DUTCH) {
+            price = item.dutchPriceAt(LocalDateTime.now());
+        } else {
+            if (item.getBuyNowPrice() == null) {
+                throw new IllegalArgumentException("Acest obiect nu are pret de cumparare imediata!");
+            }
+            if (!item.isBuyNowAvailable()) {
+                throw new IllegalArgumentException("Cumpararea imediata nu mai este disponibila: ofertele au ajuns la acest pret!");
+            }
+            price = item.getBuyNowPrice();
         }
-        if (!item.isBuyNowAvailable()) {
-            throw new IllegalArgumentException("Cumpararea imediata nu mai este disponibila: ofertele au ajuns la acest pret!");
-        }
+        walletService.checkFunds(buyer, item, price);
 
-        Bid bid = saveBid(item, buyer, item.getBuyNowPrice(), false);
+        Bid bid = saveBid(item, buyer, price, false);
         auctionScheduler.closeAuction(item);
         return bid;
     }
@@ -159,11 +174,26 @@ public class BidService {
         // Utilizatorul autentificat, pe baza username-ului din token-ul JWT
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Utilizatorul nu a fost gasit!"));
+        // Scheduled auction that has not opened yet
+        if (!item.isStarted()) {
+            throw new IllegalArgumentException("Licitatia nu a inceput inca!");
+        }
         // Vanzatorul nu liciteaza la propriul obiect
         if (item.getSeller().getId().equals(user.getId())) {
             throw new IllegalArgumentException("Nu poti licita pentru propriul obiect!");
         }
         return user;
+    }
+
+    private void rejectDutch(Item item) {
+        if (item.getAuctionType() == AuctionType.DUTCH) {
+            throw new IllegalArgumentException("La licitatia olandeza nu se liciteaza: cumperi la pretul curent!");
+        }
+    }
+
+    // The auto-bid maximum, limited to what the owner can still afford
+    private BigDecimal effectiveMax(AutoBid autoBid, Item item) {
+        return autoBid.getMaxAmount().min(walletService.availableFor(autoBid.getUser(), item));
     }
 
     private Bid saveBid(Item item, User bidder, BigDecimal amount, boolean automatic) {

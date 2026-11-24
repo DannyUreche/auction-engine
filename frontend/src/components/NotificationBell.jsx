@@ -4,12 +4,15 @@ import { api, timeAgo } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { useAuctionEvents } from '../events.jsx'
 import { Icon } from './icons.jsx'
+import PushToggle from './PushToggle.jsx'
+import { useT } from '../i18n.jsx'
 
-const ICONS = { OUTBID: 'trendDown', NEW_BID: 'coins', WON: 'trophy', SOLD: 'tagCheck', UNSOLD: 'hourglass', MESSAGE: 'chat' }
+const ICONS = { OUTBID: 'trendDown', NEW_BID: 'coins', WON: 'trophy', SOLD: 'tagCheck', UNSOLD: 'hourglass', MESSAGE: 'chat', STARTED: 'timer', QUESTION: 'chat', ANSWER: 'chat' }
 
 // Clopotelul din bara de sus: notificarile utilizatorului logat, cu numarul celor necitite.
 // Lista se reincarca instant cand serverul anunta o notificare noua pentru acest utilizator.
 export default function NotificationBell() {
+  const t = useT()
   const { user } = useAuth()
   const [data, setData] = useState({ unread: 0, items: [] })
   const [open, setOpen] = useState(false)
@@ -78,11 +81,11 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute right-0 z-40 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] origin-top-right animate-fade-up overflow-hidden rounded-2xl bg-white/95 shadow-2xl ring-1 ring-slate-200 backdrop-blur-xl">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <p className="font-semibold text-slate-900">Notificari</p>
-            <span className="text-xs text-slate-400">ultimele 30</span>
+            <p className="font-semibold text-slate-900">{t('Notificari')}</p>
+            <span className="text-xs text-slate-400">{t('ultimele 30')}</span>
           </div>
           {data.items.length === 0 ? (
-            <p className="px-4 py-10 text-center text-sm text-slate-500">Nicio notificare inca.</p>
+            <p className="px-4 py-10 text-center text-sm text-slate-500">{t('Nicio notificare inca.')}</p>
           ) : (
             <ul className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
               {data.items.map((n) => (
@@ -103,6 +106,7 @@ export default function NotificationBell() {
               ))}
             </ul>
           )}
+          <PushToggle />
         </div>
       )}
     </div>

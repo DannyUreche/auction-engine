@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { parseDate } from '../api.js'
+import { parseDate, isEnglish } from '../api.js'
 import { Badge } from './ui.jsx'
+import { useT } from '../i18n.jsx'
 
 // Ora curenta, actualizata la fiecare secunda
-function useNow() {
+export function useNow() {
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000)
@@ -18,19 +19,29 @@ function formatRemaining(ms) {
   const hours = Math.floor((total % 86400) / 3600)
   const minutes = Math.floor((total % 3600) / 60)
   const seconds = String(total % 60).padStart(2, '0')
-  if (days > 0) return `${days}z ${hours}h ${minutes}m`
+  if (days > 0) return `${days}${isEnglish() ? 'd' : 'z'} ${hours}h ${minutes}m`
   if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`
   return `${minutes}m ${seconds}s`
 }
 
-// Timpul ramas pana la finalul licitatiei
-export default function Countdown({ endTime, active }) {
+// Timpul ramas pana la finalul licitatiei (or until a scheduled auction starts)
+export default function Countdown({ endTime, active, startTime }) {
+  const t = useT()
   const now = useNow()
   const remaining = parseDate(endTime).getTime() - now
 
-  if (!active) return <Badge tone="gray">Incheiata</Badge>
+  if (!active) return <Badge tone="gray">{t('Incheiata')}</Badge>
+  const untilStart = startTime ? parseDate(startTime).getTime() - now : 0
+  if (untilStart > 0) {
+    return (
+      <Badge tone="indigo">
+        <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+        {t('Incepe in')} {formatRemaining(untilStart)}
+      </Badge>
+    )
+  }
   // Timpul a expirat, dar serverul inca n-a inchis licitatia (verifica o data pe minut)
-  if (remaining <= 0) return <Badge tone="amber">Se inchide...</Badge>
+  if (remaining <= 0) return <Badge tone="amber">{t('Se inchide...')}</Badge>
 
   const urgent = remaining < 5 * 60 * 1000
   return (
@@ -43,6 +54,7 @@ export default function Countdown({ endTime, active }) {
 
 // Cronometrul mare din panoul de licitare: casute separate pentru zile / ore / minute / secunde
 export function CountdownTiles({ endTime }) {
+  const t = useT()
   const now = useNow()
   const remaining = Math.max(0, parseDate(endTime).getTime() - now)
   const total = Math.floor(remaining / 1000)
@@ -66,7 +78,7 @@ export function CountdownTiles({ endTime }) {
           <p key={value} className="animate-fade-in text-xl font-bold tabular-nums">
             {String(value).padStart(2, '0')}
           </p>
-          <p className="text-[10px] font-medium tracking-wide uppercase opacity-60">{label}</p>
+          <p className="text-[10px] font-medium tracking-wide uppercase opacity-60">{t(label)}</p>
         </div>
       ))}
     </div>

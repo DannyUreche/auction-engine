@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { Icon } from '../components/icons.jsx'
 import ItemCard from '../components/ItemCard.jsx'
 import { Alert, Badge, Card, EmptyState, Loading } from '../components/ui.jsx'
+import WalletPanel from '../components/WalletPanel.jsx'
+import { useWallet } from '../wallet.js'
 import { useWatchlist } from '../watchlist.jsx'
 
 const TABS = [
@@ -12,11 +14,15 @@ const TABS = [
   { key: 'bids', label: 'Ofertele mele' },
   { key: 'won', label: 'Castigate' },
   { key: 'watched', label: 'Urmarite' },
+  { key: 'wallet', label: 'Portofel' },
 ]
 
 export default function Account() {
   const { user } = useAuth()
-  const [tab, setTab] = useState('items')
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState(() => (TABS.some((t) => t.key === params.get('tab')) ? params.get('tab') : 'items'))
+  const { wallet, reload: reloadWallet } = useWallet(user)
+  const [walletOverride, setWalletOverride] = useState(null)
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const watchlist = useWatchlist()
@@ -53,7 +59,7 @@ export default function Account() {
             {t.label}
             {data && (
               <span className="ml-1.5 text-slate-400">
-                {t.key === 'watched' ? watchlist.items.length : data[t.key].length}
+                {t.key === 'watched' ? watchlist.items.length : t.key === 'wallet' ? '' : data[t.key].length}
               </span>
             )}
           </button>
@@ -67,6 +73,15 @@ export default function Account() {
         {data && tab === 'bids' && <MyBids bids={data.bids} userId={user?.id} />}
         {data && tab === 'won' && <WonItems items={data.won} />}
         {data && tab === 'watched' && <WatchedItems items={watchlist.items} loaded={watchlist.loaded} />}
+        {data && tab === 'wallet' && (
+          <WalletPanel
+            wallet={walletOverride ?? wallet}
+            onChange={(updated) => {
+              setWalletOverride(updated)
+              reloadWallet()
+            }}
+          />
+        )}
       </div>
     </div>
   )

@@ -74,6 +74,37 @@ public class Item {
     @Column(name = "buy_now_price")
     private BigDecimal buyNowPrice;
 
+    // Scheduled auction: bidding opens at startTime (null = open since creation)
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
+
+    // Whether the "auction started" notifications were sent (only relevant for scheduled auctions)
+    @JsonIgnore
+    @Column(name = "start_notified", nullable = false)
+    private boolean startNotified = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auction_type", nullable = false, length = 10)
+    private AuctionType auctionType = AuctionType.ENGLISH;
+
+    // Dutch auction only: lowest price and how much the price drops every minute
+    @Column(name = "floor_price")
+    private BigDecimal floorPrice;
+
+    @Column(name = "price_drop")
+    private BigDecimal priceDrop;
+
+    // Has the auction opened yet? (exposed as "started" in JSON)
+    public boolean isStarted() {
+        return startTime == null || !LocalDateTime.now().isBefore(startTime);
+    }
+
+    // Dutch auction price at a given moment: start price minus one drop per full minute, never below the floor
+    public BigDecimal dutchPriceAt(LocalDateTime moment) {
+        long minutes = Math.max(0, java.time.Duration.between(startTime, moment).toMinutes());
+        return startPrice.subtract(priceDrop.multiply(BigDecimal.valueOf(minutes))).max(floorPrice);
+    }
+
     // Cate poze poate avea un obiect
     public static final int MAX_IMAGES = 5;
 
@@ -94,6 +125,13 @@ public class Item {
 
     // "Cumpara acum" e disponibil cat timp licitatia e deschisa si ofertele n-au ajuns la acel pret
     public boolean isBuyNowAvailable() {
-        return buyNowPrice != null && Boolean.TRUE.equals(active) && currentPrice.compareTo(buyNowPrice) < 0;
+        if (!Boolean.TRUE.equals(active) || !isStarted()) {
+            return false;
+        }
+        // A Dutch auction can always be bought (at its current price) while it runs
+        if (auctionType == AuctionType.DUTCH) {
+            return true;
+        }
+        return buyNowPrice != null && currentPrice.compareTo(buyNowPrice) < 0;
     }
 }

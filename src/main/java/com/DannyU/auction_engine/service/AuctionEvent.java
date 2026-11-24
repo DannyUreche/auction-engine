@@ -32,6 +32,11 @@ public record AuctionEvent(String type, Integer itemId, BigDecimal amount, Strin
         return new AuctionEvent("notification", null, null, username);
     }
 
+    // An item changed without a bid (a scheduled auction started, a Dutch price dropped): browsers reload it
+    public static AuctionEvent update(Integer itemId, BigDecimal price) {
+        return new AuctionEvent("update", itemId, price, null);
+    }
+
     // Mesaj nou in chat pentru destinatar (fara text: browserul lui isi cere mesajele)
     public static AuctionEvent message(Integer itemId, String recipientUsername) {
         return new AuctionEvent("message", itemId, null, recipientUsername);

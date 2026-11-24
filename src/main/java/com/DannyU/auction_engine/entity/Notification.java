@@ -15,7 +15,8 @@ public class Notification {
     // OUTBID = oferta ta a fost depasita, NEW_BID = oferta noua la obiectul tau,
     // WON = ai castigat, SOLD = obiectul tau s-a vandut, UNSOLD = licitatia s-a incheiat fara oferte,
     // MESSAGE = mesaj nou in chat-ul unui obiect vandut
-    public enum Type { OUTBID, NEW_BID, WON, SOLD, UNSOLD, MESSAGE }
+    // STARTED = a scheduled auction you watch (or sell) has started; QUESTION / ANSWER = questions about items
+    public enum Type { OUTBID, NEW_BID, WON, SOLD, UNSOLD, MESSAGE, STARTED, QUESTION, ANSWER }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

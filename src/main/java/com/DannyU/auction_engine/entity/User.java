@@ -27,4 +27,19 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Virtual wallet balance (test credits). Never part of the public JSON - see /api/wallet
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(nullable = false)
+    private java.math.BigDecimal balance = new java.math.BigDecimal("10000.00");
+
+    // Blocked by an admin: cannot log in, tokens stop working
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(nullable = false)
+    private boolean blocked = false;
+
+    // False until the email link is opened (only when sending emails is configured)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = true;
+
 }

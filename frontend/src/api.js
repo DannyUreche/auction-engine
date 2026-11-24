@@ -85,10 +85,23 @@ export const formatDate = (value) =>
   new Intl.DateTimeFormat('ro-RO', { dateStyle: 'medium', timeStyle: 'short' }).format(parseDate(value))
 
 // "acum 12s", "acum 3 min"...
+// Current interface language (set on <html lang> by i18n.jsx), for plain helpers that are not components
+export const isEnglish = () => document.documentElement.lang === 'en'
+
 export function timeAgo(value, now) {
   const seconds = Math.max(0, Math.round((now - parseDate(value).getTime()) / 1000))
-  if (seconds < 60) return `acum ${seconds}s`
-  if (seconds < 3600) return `acum ${Math.floor(seconds / 60)} min`
-  if (seconds < 86400) return `acum ${Math.floor(seconds / 3600)} h`
-  return `acum ${Math.floor(seconds / 86400)} z`
+  const text =
+    seconds < 60 ? `${seconds}s`
+    : seconds < 3600 ? `${Math.floor(seconds / 60)} min`
+    : seconds < 86400 ? `${Math.floor(seconds / 3600)} h`
+    : isEnglish() ? `${Math.floor(seconds / 86400)} d`
+    : `${Math.floor(seconds / 86400)} z`
+  return isEnglish() ? `${text} ago` : `acum ${text}`
+}
+
+// Current price of a Dutch auction (same formula as Item.dutchPriceAt on the server):
+// start price minus one drop per full minute since the start, never below the floor price
+export function dutchPrice(item, now = Date.now()) {
+  const minutes = Math.max(0, Math.floor((now - parseDate(item.startTime).getTime()) / 60000))
+  return Math.max(Number(item.floorPrice), Number(item.startPrice) - Number(item.priceDrop) * minutes)
 }

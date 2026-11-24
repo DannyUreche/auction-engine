@@ -13,6 +13,9 @@ public interface WatchedItemRepository extends JpaRepository<WatchedItem, Intege
 
     Optional<WatchedItem> findByUserUsernameAndItemId(String username, Integer itemId);
 
+    // Everyone watching an item (to tell them when a scheduled auction starts)
+    List<WatchedItem> findByItemId(Integer itemId);
+
     // Obiectele urmarite de un utilizator, cele adaugate recent primele
     @Query("SELECT w.item FROM WatchedItem w WHERE w.user.username = :username ORDER BY w.createdAt DESC, w.id DESC")
     List<Item> findItemsWatchedBy(@Param("username") String username);

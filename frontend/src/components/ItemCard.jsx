@@ -5,10 +5,12 @@ import { WatchButton } from '../watchlist.jsx'
 import { CategoryIcon, Icon } from './icons.jsx'
 import Countdown from './Countdown.jsx'
 import ItemImage from './ItemImage.jsx'
+import { useT } from '../i18n.jsx'
 
 // Cardul unui obiect din liste (pagina principala, contul meu, profil).
 // index: pozitia in lista - cardurile apar pe rand, cu o mica intarziere intre ele
 export default function ItemCard({ item, extra, index = 0 }) {
+  const t = useT()
   const hasBids = Number(item.currentPrice) > Number(item.startPrice)
   const category = findCategory(useCategories(), item.category)
   const navigate = useNavigate()
@@ -53,11 +55,16 @@ export default function ItemCard({ item, extra, index = 0 }) {
           <WatchButton item={item} />
         </div>
         <div className="absolute top-3 right-3 rounded-full shadow-sm">
-          <Countdown endTime={item.endTime} active={item.active} />
+          <Countdown endTime={item.endTime} active={item.active} startTime={item.startTime} />
         </div>
-        {item.buyNowAvailable && (
+        {item.auctionType === 'DUTCH' && item.active && (
+          <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-md">
+            <Icon name="trendDown" size={13} mono /> {t('Olandeza · pretul scade')}
+          </div>
+        )}
+        {item.buyNowAvailable && item.auctionType !== 'DUTCH' && (
           <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-md">
-            <Icon name="bolt" size={13} mono /> Cumpara acum {formatPrice(item.buyNowPrice)}
+            <Icon name="bolt" size={13} mono /> {t('Cumpara acum')} {formatPrice(item.buyNowPrice)}
           </div>
         )}
         {item.imageUrls?.length > 1 && (
@@ -69,15 +76,15 @@ export default function ItemCard({ item, extra, index = 0 }) {
 
       <div className="flex flex-1 flex-col p-5">
         <p className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
-          <CategoryIcon category={category} size={15} /> {category.label}
+          <CategoryIcon category={category} size={15} /> {t(category.label)}
         </p>
         <h3 className="mt-0.5 line-clamp-1 font-semibold text-slate-900 transition group-hover:text-indigo-600">{item.name}</h3>
-        <p className="mt-1 line-clamp-2 min-h-10 text-sm text-slate-500">{item.description || 'Fara descriere'}</p>
+        <p className="mt-1 line-clamp-2 min-h-10 text-sm text-slate-500">{item.description || t('Fara descriere')}</p>
 
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-slate-100 pt-4">
           <div>
             <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">
-              {item.active ? (hasBids ? 'Oferta curenta' : 'Pret de pornire') : 'Pret final'}
+              {t(item.active ? (hasBids ? 'Oferta curenta' : 'Pret de pornire') : 'Pret final')}
             </p>
             {/* key = pretul: la o oferta noua elementul se recreeaza si animatia porneste din nou */}
             <p key={item.currentPrice} className="origin-left animate-price-flash text-xl font-bold text-slate-900">
@@ -85,7 +92,7 @@ export default function ItemCard({ item, extra, index = 0 }) {
             </p>
           </div>
           <p className="min-w-0 truncate text-xs text-slate-500">
-            de{' '}
+            {t('de')}{' '}
             <span role="link" onClick={openSeller} className="relative z-20 font-medium hover:text-indigo-600 hover:underline">
               {item.seller?.username}
             </span>
