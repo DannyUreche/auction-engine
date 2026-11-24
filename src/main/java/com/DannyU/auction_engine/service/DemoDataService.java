@@ -1,5 +1,6 @@
 package com.DannyU.auction_engine.service;
 
+import com.DannyU.auction_engine.entity.AuctionType;
 import com.DannyU.auction_engine.entity.Bid;
 import com.DannyU.auction_engine.entity.Category;
 import com.DannyU.auction_engine.entity.Item;
@@ -16,13 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.awt.Color;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -48,44 +43,44 @@ public class DemoDataService {
     private final ReviewRepository reviewRepository;
 
     private record DemoItem(String name, String description, Category category, int startPrice, Integer buyNow,
-                            Color from, Color to) {
+                            Color from, Color to, DemoImagePainter.Shape shape) {
     }
 
     private static final String[] USERS = {"ana", "mihai", "ioana", "radu", "elena", "vlad", "bianca"};
 
     private static final List<DemoItem> ITEMS = List.of(
             new DemoItem("Ceas Omega Seamaster 1968", "Mecanism automatic revizuit anul trecut, cutie originala. Tine perfect ora.",
-                    Category.CEASURI_BIJUTERII, 1200, 2600, new Color(0x0f172a), new Color(0xb45309)),
+                    Category.CEASURI_BIJUTERII, 1200, 2600, new Color(0x0f172a), new Color(0xb45309), DemoImagePainter.Shape.WATCH),
             new DemoItem("Inel cu safir, aur 14k", "Safir natural de 1,2 carate, marimea 54. Certificat de autenticitate inclus.",
-                    Category.CEASURI_BIJUTERII, 800, null, new Color(0x1e3a8a), new Color(0x60a5fa)),
+                    Category.CEASURI_BIJUTERII, 800, null, new Color(0x1e3a8a), new Color(0x60a5fa), DemoImagePainter.Shape.RING),
             new DemoItem("Tablou in ulei - Peisaj din Bucovina", "Pictura originala pe panza, 60x80 cm, rama din lemn sculptat.",
-                    Category.ARTA_COLECTII, 450, null, new Color(0x14532d), new Color(0xfbbf24)),
+                    Category.ARTA_COLECTII, 450, null, new Color(0x14532d), new Color(0xfbbf24), DemoImagePainter.Shape.PAINTING),
             new DemoItem("Colectie monede romanesti 1900-1947", "42 de monede in album, inclusiv 5 lei 1930 si 100 lei 1932.",
-                    Category.ARTA_COLECTII, 300, 900, new Color(0x78350f), new Color(0xfde68a)),
+                    Category.ARTA_COLECTII, 300, 900, new Color(0x78350f), new Color(0xfde68a), DemoImagePainter.Shape.COIN),
             new DemoItem("iPhone 14 Pro 256GB", "Baterie 91%, fara zgarieturi, cu husa si incarcator. Liber de retea.",
-                    Category.ELECTRONICE, 2500, 3800, new Color(0x312e81), new Color(0xa855f7)),
+                    Category.ELECTRONICE, 2500, 3800, new Color(0x312e81), new Color(0xa855f7), DemoImagePainter.Shape.PHONE),
             new DemoItem("PlayStation 5 + 2 controllere", "Varianta cu unitate optica, 3 jocuri incluse. Folosita foarte putin.",
-                    Category.ELECTRONICE, 1500, null, new Color(0x0c4a6e), new Color(0x38bdf8)),
+                    Category.ELECTRONICE, 1500, null, new Color(0x0c4a6e), new Color(0x38bdf8), DemoImagePainter.Shape.GAMEPAD),
             new DemoItem("Aparat foto Canon AE-1 Program", "Film 35mm, obiectiv 50mm f/1.8. Testat, declanseaza la toate vitezele.",
-                    Category.ELECTRONICE, 400, null, new Color(0x18181b), new Color(0x71717a)),
+                    Category.ELECTRONICE, 400, null, new Color(0x18181b), new Color(0x71717a), DemoImagePainter.Shape.CAMERA),
             new DemoItem("Geaca de piele vintage", "Piele naturala, marimea M, anii '80. Captuseala refacuta.",
-                    Category.MODA, 250, null, new Color(0x451a03), new Color(0xd97706)),
+                    Category.MODA, 250, null, new Color(0x451a03), new Color(0xd97706), DemoImagePainter.Shape.SHIRT),
             new DemoItem("Geanta Michael Kors", "Model Jet Set, culoare bej, purtata de cateva ori. Cu factura.",
-                    Category.MODA, 350, 700, new Color(0x831843), new Color(0xf9a8d4)),
+                    Category.MODA, 350, 700, new Color(0x831843), new Color(0xf9a8d4), DemoImagePainter.Shape.BAG),
             new DemoItem("Set mobilier gradina din lemn masiv", "Masa + 6 scaune din salcam, tratate pentru exterior.",
-                    Category.CASA_GRADINA, 900, null, new Color(0x365314), new Color(0xa3e635)),
+                    Category.CASA_GRADINA, 900, null, new Color(0x365314), new Color(0xa3e635), DemoImagePainter.Shape.CHAIR),
             new DemoItem("Lampa Art Deco din alama", "Abajur din sticla opalina, functionala, cablu nou.",
-                    Category.CASA_GRADINA, 200, null, new Color(0x713f12), new Color(0xfacc15)),
+                    Category.CASA_GRADINA, 200, null, new Color(0x713f12), new Color(0xfacc15), DemoImagePainter.Shape.LAMP),
             new DemoItem("Bicicleta de cursiera Peugeot 1985", "Cadru Reynolds 531, schimbator Shimano 600. Restaurata complet.",
-                    Category.SPORT, 600, null, new Color(0x7f1d1d), new Color(0xf87171)),
+                    Category.SPORT, 600, null, new Color(0x7f1d1d), new Color(0xf87171), DemoImagePainter.Shape.BIKE),
             new DemoItem("Placa snowboard Burton Custom 156", "Cu legaturi Burton Cartel, un sezon folosita.",
-                    Category.SPORT, 450, 950, new Color(0x164e63), new Color(0x67e8f9)),
+                    Category.SPORT, 450, 950, new Color(0x164e63), new Color(0x67e8f9), DemoImagePainter.Shape.SNOWBOARD),
             new DemoItem("Morometii - prima editie, 1955", "Marin Preda, ESPLA 1955. Stare foarte buna pentru varsta.",
-                    Category.CARTI_MUZICA, 150, null, new Color(0x44403c), new Color(0xd6d3d1)),
+                    Category.CARTI_MUZICA, 150, null, new Color(0x44403c), new Color(0xd6d3d1), DemoImagePainter.Shape.BOOK),
             new DemoItem("Colectie viniluri Phoenix", "Cantafabule, Mugur de fluier si Cei ce ne-au dat nume. Coperti originale.",
-                    Category.CARTI_MUZICA, 220, null, new Color(0x1c1917), new Color(0xef4444)),
+                    Category.CARTI_MUZICA, 220, null, new Color(0x1c1917), new Color(0xef4444), DemoImagePainter.Shape.VINYL),
             new DemoItem("Dacia 1300 restaurata", "An 1978, 62.000 km reali, motor refacut. Acte la zi, inmatriculata.",
-                    Category.VEHICULE, 15000, 22000, new Color(0x1e293b), new Color(0x22d3ee)));
+                    Category.VEHICULE, 15000, 22000, new Color(0x1e293b), new Color(0x22d3ee), DemoImagePainter.Shape.CAR));
 
     public boolean exists() {
         return userRepository.findByUsername(PREFIX + USERS[0]).isPresent();
@@ -128,7 +123,7 @@ public class DemoDataService {
             item.setEndTime(sold ? now.minusHours(1 + random.nextInt(20)) : now.plus(remaining[i % remaining.length]));
             int photos = 1 + random.nextInt(3);
             for (int p = 0; p < photos; p++) {
-                item.getImageFilenames().add(storeImage(demo, p, random));
+                item.getImageFilenames().add(saveImage(DemoImagePainter.paint(demo.shape(), demo.to().getRGB() & 0xffffff, p, random)));
             }
             itemRepository.save(item);
 
@@ -169,7 +164,87 @@ public class DemoDataService {
                 review(item, seller, last, 4 + random.nextInt(2), "Plata rapida, comunicare excelenta.", now);
             }
         }
-        return ITEMS.size();
+        int catalog = generateCatalog(users, random, now);
+        return ITEMS.size() + catalog;
+    }
+
+    // 10 listings per category (DemoCatalog), all active: classic auctions with "buy now" and a bid history,
+    // one Dutch auction and one scheduled auction per category
+    private int generateCatalog(List<User> users, Random random, LocalDateTime now) {
+        List<DemoCatalog.Listing> listings = DemoCatalog.LISTINGS;
+        for (int i = 0; i < listings.size(); i++) {
+            DemoCatalog.Listing demo = listings.get(i);
+            User seller = users.get((i * 3 + 1) % users.size());
+            BigDecimal start = BigDecimal.valueOf(demo.startPrice());
+
+            Item item = new Item();
+            item.setName(demo.name());
+            item.setDescription(demo.description());
+            item.setCategory(demo.category());
+            item.setStartPrice(start);
+            item.setCurrentPrice(start);
+            item.setSeller(seller);
+            switch (demo.kind()) {
+                case ENGLISH -> {
+                    item.setBuyNowPrice(BigDecimal.valueOf(demo.buyNowOrFloor()));
+                    item.setEndTime(now.plusMinutes(90 + random.nextInt(7 * 24 * 60)));
+                }
+                case DUTCH -> {
+                    // The price reaches the floor in about two days
+                    BigDecimal floor = BigDecimal.valueOf(demo.buyNowOrFloor());
+                    long drop = Math.max(1, Math.round((demo.startPrice() - demo.buyNowOrFloor()) / 2880.0));
+                    item.setAuctionType(AuctionType.DUTCH);
+                    item.setFloorPrice(floor);
+                    item.setPriceDrop(BigDecimal.valueOf(drop));
+                    item.setStartTime(now.minusMinutes(random.nextInt(240)));
+                    item.setEndTime(item.getStartTime().plusDays(3));
+                    item.setCurrentPrice(item.dutchPriceAt(now));
+                }
+                case SCHEDULED -> {
+                    item.setBuyNowPrice(BigDecimal.valueOf(demo.buyNowOrFloor()));
+                    item.setStartTime(now.plusHours(2 + random.nextInt(30)));
+                    item.setStartNotified(false);
+                    item.setEndTime(item.getStartTime().plusDays(3));
+                }
+            }
+            int photos = 2 + random.nextInt(2);
+            for (int p = 0; p < photos; p++) {
+                item.getImageFilenames().add(saveImage(DemoImagePainter.paint(demo.shape(), demo.color(), p, random)));
+            }
+            itemRepository.save(item);
+
+            if (demo.kind() == DemoCatalog.Kind.ENGLISH) {
+                addBids(item, users, seller, random, now, random.nextInt(7));
+            }
+        }
+        return listings.size();
+    }
+
+    // Bids from other demo users spread over the last two days, below the "buy now" price
+    private void addBids(Item item, List<User> users, User seller, Random random, LocalDateTime now, int count) {
+        LocalDateTime time = now.minusHours(48);
+        BigDecimal price = item.getStartPrice();
+        User last = null;
+        for (int b = 0; b < count; b++) {
+            User bidder;
+            do {
+                bidder = users.get(random.nextInt(users.size()));
+            } while (bidder.equals(seller) || bidder.equals(last));
+            price = price.add(BidRules.increment(price).multiply(BigDecimal.valueOf(1 + random.nextInt(4))));
+            time = time.plusMinutes(20 + random.nextInt(400));
+            if (price.compareTo(item.getBuyNowPrice()) >= 0 || time.isAfter(now)) {
+                break;
+            }
+            Bid bid = new Bid();
+            bid.setItem(item);
+            bid.setBidder(bidder);
+            bid.setAmount(price);
+            bid.setCreatedAt(time);
+            bidRepository.save(bid);
+            item.setCurrentPrice(price);
+            last = bidder;
+        }
+        itemRepository.save(item);
     }
 
     private void review(Item item, User author, User target, int rating, String comment, LocalDateTime now) {
@@ -199,41 +274,11 @@ public class DemoDataService {
         return items.size();
     }
 
-    // O "poza" abstracta: degrade in culorile obiectului, cu cercuri translucide si numele obiectului
-    private String storeImage(DemoItem demo, int index, Random random) {
-        int width = 800;
-        int height = 600;
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = image.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        boolean flip = index % 2 == 1;
-        g.setPaint(new GradientPaint(0, 0, flip ? demo.to() : demo.from(), width, height, flip ? demo.from() : demo.to()));
-        g.fillRect(0, 0, width, height);
-        for (int c = 0; c < 7; c++) {
-            int size = 80 + random.nextInt(320);
-            g.setColor(new Color(255, 255, 255, 18 + random.nextInt(40)));
-            g.fill(new Ellipse2D.Double(random.nextInt(width) - size / 2.0, random.nextInt(height) - size / 2.0, size, size));
-        }
-        g.setColor(new Color(255, 255, 255, 230));
-        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 40));
-        String title = demo.name().length() > 30 ? demo.name().substring(0, 30) + "..." : demo.name();
-        g.drawString(title, 40, height - 60);
-        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 22));
-        g.setColor(new Color(255, 255, 255, 170));
-        g.drawString("Poza " + (index + 1) + " · date demo", 40, height - 28);
-        g.dispose();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            ImageIO.write(image, "jpg", out);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private String saveImage(byte[] jpeg) {
         ItemImage stored = new ItemImage();
         stored.setFilename(UUID.randomUUID() + ".jpg");
         stored.setContentType("image/jpeg");
-        stored.setData(out.toByteArray());
+        stored.setData(jpeg);
         return itemImageRepository.save(stored).getFilename();
     }
 }

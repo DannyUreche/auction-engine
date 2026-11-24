@@ -1,5 +1,6 @@
 package com.DannyU.auction_engine.controller;
 
+import com.DannyU.auction_engine.entity.Category;
 import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.repository.BidRepository;
@@ -23,6 +24,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -170,7 +173,16 @@ class AdminApiTest {
 
         mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(admin)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items").value(16));
+                .andExpect(jsonPath("$.items").value(106));
+        // The catalog fills every category with at least 10 listings, each with photos and a description
+        for (Category category : Category.values()) {
+            mockMvc.perform(get("/api/items/active"))
+                    .andExpect(jsonPath("$[?(@.category == '" + category.name() + "' && @.seller.username =~ /demo_.*/)]",
+                            hasSize(greaterThanOrEqualTo(10))));
+        }
+        mockMvc.perform(get("/api/items/active"))
+                .andExpect(jsonPath("$[?(@.seller.username =~ /demo_.*/ && @.imageUrl == null)]", hasSize(0)))
+                .andExpect(jsonPath("$[?(@.auctionType == 'DUTCH' && @.seller.username =~ /demo_.*/)]", hasSize(9)));
         mockMvc.perform(get("/api/users/demo_ana/profile"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").doesNotExist());
@@ -182,7 +194,7 @@ class AdminApiTest {
 
         mockMvc.perform(delete("/api/admin/demo-data").header("Authorization", bearer(admin)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items").value(16));
+                .andExpect(jsonPath("$.items").value(106));
         mockMvc.perform(get("/api/admin/demo-data").header("Authorization", bearer(admin)))
                 .andExpect(jsonPath("$.exists").value(false));
         mockMvc.perform(get("/api/users/demo_ana/profile")).andExpect(status().isBadRequest());

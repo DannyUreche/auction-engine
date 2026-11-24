@@ -353,7 +353,8 @@ function DemoDataPanel({ onChange }) {
           <Icon name="clapper" size={22} /> Date demo pentru prezentare
         </p>
         <p className="mt-0.5 text-sm text-slate-600">
-          16 obiecte in toate categoriile, cu poze, oferte de-a lungul a 2 zile si cateva vanzari. Utilizatorii au numele
+          Peste 100 de obiecte (cate 10+ in fiecare categorie), cu poze, descrieri, oferte de-a lungul a 2 zile, licitatii
+          olandeze si programate si cateva vanzari. Utilizatorii au numele
           „demo_...” si nu se poate intra in contul lor.
         </p>
         {result && <p className="mt-1 text-sm font-medium text-emerald-700">{result}</p>}
