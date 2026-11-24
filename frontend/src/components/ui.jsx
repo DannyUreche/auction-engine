@@ -1,8 +1,9 @@
 // Componente mici de interfata, refolosite in toate paginile
 
 const buttonStyles = {
-  primary: 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm',
-  secondary: 'bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50',
+  primary:
+    'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25 hover:shadow-lg hover:shadow-indigo-500/40 hover:brightness-110 active:scale-[0.98]',
+  secondary: 'bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50 active:scale-[0.98]',
   ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
 }
 
@@ -96,6 +97,21 @@ export function Loading() {
   )
 }
 
+// Locul unui card cat timp se incarca lista (in loc de spinner)
+export function CardSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-2xl bg-white/85 ring-1 ring-slate-200/80">
+      <div className="skeleton aspect-[4/3]" />
+      <div className="space-y-3 p-5">
+        <div className="skeleton h-3 w-20 rounded" />
+        <div className="skeleton h-4 w-3/4 rounded" />
+        <div className="skeleton h-3 w-full rounded" />
+        <div className="skeleton mt-4 h-6 w-28 rounded" />
+      </div>
+    </div>
+  )
+}
+
 export function EmptyState({ title, children }) {
   return (
     <div className="rounded-2xl border-2 border-dashed border-slate-200 px-6 py-14 text-center">
@@ -106,5 +122,7 @@ export function EmptyState({ title, children }) {
 }
 
 export function Card({ className = '', children }) {
-  return <div className={`rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 ${className}`}>{children}</div>
+  return (
+    <div className={`rounded-2xl bg-white/85 p-6 shadow-sm ring-1 ring-slate-200/80 backdrop-blur ${className}`}>{children}</div>
+  )
 }

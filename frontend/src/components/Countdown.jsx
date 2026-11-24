@@ -40,3 +40,35 @@ export default function Countdown({ endTime, active }) {
     </Badge>
   )
 }
+
+// Cronometrul mare din panoul de licitare: casute separate pentru zile / ore / minute / secunde
+export function CountdownTiles({ endTime }) {
+  const now = useNow()
+  const remaining = Math.max(0, parseDate(endTime).getTime() - now)
+  const total = Math.floor(remaining / 1000)
+  const parts = [
+    ['zile', Math.floor(total / 86400)],
+    ['ore', Math.floor((total % 86400) / 3600)],
+    ['min', Math.floor((total % 3600) / 60)],
+    ['sec', total % 60],
+  ]
+  const urgent = remaining < 5 * 60 * 1000
+
+  return (
+    <div className="grid grid-cols-4 gap-2">
+      {parts.map(([label, value]) => (
+        <div
+          key={label}
+          className={`rounded-xl py-2 text-center ring-1 ${
+            urgent ? 'bg-red-50 text-red-700 ring-red-200' : 'bg-slate-50 text-slate-900 ring-slate-200'
+          }`}
+        >
+          <p key={value} className="animate-fade-in text-xl font-bold tabular-nums">
+            {String(value).padStart(2, '0')}
+          </p>
+          <p className="text-[10px] font-medium tracking-wide uppercase opacity-60">{label}</p>
+        </div>
+      ))}
+    </div>
+  )
+}

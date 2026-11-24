@@ -22,6 +22,9 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
     // Pentru ruta GET /api/bids/my (ofertele utilizatorului logat, cele mai noi primele)
     List<Bid> findByBidderUsernameOrderByCreatedAtDesc(String username);
 
+    // Ultimele oferte de pe tot site-ul (fluxul "Activitate live" de pe pagina principala)
+    List<Bid> findTop8ByOrderByCreatedAtDesc();
+
     // Pentru pagina de administrare
     long countByBidderId(Integer bidderId);
 

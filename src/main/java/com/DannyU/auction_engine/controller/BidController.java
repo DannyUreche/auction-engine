@@ -1,6 +1,7 @@
 package com.DannyU.auction_engine.controller;
 
 import com.DannyU.auction_engine.entity.Bid;
+import com.DannyU.auction_engine.repository.BidRepository;
 import com.DannyU.auction_engine.service.BidService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
@@ -20,6 +21,7 @@ import java.util.List;
 public class BidController {
 
     private final BidService bidService;
+    private final BidRepository bidRepository;
 
     @PostMapping
     public Bid placeBid(@Valid @RequestBody BidRequest request, Authentication authentication) {
@@ -39,6 +41,12 @@ public class BidController {
     }
 
     // Ofertele utilizatorului logat
+    // Ultimele 8 oferte de pe tot site-ul (publice, ca istoricul ofertelor)
+    @GetMapping("/recent")
+    public List<Bid> getRecentBids() {
+        return bidRepository.findTop8ByOrderByCreatedAtDesc();
+    }
+
     @GetMapping("/my")
     public List<Bid> getMyBids(Authentication authentication) {
         return bidService.getBidsForUser(authentication.getName());

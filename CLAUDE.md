@@ -19,6 +19,7 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 - Run: backend on 8080 first, then `cd frontend; npm install; npm run dev` → `http://localhost:5173`. Vite proxies `/api` to `localhost:8080`, so the backend needs no CORS config.
 - All HTTP calls go through `frontend/src/api.js` (adds the JWT from localStorage, turns `{"eroare": ...}` into thrown `Error`s, fires `auth:expired` on 401). Auth state lives in `frontend/src/auth.jsx`.
 - UI text is Romanian without diacritics, same as the backend.
+- Visual style: animated backdrop (`components/Backdrop.jsx`), custom animations/utilities (`animate-fade-up`, `animate-price-flash`, `text-gradient`, `bg-grid`, `skeleton`, `spotlight`) defined in `src/index.css` with `@theme`/`@utility` (Tailwind v4, no config file) and disabled under `prefers-reduced-motion`. Home hero uses public `GET /api/stats` and `GET /api/bids/recent` (last 8 bids) for live counters (`CountUp`) and the `ActivityFeed`; item page has an SVG step `PriceChart` and `launchConfetti()` (`src/confetti.js`) when you win. No chart/animation libraries - keep it dependency-free.
 
 ## Deployment (Render)
 

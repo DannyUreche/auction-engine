@@ -14,9 +14,11 @@ import {
 } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { findCategory, useCategories } from '../categories.js'
-import Countdown from '../components/Countdown.jsx'
+import Countdown, { CountdownTiles } from '../components/Countdown.jsx'
 import EditItemForm from '../components/EditItemForm.jsx'
 import ItemImage from '../components/ItemImage.jsx'
+import PriceChart from '../components/PriceChart.jsx'
+import { launchConfetti } from '../confetti.js'
 import { Alert, Badge, Button, Card, EmptyState, Input, Loading } from '../components/ui.jsx'
 import { LiveBadge, useAuctionEvents } from '../events.jsx'
 import { WatchButton } from '../watchlist.jsx'
@@ -45,6 +47,16 @@ export default function ItemDetail() {
   // Notificare scurta cand altcineva liciteaza sau licitatia se inchide
   const [notice, setNotice] = useState(null)
   const [editing, setEditing] = useState(false)
+
+  // Ai castigat obiectul: confetti (o singura data pe sesiune pentru fiecare obiect)
+  const wonByMe = item && !item.active && item.winner && item.winner.id === user?.id
+  useEffect(() => {
+    if (!wonByMe) return
+    const key = `confetti-${item.id}`
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, '1')
+    launchConfetti()
+  }, [wonByMe, item?.id])
   useEffect(() => {
     if (!notice) return
     const timeoutId = setTimeout(() => setNotice(null), 5000)
@@ -180,6 +192,20 @@ export default function ItemDetail() {
           </Card>
           )}
 
+          {bids.length > 0 && (
+            <Card>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-900">Evolutia pretului</h2>
+                <span className="text-sm font-medium text-emerald-600">
+                  +{formatPrice(Number(item.currentPrice) - Number(item.startPrice))} fata de pornire
+                </span>
+              </div>
+              <div className="mt-4">
+                <PriceChart startPrice={item.startPrice} bids={bids} />
+              </div>
+            </Card>
+          )}
+
           <Card>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">Istoricul ofertelor</h2>
@@ -191,7 +217,7 @@ export default function ItemDetail() {
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {bids.map((bid, index) => (
-                    <li key={bid.id} className="flex items-center justify-between gap-3 py-3">
+                    <li key={bid.id} className="flex animate-fade-up items-center justify-between gap-3 py-3">
                       <div className="flex min-w-0 items-center gap-3">
                         <span
                           className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold ${
@@ -226,12 +252,20 @@ export default function ItemDetail() {
             <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">
               {item.active ? (leadingBid ? 'Oferta curenta' : 'Pret de pornire') : 'Pret final'}
             </p>
-            <p className="mt-1 text-4xl font-bold tracking-tight text-slate-900">{formatPrice(item.currentPrice)}</p>
+            {/* key = pretul: la o oferta noua animatia porneste din nou */}
+            <p key={item.currentPrice} className="mt-1 origin-left animate-price-flash text-4xl font-bold tracking-tight text-slate-900">
+              {formatPrice(item.currentPrice)}
+            </p>
             {leadingBid && (
               <p className="mt-1 text-sm text-slate-500">
                 de {leadingBid.bidder?.username}
                 {leadingBid.bidder?.id === user?.id && ' (tu)'}
               </p>
+            )}
+            {item.active && (
+              <div className="mt-5">
+                <CountdownTiles endTime={item.endTime} />
+              </div>
             )}
 
             {!item.active && item.winner && (user?.id === item.seller?.id || user?.id === item.winner.id) && (

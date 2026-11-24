@@ -95,7 +95,7 @@ export function WatchlistProvider({ children }) {
           <div
             key={toast.id}
             role="status"
-            className="pointer-events-auto flex items-start gap-3 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg"
+            className="pointer-events-auto flex animate-slide-in items-start gap-3 rounded-xl bg-slate-900/95 px-4 py-3 text-sm text-white shadow-2xl ring-1 ring-white/10 backdrop-blur"
           >
             <span aria-hidden="true">🔔</span>
             <div className="min-w-0 flex-1">
