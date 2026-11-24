@@ -161,6 +161,14 @@ export default function Layout() {
               <Link to="/despre" className="font-medium text-indigo-600 hover:underline">
                 {t('Despre proiect')}
               </Link>
+              {' · '}
+              <Link to="/confidentialitate" className="font-medium text-indigo-600 hover:underline">
+                {t('Confidentialitate')}
+              </Link>
+              {' · '}
+              <Link to="/termeni" className="font-medium text-indigo-600 hover:underline">
+                {t('Termeni')}
+              </Link>
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

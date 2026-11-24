@@ -23,6 +23,8 @@ const EN = {
   'Portofelul tau (disponibil pentru oferte)': 'Your wallet (available for bids)',
   'Licitatii in timp real · oferte instant · castigator stabilit automat ·': 'Real-time auctions · instant bids · winner picked automatically ·',
   'Despre proiect': 'About the project',
+  Confidentialitate: 'Privacy',
+  Termeni: 'Terms',
   'Instaleaza aplicatia': 'Install the app',
   'Mod luminos': 'Light mode',
   'Mod intunecat': 'Dark mode',
