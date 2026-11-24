@@ -1,21 +1,21 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { api, parseDate } from '../api.js'
+import { api } from '../api.js'
 import { useCategories } from '../categories.js'
 import ItemCard from '../components/ItemCard.jsx'
 import CountUp from '../components/CountUp.jsx'
 import Recommendations from '../components/Recommendations.jsx'
 import { CategoryIcon, Icon } from '../components/icons.jsx'
-import { Alert, CardSkeleton, EmptyState, Input, Select } from '../components/ui.jsx'
+import { Alert, Button, CardSkeleton, EmptyState, Input, Select } from '../components/ui.jsx'
 import { useAuctionEvents } from '../events.jsx'
 import Hero3D from '../hero/Hero3D.jsx'
 import { useT } from '../i18n.jsx'
 
 const SORTS = {
-  ending: { label: 'Se termina curand', compare: (a, b) => a.endTime.localeCompare(b.endTime) },
-  'price-asc': { label: 'Pret crescator', compare: (a, b) => Number(a.currentPrice) - Number(b.currentPrice) },
-  'price-desc': { label: 'Pret descrescator', compare: (a, b) => Number(b.currentPrice) - Number(a.currentPrice) },
-  newest: { label: 'Cele mai noi', compare: (a, b) => b.id - a.id },
+  ending: { label: 'Se termina curand' },
+  'price-asc': { label: 'Pret crescator' },
+  'price-desc': { label: 'Pret descrescator' },
+  newest: { label: 'Cele mai noi' },
 }
 
 // Auction type filter: [key, label, icon]
@@ -27,16 +27,27 @@ const TYPES = [
   ['soon', 'Incep curand', 'timer'],
 ]
 
-function matchesType(item, type) {
-  if (type === 'buy') return item.buyNowAvailable && item.auctionType !== 'DUTCH'
-  if (type === 'dutch') return item.auctionType === 'DUTCH'
-  if (type === 'soon') return !item.started
-  if (type === 'today') return item.started && parseDate(item.endTime).getTime() - Date.now() < 24 * 3600 * 1000
-  return true
+const PAGE_SIZE = 12
+
+// /items/search URL for the filters and one page of results (the server does the filtering, see ItemSearchService)
+function searchUrl(filters, page, size = PAGE_SIZE) {
+  const params = new URLSearchParams({ page, size })
+  const { cat, q, min, max, type, sort } = filters
+  if (cat) params.set('cat', cat)
+  if (q.trim()) params.set('q', q.trim())
+  if (min) params.set('min', min)
+  if (max) params.set('max', max)
+  if (type) params.set('type', type)
+  if (sort) params.set('sort', sort)
+  return `/items/search?${params}`
 }
 
 export default function Home() {
-  const [items, setItems] = useState(null)
+  // Results from the server: { items, total, categoryCounts, allCategories, ... }; pages = how many are loaded
+  const [result, setResult] = useState(null)
+  const [pages, setPages] = useState(1)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [heroItems, setHeroItems] = useState(null)
   const [error, setError] = useState('')
   const categories = useCategories()
   const t = useT()
@@ -67,16 +78,57 @@ export default function Home() {
   const setFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }))
   const clearFilters = () => setFilters((current) => ({ cat: '', q: '', min: '', max: '', type: '', sort: current.sort }))
 
+  // Typing in the search or price fields waits a moment before asking the server
+  const [query, setQuery] = useState(filters)
+  useEffect(() => {
+    const id = setTimeout(() => setQuery(filters), filters.q === query.q && filters.min === query.min && filters.max === query.max ? 0 : 300)
+    return () => clearTimeout(id)
+  }, [filters]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Loads the first `count` pages again (new filters, a live bid, the 30 s refresh)
+  const pagesRef = useRef(pages)
+  pagesRef.current = pages
+  const requestId = useRef(0)
   const load = useCallback(
+    async (count = pagesRef.current) => {
+      const id = ++requestId.current
+      try {
+        const responses = await Promise.all(Array.from({ length: count }, (_, page) => api(searchUrl(query, page))))
+        if (id !== requestId.current) return // a newer request already answered
+        setResult({ ...responses[0], items: responses.flatMap((response) => response.items) })
+        setError('')
+      } catch (err) {
+        if (id === requestId.current) setError(err.message)
+      }
+    },
+    [query],
+  )
+  const loadHero = useCallback(
     () =>
-      api('/items/active')
-        .then((data) => {
-          setItems(data)
-          setError('')
-        })
-        .catch((err) => setError(err.message)),
+      api('/items/search?size=10&sort=ending')
+        .then((data) => setHeroItems(data.items))
+        .catch(() => {}),
     [],
   )
+
+  // New filters: back to the first page
+  useEffect(() => {
+    setPages(1)
+    load(1)
+  }, [load])
+
+  async function loadMore() {
+    setLoadingMore(true)
+    try {
+      const next = await api(searchUrl(query, pages))
+      setResult((current) => ({ ...next, items: [...(current?.items ?? []), ...next.items] }))
+      setPages(pages + 1)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   // Cifrele din partea de sus (licitatii active, oferte, vanzari)
   const [stats, setStats] = useState(null)
@@ -94,32 +146,25 @@ export default function Home() {
   // Oferta noua sau licitatie inchisa: reincarcam imediat lista (preturi, licitatii active) si cifrele
   useAuctionEvents(() => {
     load()
+    loadHero()
     loadStats()
   })
 
   // Incarcare initiala + reimprospatare la 30 de secunde (pentru obiectele noi puse la vanzare)
   useEffect(() => {
-    load()
-    const id = setInterval(load, 30000)
+    loadHero()
+    const id = setInterval(() => {
+      load()
+      loadHero()
+    }, 30000)
     return () => clearInterval(id)
-  }, [load])
+  }, [load, loadHero])
 
-  const all = items ?? []
-  const term = search.trim().toLowerCase()
-
-  // Filtrele de cautare si pret (fara categorie), ca sa putem afisa cate obiecte are fiecare categorie
-  const matchesOtherFilters = (item) =>
-    (!term || item.name.toLowerCase().includes(term) || (item.description ?? '').toLowerCase().includes(term)) &&
-    (!minPrice || Number(item.currentPrice) >= Number(minPrice)) &&
-    (!maxPrice || Number(item.currentPrice) <= Number(maxPrice)) &&
-    matchesType(item, type)
-
-  const filteredWithoutCategory = all.filter(matchesOtherFilters)
-  const visible = filteredWithoutCategory
-    .filter((item) => !category || item.category === category)
-    .sort(SORTS[sort].compare)
-
-  const countFor = (code) => filteredWithoutCategory.filter((item) => item.category === code).length
+  const items = result?.items ?? null
+  const visible = items ?? []
+  const total = result?.total ?? 0
+  const countFor = (code) => result?.categoryCounts?.[code] ?? 0
+  const term = search.trim()
   const hasFilters = Boolean(category || term || minPrice || maxPrice || type)
 
   return (
@@ -142,7 +187,7 @@ export default function Home() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
-              {items ? t('{n} licitatii active chiar acum', { n: items.length }) : t('Se conecteaza la licitatii...')}
+              {stats ? t('{n} licitatii active chiar acum', { n: stats.activeItems }) : t('Se conecteaza la licitatii...')}
             </span>
             <h1 className="mt-5 text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
               {t('Liciteaza')} <span className="text-gradient">{t('in timp real')}</span>.
@@ -175,7 +220,7 @@ export default function Home() {
           </div>
 
           <div className="min-w-0 animate-fade-up [animation-delay:150ms]">
-            <Hero3D items={items} />
+            <Hero3D items={heroItems} />
           </div>
         </div>
       </section>
@@ -195,7 +240,7 @@ export default function Home() {
           {items && (
             <div className="flex items-center gap-3 text-sm">
               <span className="rounded-full bg-indigo-50 px-3 py-1 font-semibold text-indigo-700 ring-1 ring-indigo-200">
-                {visible.length} {t(visible.length === 1 ? 'rezultat' : 'rezultate')}
+                {total} {t(total === 1 ? 'rezultat' : 'rezultate')}
               </span>
               {hasFilters && (
                 <button onClick={clearFilters} className="font-semibold text-indigo-600 hover:text-indigo-500">
@@ -224,7 +269,7 @@ export default function Home() {
         <p className="mt-5 text-xs font-semibold tracking-wide text-slate-500 uppercase">{t('Categorii')}</p>
         <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
           <CategoryChip active={!category} onClick={() => setFilter('cat', '')}>
-            {t('Toate')} <span className="opacity-70">{filteredWithoutCategory.length}</span>
+            {t('Toate')} <span className="opacity-70">{result?.allCategories ?? 0}</span>
           </CategoryChip>
           {categories.map((c) => (
             <CategoryChip key={c.code} active={category === c.code} onClick={() => setFilter('cat', c.code)}>
@@ -304,9 +349,18 @@ export default function Home() {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((item, index) => (
-            <ItemCard key={item.id} item={item} index={index} />
+            <ItemCard key={item.id} item={item} index={index % PAGE_SIZE} />
           ))}
         </div>
+
+        {items && visible.length < total && (
+          <div className="mt-8 flex flex-col items-center gap-2">
+            <Button variant="secondary" loading={loadingMore} onClick={loadMore}>
+              {t('Incarca mai multe')}
+            </Button>
+            <p className="text-xs text-slate-500">{t('{shown} din {total}', { shown: visible.length, total })}</p>
+          </div>
+        )}
       </div>
     </div>
   )

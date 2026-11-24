@@ -70,6 +70,8 @@ const EN = {
   'Se termina azi': 'Ending today',
   'Incep curand': 'Starting soon',
   Sortare: 'Sort',
+  'Incarca mai multe': 'Load more',
+  '{shown} din {total}': '{shown} of {total}',
   'de la': 'from',
   'pana la': 'up to',
   'Alese dupa categoriile in care ai licitat sau pe care le urmaresti.': 'Picked from the categories you bid on or watch.',

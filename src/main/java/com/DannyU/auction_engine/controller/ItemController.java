@@ -10,6 +10,7 @@ import com.DannyU.auction_engine.entity.AuctionType;
 import com.DannyU.auction_engine.entity.Category;
 import com.DannyU.auction_engine.service.BidService;
 import com.DannyU.auction_engine.service.ImageStorageService;
+import com.DannyU.auction_engine.service.ItemSearchService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -37,6 +38,7 @@ public class ItemController {
     private final ImageStorageService imageStorageService;
     private final BidService bidService;
     private final BidRepository bidRepository;
+    private final ItemSearchService itemSearchService;
 
     // "Cumpara acum": utilizatorul logat plateste pretul fix si castiga imediat
     @PostMapping("/{id}/buy-now")
@@ -117,6 +119,28 @@ public class ItemController {
 
     // role = cine este cealalta persoana fata de utilizatorul logat
     public record Contact(String role, String username, String email) {
+    }
+
+    // Search with filters and pages, done on the server (the home page list). Public.
+    // type: buy | dutch | today | soon; sort: ending (default) | price-asc | price-desc | newest
+    @GetMapping("/search")
+    public ItemSearchService.Page search(@RequestParam(required = false) String q,
+                                         @RequestParam(required = false) String cat,
+                                         @RequestParam(required = false) BigDecimal min,
+                                         @RequestParam(required = false) BigDecimal max,
+                                         @RequestParam(required = false) String type,
+                                         @RequestParam(required = false) String sort,
+                                         @RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "12") int size) {
+        Category category = null;
+        if (cat != null && !cat.isBlank()) {
+            try {
+                category = Category.valueOf(cat);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Categorie necunoscuta: " + cat);
+            }
+        }
+        return itemSearchService.search(new ItemSearchService.Filters(q, category, min, max, type, sort), page, size);
     }
 
     // Doar licitatiile inca deschise
