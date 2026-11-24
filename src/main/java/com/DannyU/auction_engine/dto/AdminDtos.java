@@ -13,8 +13,12 @@ public final class AdminDtos {
     public record Stats(long users, long items, long activeItems, long bids, long soldItems, BigDecimal soldValue) {
     }
 
+    public record ReportRow(Integer id, Integer itemId, String itemName, String reporter, String reason, String details,
+                            LocalDateTime createdAt) {
+    }
+
     public record UserRow(Integer id, String username, String email, LocalDateTime createdAt,
-                          long itemsCount, long bidsCount, boolean admin) {
+                          long itemsCount, long bidsCount, boolean admin, boolean blocked) {
     }
 
     public record ItemRow(Integer id, String name, String imageUrl, String seller, BigDecimal startPrice,

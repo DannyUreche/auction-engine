@@ -25,6 +25,7 @@ public class AdminService {
     private final ImageStorageService imageStorageService;
     private final AdminAccess adminAccess;
     private final ApplicationEventPublisher eventPublisher;
+    private final com.DannyU.auction_engine.repository.ReportRepository reportRepository;
 
     public AdminDtos.Stats stats() {
         return new AdminDtos.Stats(
@@ -72,7 +73,8 @@ public class AdminService {
                         user.getCreatedAt(),
                         itemRepository.countBySellerId(user.getId()),
                         bidRepository.countByBidderId(user.getId()),
-                        adminAccess.isAdmin(user.getUsername())))
+                        adminAccess.isAdmin(user.getUsername()),
+                        user.isBlocked()))
                 .toList();
     }
 
@@ -101,6 +103,33 @@ public class AdminService {
         // Pozele se sterg abia dupa obiect (obiectul le referea printr-o cheie straina)
         images.forEach(imageStorageService::delete);
         eventPublisher.publishEvent(AuctionEvent.deleted(itemId));
+    }
+
+    // ---------- Reports and blocked accounts ----------
+
+    public List<AdminDtos.ReportRow> openReports() {
+        return reportRepository.findByStatusOrderByCreatedAtAsc(com.DannyU.auction_engine.entity.Report.Status.OPEN).stream()
+                .map(r -> new AdminDtos.ReportRow(r.getId(), r.getItem().getId(), r.getItem().getName(), r.getReporter().getUsername(),
+                        r.getReason().name(), r.getDetails(), r.getCreatedAt()))
+                .toList();
+    }
+
+    @Transactional
+    public void dismissReport(Integer reportId) {
+        com.DannyU.auction_engine.entity.Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new IllegalArgumentException("Raportarea nu a fost gasita!"));
+        report.setStatus(com.DannyU.auction_engine.entity.Report.Status.DISMISSED);
+        report.setResolvedAt(java.time.LocalDateTime.now());
+    }
+
+    @Transactional
+    public void setBlocked(Integer userId, boolean blocked) {
+        com.DannyU.auction_engine.entity.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilizatorul nu a fost gasit!"));
+        if (blocked && adminAccess.isAdmin(user.getUsername())) {
+            throw new IllegalArgumentException("Un administrator nu poate fi blocat!");
+        }
+        user.setBlocked(blocked);
     }
 
     private Item findItem(Integer itemId) {

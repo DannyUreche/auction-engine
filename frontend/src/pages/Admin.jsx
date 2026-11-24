@@ -10,6 +10,7 @@ import { useAuctionEvents } from '../events.jsx'
 const TABS = [
   { key: 'items', label: 'Obiecte' },
   { key: 'users', label: 'Utilizatori' },
+  { key: 'reports', label: 'Raportari' },
 ]
 
 // Pagina de administrare (doar pentru conturile din ADMIN_USERNAMES)
@@ -21,12 +22,13 @@ export default function Admin() {
 
   const load = useCallback(async () => {
     try {
-      const [stats, items, users] = await Promise.all([
+      const [stats, items, users, reports] = await Promise.all([
         api('/admin/stats'),
         api('/admin/items'),
         api('/admin/users'),
+        api('/admin/reports'),
       ])
-      setData({ stats, items, users })
+      setData({ stats, items, users, reports })
       setError('')
     } catch (err) {
       setError(err.message)
@@ -60,6 +62,28 @@ export default function Admin() {
     try {
       await api(`/admin/items/${item.id}`, { method: 'DELETE' })
       setMessage(`Obiectul "${item.name}" a fost sters.`)
+      load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  async function dismissReport(report) {
+    try {
+      await api(`/admin/reports/${report.id}/dismiss`, { method: 'POST' })
+      setMessage(`Raportarea pentru "${report.itemName}" a fost respinsa.`)
+      load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  async function toggleBlock(user) {
+    const action = user.blocked ? 'unblock' : 'block'
+    if (!user.blocked && !window.confirm(`Blochezi contul "${user.username}"? Nu va mai putea intra in cont.`)) return
+    try {
+      await api(`/admin/users/${user.id}/${action}`, { method: 'POST' })
+      setMessage(user.blocked ? `Contul "${user.username}" a fost deblocat.` : `Contul "${user.username}" a fost blocat.`)
       load()
     } catch (err) {
       setError(err.message)
@@ -111,10 +135,14 @@ export default function Admin() {
           </div>
 
           <Card className="mt-6 overflow-x-auto p-0">
-            {tab === 'items' ? (
-              <ItemsTable items={data.items} onClose={closeNow} onDelete={deleteItem} />
-            ) : (
-              <UsersTable users={data.users} />
+            {tab === 'items' && <ItemsTable items={data.items} onClose={closeNow} onDelete={deleteItem} />}
+            {tab === 'users' && <UsersTable users={data.users} onToggleBlock={toggleBlock} />}
+            {tab === 'reports' && (
+              <ReportsTable
+                reports={data.reports}
+                onDismiss={dismissReport}
+                onDeleteItem={(report) => deleteItem({ id: report.itemId, name: report.itemName, bidsCount: 'toate' })}
+              />
             )}
           </Card>
         </>
@@ -199,7 +227,7 @@ function ItemsTable({ items, onClose, onDelete }) {
   )
 }
 
-function UsersTable({ users }) {
+function UsersTable({ users, onToggleBlock }) {
   return (
     <table className="min-w-full divide-y divide-slate-100">
       <thead className="bg-slate-50">
@@ -210,6 +238,7 @@ function UsersTable({ users }) {
           <th className={th}>Inscris</th>
           <th className={th}>Obiecte</th>
           <th className={th}>Oferte</th>
+          <th className={th} />
         </tr>
       </thead>
       <tbody className="divide-y divide-slate-100">
@@ -217,16 +246,72 @@ function UsersTable({ users }) {
           <tr key={user.id} className="hover:bg-slate-50">
             <td className={`${td} text-slate-400`}>{user.id}</td>
             <td className={`${td} font-medium text-slate-900`}>
-              {user.username} {user.admin && <Badge tone="indigo">Admin</Badge>}
+              {user.username} {user.admin && <Badge tone="indigo">Admin</Badge>}{' '}
+              {user.blocked && <Badge tone="red">Blocat</Badge>}
             </td>
             <td className={td}>{user.email}</td>
             <td className={`${td} text-slate-500`}>{formatDate(user.createdAt)}</td>
             <td className={td}>{user.itemsCount}</td>
             <td className={td}>{user.bidsCount}</td>
+            <td className={`${td} text-right`}>
+              {!user.admin && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock(user)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ${
+                    user.blocked ? 'text-emerald-700 ring-emerald-200 hover:bg-emerald-50' : 'text-red-600 ring-red-200 hover:bg-red-50'
+                  }`}
+                >
+                  {user.blocked ? 'Deblocheaza' : 'Blocheaza'}
+                </button>
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
     </table>
+  )
+}
+
+const REASONS = {
+  FRAUD: 'Posibila inselatorie',
+  PROHIBITED: 'Obiect interzis',
+  WRONG_CATEGORY: 'Categorie gresita',
+  OFFENSIVE: 'Continut ofensator',
+  OTHER: 'Altceva',
+}
+
+// Open reports: look at the item, then dismiss the report or delete the item
+function ReportsTable({ reports, onDismiss, onDeleteItem }) {
+  if (reports.length === 0) return <p className="px-6 py-10 text-center text-sm text-slate-500">Nicio raportare deschisa.</p>
+  return (
+    <ul className="divide-y divide-slate-100">
+      {reports.map((report) => (
+        <li key={report.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 font-medium text-slate-900">
+              <Icon name="flag" size={18} />
+              <Link to={`/items/${report.itemId}`} className="truncate hover:underline">
+                {report.itemName}
+              </Link>
+              <Badge tone="red">{REASONS[report.reason] ?? report.reason}</Badge>
+            </p>
+            <p className="mt-0.5 text-sm text-slate-500">
+              de la {report.reporter} · {formatDate(report.createdAt)}
+              {report.details && <> · „{report.details}”</>}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => onDismiss(report)} className="rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">
+              Respinge
+            </button>
+            <button type="button" onClick={() => onDeleteItem(report)} className="rounded-lg px-2.5 py-1 text-xs font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50">
+              Sterge obiectul
+            </button>
+          </div>
+        </li>
+      ))}
+    </ul>
   )
 }
 

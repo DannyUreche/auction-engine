@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
                 // 4. Daca token-ul este valid, il autentificam in Spring Security
-                if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
+                if (userDetails.isEnabled() && jwtService.isTokenValid(jwt, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,

@@ -29,6 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 : List.of();
 
         // Returnam un obiect UserDetails pe care il intelege Spring Security
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), roles);
+        // A blocked account is "disabled": the JWT filter ignores its tokens
+        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), !user.isBlocked(), true, true, true, roles);
     }
 }

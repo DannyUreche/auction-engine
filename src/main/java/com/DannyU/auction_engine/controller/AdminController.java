@@ -47,6 +47,30 @@ public class AdminController {
         return adminService.charts();
     }
 
+    // Reports of suspicious items (deleting the item removes its reports too)
+    @GetMapping("/reports")
+    public List<AdminDtos.ReportRow> reports() {
+        return adminService.openReports();
+    }
+
+    @PostMapping("/reports/{id}/dismiss")
+    public ResponseEntity<Void> dismissReport(@PathVariable Integer id) {
+        adminService.dismissReport(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/users/{id}/block")
+    public ResponseEntity<Void> block(@PathVariable Integer id) {
+        adminService.setBlocked(id, true);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/users/{id}/unblock")
+    public ResponseEntity<Void> unblock(@PathVariable Integer id) {
+        adminService.setBlocked(id, false);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/users")
     public List<AdminDtos.UserRow> users() {
         return adminService.users();

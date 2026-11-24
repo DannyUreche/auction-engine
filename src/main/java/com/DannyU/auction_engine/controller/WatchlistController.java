@@ -15,6 +15,7 @@ import java.util.List;
 public class WatchlistController {
 
     private final WatchlistService watchlistService;
+    private final com.DannyU.auction_engine.service.RecommendationService recommendationService;
 
     public record WatchStatus(Integer itemId, boolean watching) {
     }
@@ -23,6 +24,12 @@ public class WatchlistController {
     @GetMapping("/watched")
     public List<Item> getWatchedItems(Authentication authentication) {
         return watchlistService.watchedItems(authentication.getName());
+    }
+
+    // Recommendations for the logged-in user (home page)
+    @GetMapping("/recommended")
+    public List<Item> recommended(Authentication authentication) {
+        return recommendationService.recommendedFor(authentication.getName());
     }
 
     @PostMapping("/{id}/watch")
