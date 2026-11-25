@@ -26,6 +26,8 @@ The interface is in Romanian, with an English toggle.
 - Scheduled auctions that open at a chosen time (watchers are notified when they start).
 - Proxy bidding: set a maximum and the server bids for you, only as much as needed.
 - Virtual wallet: bids are limited to the money you have available; it is settled when the auction closes.
+- Live shows: a seller puts several items on stage one after another, each with a short slot (with a 15 s anti-sniping window that shifts the next lots).
+- Safe under load: every price change locks the item row; a load test with 200 simultaneous bidders (`load-test/`) checks that no bid is lost or doubled.
 
 **Live and social**
 - Server-Sent Events: prices, the 3D showcase, charts and the bid ticker update without reloading.
@@ -35,12 +37,15 @@ The interface is in Romanian, with an English toggle.
 - Saved search alerts, seller statistics (views, bids, watchers), county and delivery filters.
 - Interactive map of Romania with auctions per county, the auction of the week, a monthly leaderboard with challenges.
 - Private offers with counter offers, following sellers, side-by-side comparison, price estimates from similar sales.
-- Public questions and answers on each item, private chat between seller and winner after the sale.
+- Collections: personal lists of auctions, public ones shareable with a link and shown on the profile.
+- "Piata in cifre": public market statistics (median price per category, weekly sales, most contested auctions, a heatmap of bidding hours).
+- Price history and selling tips in the sell form, drawn from the listings that sold.
+- Public questions and answers on each item, private chat between seller and winner after the sale with a typing indicator and read receipts.
 - Sharing with link previews (Open Graph tags rendered by the server) and a QR code.
 
 **Accounts and safety**
 - JWT login, optional two-factor authentication (authenticator app), sign-in with Google, email verification, password reset, rate limiting on the auth endpoints.
-- AI listing assistant: Claude suggests the name, description, category and starting price from a photo.
+- AI listing assistant: Claude suggests the name, description, category and starting price from a photo; AI search turns a request in plain words into the search filters.
 - Built-in error monitoring: unexpected server errors and JavaScript errors from browsers are grouped in the admin panel.
 - Account data export and account deletion (GDPR), and a keep-alive health check for the free hosting.
 - Reporting items, AI moderation of new listings, an admin panel with moderation, blocking accounts, an audit log, charts and demo data.
@@ -64,9 +69,9 @@ flowchart LR
     Services -- "async" --> Push["Web Push"]
 ```
 
-- **Backend:** Java 21, Spring Boot 4 (Web MVC, Security, Data JPA, Mail), PostgreSQL, Flyway, Lombok, springdoc OpenAPI.
+- **Backend:** Java 21, Spring Boot 4 (Web MVC, Security, Data JPA, Mail), PostgreSQL, Flyway, Lombok, springdoc OpenAPI (every endpoint documented in Swagger UI at `/swagger-ui.html`).
 - **Frontend:** React 19, React Router, Vite, Tailwind CSS v4 (plain JavaScript).
-- **Tests:** about 120 Spring Boot integration tests against a real PostgreSQL, Vitest unit tests for the frontend logic and Playwright browser tests; CI shows the line coverage (JaCoCo, Vitest) in each run summary.
+- **Tests:** about 140 Spring Boot integration tests against a real PostgreSQL, Vitest unit tests for the frontend logic and Playwright browser tests; CI shows the line coverage (JaCoCo, Vitest) in each run summary.
 - **CI/CD:** GitHub Actions runs both test suites on every push; Render builds the Docker image and deploys `main`; the database is on Neon.
 
 ## Running locally
