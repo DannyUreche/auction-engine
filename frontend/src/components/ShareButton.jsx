@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { Icon } from './icons.jsx'
@@ -34,7 +35,7 @@ export default function ShareButton({ item }) {
       <button type="button" onClick={showQr} className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-indigo-600">
         <Icon name="qr" size={18} /> Cod QR
       </button>
-      {qr && <QrDialog image={qr} name={item.name} onClose={() => setQr(null)} />}
+      {qr && createPortal(<QrDialog image={qr} name={item.name} onClose={() => setQr(null)} />, document.body)}
     </>
   )
 }
@@ -47,7 +48,7 @@ function QrDialog({ image, name, onClose }) {
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-50 grid animate-fade-in place-items-center bg-slate-950/60 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 grid animate-fade-in place-items-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-xs animate-fade-up rounded-2xl bg-white p-6 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <p className="font-semibold text-slate-900">Scaneaza ca sa deschizi obiectul</p>
         <p className="mt-0.5 truncate text-sm text-slate-500">{name}</p>

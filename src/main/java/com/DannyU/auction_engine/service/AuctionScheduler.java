@@ -26,6 +26,7 @@ public class AuctionScheduler {
     private final WalletService walletService;
     private final com.DannyU.auction_engine.repository.WatchedItemRepository watchedItemRepository;
     private final AlertService alertService;
+    private final com.DannyU.auction_engine.repository.OfferRepository offerRepository;
 
     // Se executa automat o data la 60.000 milisecunde (1 minut)
     // Every 15 s: open the scheduled auctions whose time has come and lower the Dutch prices
@@ -70,6 +71,7 @@ public class AuctionScheduler {
     // Inchide o licitatie si stabileste castigatorul. Folosita si de administrator ("Inchide acum").
     @Transactional
     public void closeAuction(Item item) {
+        offerRepository.expireOpen(item.getId());
         // 2. Cautam oferta cea mai mare
         Optional<Bid> winningBid = bidRepository.findTopByItemIdOrderByAmountDesc(item.getId());
 

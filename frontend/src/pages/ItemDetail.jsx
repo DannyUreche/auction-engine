@@ -24,6 +24,7 @@ import { ItemReviews } from '../components/Reviews.jsx'
 import ChatBox from '../components/ChatBox.jsx'
 import Questions from '../components/Questions.jsx'
 import LiveRoom from '../components/LiveRoom.jsx'
+import { BuyerOffer, SellerOffers } from '../components/Offers.jsx'
 import Badges from '../components/Badges.jsx'
 import { deliveryLabel } from '../components/LocationFields.jsx'
 import ReportButton from '../components/ReportButton.jsx'
@@ -282,6 +283,7 @@ export default function ItemDetail() {
             </div>
           </Card>
 
+          {isSeller && <SellerOffers item={item} onSold={load} />}
           <LiveRoom item={item} user={user} />
           <Questions item={item} user={user} />
 
@@ -331,6 +333,7 @@ export default function ItemDetail() {
 
             <div className="mt-6 border-t border-slate-100 pt-6">
               <BidPanel item={item} user={user} isSeller={isSeller} leadingBid={leadingBid} onBid={load} />
+              {user && !isSeller && item.active && item.auctionType !== 'DUTCH' && !leadingBid && <BuyerOffer item={item} onSold={load} />}
             </div>
           </Card>
         </div>

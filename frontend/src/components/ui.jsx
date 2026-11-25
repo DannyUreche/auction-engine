@@ -38,17 +38,18 @@ const inputClass =
   'block w-full rounded-lg border-0 bg-white px-3.5 py-2.5 text-slate-900 shadow-sm ring-1 ring-slate-300 ring-inset ' +
   'placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-600 focus:outline-none sm:text-sm'
 
-export function Input(props) {
-  return <input className={inputClass} {...props} />
+// Extra classes are added to the base style (not replacing it)
+export function Input({ className = '', ...props }) {
+  return <input className={`${inputClass} ${className}`} {...props} />
 }
 
-export function Textarea(props) {
-  return <textarea className={inputClass} rows={4} {...props} />
+export function Textarea({ className = '', ...props }) {
+  return <textarea className={`${inputClass} ${className}`} rows={4} {...props} />
 }
 
-export function Select({ children, ...props }) {
+export function Select({ children, className = '', ...props }) {
   return (
-    <select className={inputClass} {...props}>
+    <select className={`${inputClass} ${className}`} {...props}>
       {children}
     </select>
   )

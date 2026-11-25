@@ -278,3 +278,10 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
   from { transform: scaleY(0); }
   to { transform: scaleY(1); }
 }
+
+/* A counter offer waiting for the buyer gently glows (components/Offers.jsx) */
+.offer-glow { animation: offer-glow 2.4s ease-in-out infinite; }
+@keyframes offer-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(139 92 246 / 0); }
+  50% { box-shadow: 0 0 0 6px rgb(139 92 246 / 0.15); }
+}

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useState } from 'react'
 import { api } from '../api.js'
 import { Icon } from './icons.jsx'
@@ -35,8 +36,10 @@ export default function ReportButton({ item }) {
       <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-red-600">
         <Icon name="flag" size={18} /> Raporteaza
       </button>
-      {open && (
-        <div className="fixed inset-0 z-50 grid animate-fade-in place-items-center bg-slate-950/60 p-4 backdrop-blur-sm" onClick={() => setOpen(false)}>
+      {/* Portal: the card around the button has backdrop-blur, which would trap a fixed overlay */}
+      {open &&
+        createPortal(
+        <div className="fixed inset-0 z-50 grid animate-fade-in place-items-center bg-black/60 p-4 backdrop-blur-sm" onClick={() => setOpen(false)}>
           <form onSubmit={send} className="w-full max-w-sm animate-fade-up space-y-3 rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <p className="font-semibold text-slate-900">Raporteaza obiectul</p>
             {result ? (
@@ -67,7 +70,9 @@ export default function ReportButton({ item }) {
             )}
           </form>
         </div>
-      )}
+,
+          document.body,
+        )}
     </>
   )
 }

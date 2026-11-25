@@ -32,6 +32,7 @@ public class BidService {
     private final AutoBidRepository autoBidRepository;
     private final NotificationService notificationService;
     private final WalletService walletService;
+    private final com.DannyU.auction_engine.repository.OfferRepository offerRepository;
 
     @Transactional
     public Bid placeBid(Integer itemId, String bidderUsername, BigDecimal bidAmount) {
@@ -196,6 +197,15 @@ public class BidService {
         return autoBid.getMaxAmount().min(walletService.availableFor(autoBid.getUser(), item));
     }
 
+    // A negotiated sale (accepted private offer): a bid at the agreed price, then the auction closes
+    @Transactional
+    public Bid sellAtAgreedPrice(Item item, User buyer, BigDecimal price) {
+        walletService.checkFunds(buyer, item, price);
+        Bid bid = saveBid(item, buyer, price, false);
+        auctionScheduler.closeAuction(item);
+        return bid;
+    }
+
     private Bid saveBid(Item item, User bidder, BigDecimal amount, boolean automatic) {
         // Anti-"sniping": o oferta in ultimele minute prelungeste licitatia
         LocalDateTime now = LocalDateTime.now();
@@ -209,6 +219,8 @@ public class BidService {
 
         item.setCurrentPrice(amount);
         itemRepository.save(item);
+        // Once bidding starts, private offers are no longer valid
+        offerRepository.expireOpen(item.getId());
 
         Bid bid = new Bid();
         bid.setItem(item);
