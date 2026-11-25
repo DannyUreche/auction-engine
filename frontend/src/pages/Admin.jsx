@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import AdminCharts from '../components/AdminCharts.jsx'
+import ErrorsPanel from '../components/ErrorsPanel.jsx'
 import { Icon } from '../components/icons.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, Loading } from '../components/ui.jsx'
@@ -11,6 +12,7 @@ const TABS = [
   { key: 'items', label: 'Obiecte' },
   { key: 'users', label: 'Utilizatori' },
   { key: 'reports', label: 'Raportari' },
+  { key: 'errors', label: 'Erori' },
 ]
 
 // Pagina de administrare (doar pentru conturile din ADMIN_USERNAMES)
@@ -130,7 +132,7 @@ export default function Admin() {
                 }`}
               >
                 {t.label}
-                <span className="ml-1.5 text-slate-400">{data[t.key].length}</span>
+                {data[t.key] && <span className="ml-1.5 text-slate-400">{data[t.key].length}</span>}
               </button>
             ))}
           </div>
@@ -138,6 +140,7 @@ export default function Admin() {
           <Card className="mt-6 overflow-x-auto p-0">
             {tab === 'items' && <ItemsTable items={data.items} onClose={closeNow} onDelete={deleteItem} />}
             {tab === 'users' && <UsersTable users={data.users} onToggleBlock={toggleBlock} />}
+            {tab === 'errors' && <ErrorsPanel />}
             {tab === 'reports' && (
               <ReportsTable
                 reports={data.reports}

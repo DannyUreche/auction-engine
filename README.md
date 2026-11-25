@@ -37,6 +37,7 @@ The interface is in Romanian, with an English toggle.
 **Accounts and safety**
 - JWT login, sign-in with Google, email verification, password reset, rate limiting on the auth endpoints.
 - AI listing assistant: Claude suggests the name, description, category and starting price from a photo.
+- Built-in error monitoring: unexpected server errors and JavaScript errors from browsers are grouped in the admin panel.
 - Reporting items, an admin panel with moderation (dismiss / delete), blocking accounts, charts and demo data.
 
 **Interface**

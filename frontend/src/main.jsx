@@ -7,11 +7,15 @@ import App from './App.jsx'
 import { WatchlistProvider } from './watchlist.jsx'
 import './index.css'
 import { registerServiceWorker } from './pwa.js'
+import { installErrorReporting } from './errorReporting.js'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 registerServiceWorker()
+installErrorReporting()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <ErrorBoundary>
     <LanguageProvider>
       <BrowserRouter>
         <AuthProvider>
@@ -21,5 +25,6 @@ createRoot(document.getElementById('root')).render(
         </AuthProvider>
       </BrowserRouter>
     </LanguageProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )

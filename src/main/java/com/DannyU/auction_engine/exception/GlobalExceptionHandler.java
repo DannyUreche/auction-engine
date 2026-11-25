@@ -1,6 +1,15 @@
 package com.DannyU.auction_engine.exception;
 
+import com.DannyU.auction_engine.service.ErrorMonitorService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,8 +23,34 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final ErrorMonitorService errorMonitorService;
+
+    // Anything unexpected: recorded by the error monitor and answered with a generic 500 in the usual format.
+    // Spring exceptions that already carry a status (404, 405, missing parameter...) keep it and are not recorded;
+    // a client that went away (closed SSE stream, broken pipe) gets no answer at all.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleUnexpected(Exception ex, HttpServletRequest request) throws Exception {
+        if (ex instanceof ErrorResponse errorResponse) {
+            String detail = errorResponse.getBody().getDetail();
+            return ResponseEntity.status(errorResponse.getStatusCode())
+                    .body(Map.of("eroare", detail != null ? detail : "Cerere invalida!"));
+        }
+        if (ex instanceof AsyncRequestNotUsableException || ex instanceof java.io.IOException) {
+            throw ex;
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication == null || authentication instanceof AnonymousAuthenticationToken ? null : authentication.getName();
+        errorMonitorService.recordServerError(ex, request.getMethod() + " " + request.getRequestURI(), username,
+                request.getHeader("User-Agent"));
+        log.error("Unexpected error on {} {}", request.getMethod(), request.getRequestURI(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("eroare", "A aparut o eroare neasteptata. Am inregistrat-o si o vom rezolva."));
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
