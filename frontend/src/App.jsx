@@ -16,6 +16,7 @@ import ResetPassword from './pages/ResetPassword.jsx'
 import VerifyEmail from './pages/VerifyEmail.jsx'
 import { Privacy, Terms } from './pages/Legal.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
+import Compare from './pages/Compare.jsx'
 
 // Paginile pentru vanzare si cont cer autentificare; licitatiile se pot vedea si fara cont
 // adminOnly: pagina e doar pentru administratori (ceilalti sunt trimisi pe pagina principala)
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/confidentialitate" element={<Privacy />} />
         <Route path="/termeni" element={<Terms />} />
         <Route path="/clasament" element={<Leaderboard />} />
+        <Route path="/compara" element={<Compare />} />
         {/* Doar pentru utilizatori logati */}
         <Route
           path="/sell"

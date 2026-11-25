@@ -390,6 +390,14 @@ Object.assign(ICONS, {
       { t: 'line', d: 'M3 12h18M12 3c2.5 2.5 3.8 5.6 3.8 9s-1.3 6.5-3.8 9M12 3c-2.5 2.5-3.8 5.6-3.8 9s1.3 6.5 3.8 9' },
     ],
   },
+  columns: {
+    hue: 'indigo',
+    parts: [
+      { t: 'base', rect: [2.5, 4, 8.5, 16, 2] },
+      { t: 'base', hue: 'violet', rect: [13, 4, 8.5, 16, 2] },
+      { t: 'line', d: 'M5 8.5h3.5M5 12h3.5M15.5 8.5h3.5M15.5 12h3.5' },
+    ],
+  },
   pin: {
     hue: 'rose',
     parts: [

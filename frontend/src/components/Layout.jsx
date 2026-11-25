@@ -5,6 +5,7 @@ import { formatPrice } from '../api.js'
 import { useWallet } from '../wallet.js'
 import { Icon } from './icons.jsx'
 import AuctionAmbience from './AuctionAmbience.jsx'
+import CompareTray from './CompareTray.jsx'
 import Backdrop from './Backdrop.jsx'
 import InstallButton from './InstallButton.jsx'
 import NotificationBell from './NotificationBell.jsx'
@@ -62,6 +63,7 @@ export default function Layout() {
     <div className="flex min-h-screen flex-col">
       <Backdrop />
       <AuctionAmbience />
+      <CompareTray />
 
       <header className="sticky top-0 z-20 border-b border-white/60 bg-white/60 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">

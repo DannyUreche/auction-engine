@@ -5,6 +5,7 @@ import { WatchButton } from '../watchlist.jsx'
 import { CategoryIcon, Icon } from './icons.jsx'
 import Countdown from './Countdown.jsx'
 import ItemImage from './ItemImage.jsx'
+import { CompareToggle } from './CompareTray.jsx'
 import { useT } from '../i18n.jsx'
 
 // Cardul unui obiect din liste (pagina principala, contul meu, profil).
@@ -51,8 +52,9 @@ export default function ItemCard({ item, extra, index = 0 }) {
       <div className="relative overflow-hidden">
         <ItemImage item={item} className="aspect-[4/3] w-full transition duration-500 group-hover:scale-105" />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent" />
-        <div className="absolute top-3 left-3 z-20">
+        <div className="absolute top-3 left-3 z-20 flex gap-2">
           <WatchButton item={item} />
+          <CompareToggle item={item} />
         </div>
         <div className="absolute top-3 right-3 rounded-full shadow-sm">
           <Countdown endTime={item.endTime} active={item.active} startTime={item.startTime} />
