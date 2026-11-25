@@ -34,4 +34,17 @@ public class ChatController {
     public Message send(@PathVariable Integer id, @Valid @RequestBody MessageRequest request, Authentication authentication) {
         return chatService.send(id, authentication.getName(), request.text());
     }
+
+    // The chat is open on screen: the other participant's messages count as read
+    @PostMapping("/read")
+    public java.util.Map<String, Integer> read(@PathVariable Integer id, Authentication authentication) {
+        return java.util.Map.of("read", chatService.markRead(id, authentication.getName()));
+    }
+
+    // Typing indicator for the other participant (nothing stored)
+    @PostMapping("/typing")
+    public org.springframework.http.ResponseEntity<Void> typing(@PathVariable Integer id, Authentication authentication) {
+        chatService.typing(id, authentication.getName());
+        return org.springframework.http.ResponseEntity.noContent().build();
+    }
 }

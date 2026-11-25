@@ -46,4 +46,14 @@ public record AuctionEvent(String type, Integer itemId, BigDecimal amount, Strin
     public static AuctionEvent message(Integer itemId, String recipientUsername) {
         return new AuctionEvent("message", itemId, null, recipientUsername);
     }
+
+    // The other chat participant is typing (sent to the recipient; nothing stored)
+    public static AuctionEvent typing(Integer itemId, String recipientUsername) {
+        return new AuctionEvent("typing", itemId, null, recipientUsername);
+    }
+
+    // The recipient read the messages of username (who then shows the read receipts)
+    public static AuctionEvent read(Integer itemId, String senderUsername) {
+        return new AuctionEvent("read", itemId, null, senderUsername);
+    }
 }

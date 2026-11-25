@@ -330,3 +330,10 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
   0%, 100% { box-shadow: 0 0 0 0 rgb(168 85 247 / 0.45); }
   50% { box-shadow: 0 0 0 6px rgb(168 85 247 / 0); }
 }
+
+/* Chat: the three bouncing dots of "... scrie" */
+.typing-dot { animation: typing-dot 1.1s ease-in-out infinite; }
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}

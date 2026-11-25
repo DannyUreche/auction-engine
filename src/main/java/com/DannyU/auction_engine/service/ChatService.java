@@ -22,6 +22,7 @@ public class ChatService {
     private final ItemRepository itemRepository;
     private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final java.util.Map<String, Long> lastTyping = new java.util.concurrent.ConcurrentHashMap<>();
 
     public List<Message> messages(Integer itemId, String username) {
         checkParticipant(itemId, username);
@@ -47,6 +48,32 @@ public class ChatService {
         notificationService.notify(recipient, Notification.Type.MESSAGE, item,
                 "Mesaj nou de la " + sender.getUsername() + " despre \"" + item.getName() + "\": " + preview);
         return saved;
+    }
+
+    // Marks the other participant's messages as read and tells them (only when something changed)
+    @Transactional
+    public int markRead(Integer itemId, String username) {
+        Item item = checkParticipant(itemId, username);
+        int changed = messageRepository.markRead(itemId, username, java.time.LocalDateTime.now());
+        if (changed > 0) {
+            eventPublisher.publishEvent(AuctionEvent.read(itemId, otherParticipant(item, username)));
+        }
+        return changed;
+    }
+
+    // "... scrie": forwarded live to the other participant, at most once every 2 seconds per user and chat
+    public void typing(Integer itemId, String username) {
+        Item item = checkParticipant(itemId, username);
+        long now = System.currentTimeMillis();
+        Long last = lastTyping.put(itemId + ":" + username, now);
+        if (last != null && now - last < 2000) {
+            return;
+        }
+        eventPublisher.publishEvent(AuctionEvent.typing(itemId, otherParticipant(item, username)));
+    }
+
+    private static String otherParticipant(Item item, String username) {
+        return item.getSeller().getUsername().equals(username) ? item.getWinner().getUsername() : item.getSeller().getUsername();
     }
 
     private Item checkParticipant(Integer itemId, String username) {

@@ -32,6 +32,10 @@ public class Message {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // When the recipient opened the chat after this message arrived (null = unread)
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
+
     // In JSON trimitem doar numele expeditorului
     public String getSenderUsername() {
         return sender == null ? null : sender.getUsername();
