@@ -26,6 +26,30 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // The API access rules, also used by OpenApiConfig to mark the public operations in Swagger
+    static final String ADMIN = "/api/admin/**";
+    static final String[] AUTHENTICATED_FIRST = {"/api/collections/mine", "/api/collections/containing/*", "/api/shows/eligible-items",
+            "/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/items/*/auto-bid",
+            "/api/items/*/messages", "/api/items/recommended", "/api/bids/my"};
+    static final String PUBLIC_ANY = "/api/auth/**";
+    static final String[] PUBLIC_GET = {"/api/images/**", "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats",
+            "/api/market", "/api/health", "/api/users/*/profile", "/api/users/*/badges", "/api/leaderboard", "/api/shows",
+            "/api/shows/*", "/api/collections/*", "/api/users/*/collections", "/api/push/public-key", "/api/ai/config", "/api/events"};
+    static final String[] PUBLIC_POST = {"/api/client-errors", "/api/items/*/presence", "/api/items/*/presence/leave"};
+
+    // Same order as the filter chain below: can this API route be called without a token?
+    static boolean isPublic(String method, String path) {
+        org.springframework.util.AntPathMatcher matcher = new org.springframework.util.AntPathMatcher();
+        java.util.function.Predicate<String[]> any = patterns -> java.util.Arrays.stream(patterns).anyMatch(p -> matcher.match(p, path));
+        if (matcher.match(ADMIN, path) || any.test(AUTHENTICATED_FIRST)) {
+            return false;
+        }
+        if (matcher.match(PUBLIC_ANY, path)) {
+            return true;
+        }
+        return ("GET".equalsIgnoreCase(method) && any.test(PUBLIC_GET)) || ("POST".equalsIgnoreCase(method) && any.test(PUBLIC_POST));
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -36,25 +60,19 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/api/auth/**",
+                                PUBLIC_ANY,
                                 // Pagina interna de erori (altfel un 404/405 apare ca 401)
                                 "/error"
                         ).permitAll()
-                        // Imaginile obiectelor sunt publice (tag-ul <img> din browser nu trimite token-ul)
-                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
                         // Pagina de administrare: doar utilizatorii cu rolul ADMIN (vezi AdminAccess)
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(ADMIN).hasRole("ADMIN")
                         // Rutele "ale mele" cer autentificare - trebuie declarate INAINTEA celor publice de mai jos,
                         // altfel /api/items/{id} s-ar potrivi si pe /api/items/my
-                        .requestMatchers("/api/collections/mine", "/api/collections/containing/*", "/api/shows/eligible-items", "/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/items/*/auto-bid", "/api/items/*/messages", "/api/items/recommended", "/api/bids/my").authenticated()
-                        // Oricine (si fara cont) poate vedea licitatiile si istoricul ofertelor
-                        .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats", "/api/market", "/api/health", "/api/users/*/profile", "/api/users/*/badges", "/api/leaderboard", "/api/shows", "/api/shows/*", "/api/collections/*", "/api/users/*/collections", "/api/push/public-key", "/api/ai/config").permitAll()
-                        // Browsers report JavaScript errors without needing an account (rate-limited per IP)
-                        .requestMatchers(HttpMethod.POST, "/api/client-errors").permitAll()
-                        // Live room presence heartbeat: visitors without an account count as viewers too
-                        .requestMatchers(HttpMethod.POST, "/api/items/*/presence", "/api/items/*/presence/leave").permitAll()
-                        // Evenimentele in timp real (EventSource nu poate trimite token-ul)
-                        .requestMatchers(HttpMethod.GET, "/api/events").permitAll()
+                        .requestMatchers(AUTHENTICATED_FIRST).authenticated()
+                        // Oricine (si fara cont) poate vedea licitatiile, istoricul ofertelor, pozele, evenimentele live...
+                        .requestMatchers(HttpMethod.GET, PUBLIC_GET).permitAll()
+                        // ...trimite erori JavaScript (limitat per IP) si semnalul de prezenta din camera live
+                        .requestMatchers(HttpMethod.POST, PUBLIC_POST).permitAll()
                         // Orice alta ruta din API necesita un token JWT valid
                         .requestMatchers("/api/**").authenticated()
                         // Restul sunt fisierele interfetei React (index.html, /assets/...) si paginile ei - publice

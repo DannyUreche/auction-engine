@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Utilizatori", description = "Contul curent, profiluri publice, insigne, urmarirea vanzatorilor, export si stergere cont.")
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -41,12 +42,14 @@ public class UserController {
     }
 
     // Statistics for the logged-in user as a seller (views, bids, watchers per item; bids per day)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Statisticile mele de vanzator")
     @GetMapping("/me/seller-stats")
     public SellerStatsService.SellerStats sellerStats(Authentication authentication) {
         return sellerStatsService.statsFor(authentication.getName());
     }
 
     // Everything the app stores about the logged-in user, as JSON (downloaded from the account page)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Exporta toate datele mele (JSON)")
     @GetMapping("/me/export")
     public ResponseEntity<Map<String, Object>> export(Authentication authentication) {
         return ResponseEntity.ok()
@@ -55,6 +58,7 @@ public class UserController {
     }
 
     // Deletes (anonymizes) the logged-in account; the body must repeat the username as confirmation
+    @io.swagger.v3.oas.annotations.Operation(summary = "Sterge contul (anonimizare)")
     @DeleteMapping("/me")
     public Message deleteAccount(@RequestBody DeleteRequest request, Authentication authentication) {
         accountService.delete(authentication.getName(), request.confirm());
@@ -63,6 +67,7 @@ public class UserController {
 
     // Profilul utilizatorului logat (inregistrarea se face prin POST /api/auth/register).
     // "admin" spune interfetei daca sa afiseze pagina de administrare.
+    @io.swagger.v3.oas.annotations.Operation(summary = "Contul curent")
     @GetMapping("/me")
     public CurrentUser getCurrentUser(Authentication authentication) {
         User user = userRepository.findByUsername(authentication.getName())
@@ -72,27 +77,32 @@ public class UserController {
     }
 
     // Follow / unfollow a seller (idempotent) and the current state for the logged-in user
+    @io.swagger.v3.oas.annotations.Operation(summary = "Il urmaresc pe acest vanzator?")
     @GetMapping("/{username}/follow")
     public FollowService.FollowStatus followStatus(@PathVariable String username, Authentication authentication) {
         return followService.status(authentication.getName(), username);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Urmareste vanzatorul")
     @PostMapping("/{username}/follow")
     public FollowService.FollowStatus follow(@PathVariable String username, Authentication authentication) {
         return followService.follow(authentication.getName(), username);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Nu mai urmari vanzatorul")
     @DeleteMapping("/{username}/follow")
     public FollowService.FollowStatus unfollow(@PathVariable String username, Authentication authentication) {
         return followService.unfollow(authentication.getName(), username);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Vanzatorii pe care ii urmaresc")
     @GetMapping("/me/following")
     public List<FollowService.FollowedSeller> following(Authentication authentication) {
         return followService.following(authentication.getName());
     }
 
     // Only the badges (the item page shows the seller's next to their name). Public.
+    @io.swagger.v3.oas.annotations.Operation(summary = "Insignele unui utilizator")
     @GetMapping("/{username}/badges")
     public List<BadgeService.BadgeDto> getBadges(@PathVariable String username) {
         User user = userRepository.findByUsername(username)
@@ -101,6 +111,7 @@ public class UserController {
     }
 
     // Profilul public al unui utilizator (fara email): obiectele lui active si cele vandute
+    @io.swagger.v3.oas.annotations.Operation(summary = "Profilul public al unui utilizator")
     @GetMapping("/{username}/profile")
     public PublicProfile getProfile(@PathVariable String username) {
         User user = userRepository.findByUsername(username)

@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 // Reporting a suspicious item (admins see the reports in the admin page)
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Raportari", description = "Raportarea unui anunt suspect catre administratori.")
 @RestController
 @RequiredArgsConstructor
 public class ReportController {
@@ -29,6 +30,7 @@ public class ReportController {
     public record MessageResponse(String mesaj) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Raporteaza un anunt")
     @PostMapping("/api/items/{id}/report")
     public MessageResponse report(@PathVariable Integer id, @Valid @RequestBody ReportRequest request, Authentication authentication) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));

@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 // Private offers on an item (all routes need a logged-in user)
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Oferte private", description = "Propuneri de pret catre vanzator: acceptare, refuz, contraoferta.")
 @RestController
 @RequiredArgsConstructor
 public class OfferController {
@@ -30,16 +31,19 @@ public class OfferController {
     public record ReplyRequest(@NotNull(message = "Alege un raspuns!") OfferService.Action action, BigDecimal counterAmount) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Ofertele private ale unui obiect")
     @GetMapping("/api/items/{id}/offers")
     public List<Offer> offers(@PathVariable Integer id, Authentication authentication) {
         return offerService.offersFor(id, authentication.getName());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Fa o oferta privata")
     @PostMapping("/api/items/{id}/offers")
     public Offer make(@PathVariable Integer id, @Valid @RequestBody OfferRequest request, Authentication authentication) {
         return offerService.make(id, authentication.getName(), request.amount(), request.message());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Raspunde la o oferta (ACCEPT, REJECT, COUNTER, WITHDRAW)")
     @PostMapping("/api/offers/{offerId}/reply")
     public Offer reply(@PathVariable Integer offerId, @Valid @RequestBody ReplyRequest request, Authentication authentication) {
         return offerService.respond(offerId, authentication.getName(), request.action(), request.counterAmount());

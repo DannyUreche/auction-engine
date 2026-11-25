@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 // Recenziile pentru un obiect vandut (publice la citire; le scriu doar vanzatorul si castigatorul)
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Recenzii", description = "Note intre vanzator si castigator dupa o vanzare.")
 @RestController
 @RequestMapping("/api/items/{id}/reviews")
 @RequiredArgsConstructor
@@ -29,11 +30,13 @@ public class ReviewController {
             String comment) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Recenziile unui obiect")
     @GetMapping
     public List<ReviewService.ReviewDto> list(@PathVariable Integer id) {
         return reviewService.forItem(id);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Lasa o recenzie")
     @PostMapping
     public ReviewService.ReviewDto create(@PathVariable Integer id, @Valid @RequestBody ReviewRequest request,
                                           Authentication authentication) {

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 // Lista de favorite ("Urmaresc") a utilizatorului logat
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Urmarite si recomandari", description = "Obiectele urmarite si recomandarile personale.")
 @RestController
 @RequestMapping("/api/items")
 @RequiredArgsConstructor
@@ -21,23 +22,27 @@ public class WatchlistController {
     }
 
     // Obiectele urmarite de utilizatorul logat
+    @io.swagger.v3.oas.annotations.Operation(summary = "Obiectele pe care le urmaresc")
     @GetMapping("/watched")
     public List<Item> getWatchedItems(Authentication authentication) {
         return watchlistService.watchedItems(authentication.getName());
     }
 
     // Recommendations for the logged-in user (home page)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Recomandari pentru mine")
     @GetMapping("/recommended")
     public List<Item> recommended(Authentication authentication) {
         return recommendationService.recommendedFor(authentication.getName());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Urmareste un obiect")
     @PostMapping("/{id}/watch")
     public WatchStatus watch(@PathVariable Integer id, Authentication authentication) {
         watchlistService.watch(id, authentication.getName());
         return new WatchStatus(id, true);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Nu mai urmari obiectul")
     @DeleteMapping("/{id}/watch")
     public WatchStatus unwatch(@PathVariable Integer id, Authentication authentication) {
         watchlistService.unwatch(id, authentication.getName());

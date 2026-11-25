@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Obiecte", description = "Licitatiile: cautare, detalii, creare si editare, poze, Cumpara acum, estimari de pret.")
 @RestController
 @RequestMapping("/api/items")
 @RequiredArgsConstructor
@@ -50,6 +51,7 @@ public class ItemController {
     private final com.DannyU.auction_engine.service.SellerAdviceService sellerAdviceService;
 
     // "Cumpara acum": utilizatorul logat plateste pretul fix si castiga imediat
+    @io.swagger.v3.oas.annotations.Operation(summary = "Cumpara acum (sau la pretul curent, la licitatia olandeza)")
     @PostMapping("/{id}/buy-now")
     public Bid buyNow(@PathVariable Integer id, Authentication authentication) {
         return bidService.buyNow(id, authentication.getName());
@@ -58,6 +60,7 @@ public class ItemController {
     // ---------- Pozele obiectului (maxim Item.MAX_IMAGES) - le poate schimba doar vanzatorul ----------
 
     // Adauga o poza la sfarsitul listei (prima poza adaugata devine poza principala)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Adauga o poza (multipart, camp \"image\")")
     @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Item addImage(@PathVariable Integer id,
                          @RequestParam("image") MultipartFile image,
@@ -75,6 +78,7 @@ public class ItemController {
     }
 
     // Sterge o poza (filename = ultima parte din imageUrl, ex: 3f2a...c1.jpg)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Sterge o poza")
     @DeleteMapping("/{id}/images/{filename}")
     public Item deleteImage(@PathVariable Integer id, @PathVariable String filename, Authentication authentication) {
         Item item = findOwnItem(id, authentication);
@@ -88,6 +92,7 @@ public class ItemController {
     }
 
     // Muta poza pe primul loc: devine poza principala, afisata pe card
+    @io.swagger.v3.oas.annotations.Operation(summary = "Alege poza principala")
     @PostMapping("/{id}/images/{filename}/main")
     public Item setMainImage(@PathVariable Integer id, @PathVariable String filename, Authentication authentication) {
         Item item = findOwnItem(id, authentication);
@@ -107,12 +112,14 @@ public class ItemController {
         return item;
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Toate obiectele")
     @GetMapping
     public List<Item> getAllItems() {
         return itemRepository.findAll();
     }
 
     // Dupa vanzare, vanzatorul si castigatorul isi vad unul altuia datele de contact (si nimeni altcineva)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Emailul celeilalte parti dupa vanzare")
     @GetMapping("/{id}/contact")
     public Contact getContact(@PathVariable Integer id, Authentication authentication) {
         Item item = itemRepository.findById(id)
@@ -136,6 +143,7 @@ public class ItemController {
 
     // Search with filters and pages, done on the server (the home page list). Public.
     // type: buy | dutch | today | soon; sort: ending (default) | price-asc | price-desc | newest
+    @io.swagger.v3.oas.annotations.Operation(summary = "Cautare cu filtre, sortare si pagini")
     @GetMapping("/search")
     public ItemSearchService.Page search(@RequestParam(required = false) String q,
                                          @RequestParam(required = false) String cat,
@@ -158,6 +166,7 @@ public class ItemController {
     }
 
     // What similar items sold for (public); 204 when there are not enough sales to compare
+    @io.swagger.v3.oas.annotations.Operation(summary = "Cat s-au vandut obiecte asemanatoare")
     @GetMapping("/{id}/price-estimate")
     public org.springframework.http.ResponseEntity<PriceEstimateService.Estimate> priceEstimate(@PathVariable Integer id) {
         return priceEstimateService.estimate(id).map(org.springframework.http.ResponseEntity::ok)
@@ -165,6 +174,7 @@ public class ItemController {
     }
 
     // Sell form advice: similar sales, monthly price history and what sells in the category (public, aggregated)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Istoric preturi si sfaturi pentru un anunt nou")
     @GetMapping("/price-advice")
     public com.DannyU.auction_engine.service.SellerAdviceService.Advice priceAdvice(@RequestParam(required = false) String name,
                                                                                    @RequestParam String category) {
@@ -178,6 +188,7 @@ public class ItemController {
     }
 
     // "Licitatia saptamanii" for the home page (public); 204 when there is no running auction
+    @io.swagger.v3.oas.annotations.Operation(summary = "Licitatia saptamanii")
     @GetMapping("/featured")
     public org.springframework.http.ResponseEntity<FeaturedService.Featured> featured() {
         return featuredService.current().map(org.springframework.http.ResponseEntity::ok)
@@ -185,36 +196,42 @@ public class ItemController {
     }
 
     // All counties with how many active auctions each has (public; the county filter)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Numarul de licitatii active pe judete")
     @GetMapping("/counties")
     public List<ItemSearchService.CountyCount> counties() {
         return itemSearchService.counties();
     }
 
     // Doar licitatiile inca deschise
+    @io.swagger.v3.oas.annotations.Operation(summary = "Licitatiile active (fara pagini)")
     @GetMapping("/active")
     public List<Item> getActiveItems() {
         return itemRepository.findByActiveTrueOrderByEndTimeAsc();
     }
 
     // Obiectele puse la licitatie de utilizatorul logat
+    @io.swagger.v3.oas.annotations.Operation(summary = "Obiectele mele")
     @GetMapping("/my")
     public List<Item> getMyItems(Authentication authentication) {
         return itemRepository.findBySellerUsernameOrderByIdDesc(authentication.getName());
     }
 
     // Obiectele castigate de utilizatorul logat
+    @io.swagger.v3.oas.annotations.Operation(summary = "Obiectele castigate de mine")
     @GetMapping("/won")
     public List<Item> getWonItems(Authentication authentication) {
         return itemRepository.findByWinnerUsernameOrderByEndTimeDesc(authentication.getName());
     }
 
     // Detaliile unui singur obiect
+    @io.swagger.v3.oas.annotations.Operation(summary = "Detaliile unui obiect")
     @GetMapping("/{id}")
     public Item getItem(@PathVariable Integer id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Pune un obiect la licitatie")
     @PostMapping
     public Item createItem(@Valid @RequestBody ItemRequest request, Authentication authentication) {
         // Luam utilizatorul logat direct din JWT
@@ -281,6 +298,7 @@ public class ItemController {
 
     // Editarea obiectului de catre vanzator: doar cat timp licitatia e deschisa si nu exista oferte
     // (dupa prima oferta, cei care liciteaza trebuie sa poata avea incredere in ce au vazut)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Editeaza un obiect (doar fara oferte)")
     @PutMapping("/{id}")
     public Item updateItem(@PathVariable Integer id, @Valid @RequestBody ItemUpdateRequest request,
                            Authentication authentication) {
@@ -321,22 +339,28 @@ public class ItemController {
 
         @NotBlank(message = "Numele obiectului este obligatoriu!")
         @Size(max = 100, message = "Numele obiectului poate avea maxim 100 de caractere!")
+        @io.swagger.v3.oas.annotations.media.Schema(example = "Ceas de buzunar Molnija")
         private String name;
+
+        @io.swagger.v3.oas.annotations.media.Schema(example = "Functioneaza, are o zgarietura pe capac.")
 
         private String description;
 
         @NotNull(message = "Pretul de pornire este obligatoriu!")
         @Positive(message = "Pretul de pornire trebuie sa fie mai mare decat 0!")
         @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
+        @io.swagger.v3.oas.annotations.media.Schema(example = "100.00")
         private BigDecimal startPrice;
 
         private Category category;
 
         @Positive(message = "Pretul \"Cumpara acum\" trebuie sa fie mai mare decat 0!")
         @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
+        @io.swagger.v3.oas.annotations.media.Schema(example = "450.00", description = "optional; mai mare decat pretul de pornire")
         private BigDecimal buyNowPrice;
 
         // One of the 41 counties or Bucuresti (any case, with or without diacritics); empty = not given
+        @io.swagger.v3.oas.annotations.media.Schema(example = "Cluj", description = "optional; unul din cele 41 de judete sau Bucuresti")
         private String county;
 
         // COURIER, PICKUP or BOTH (default)
@@ -358,6 +382,7 @@ public class ItemController {
         private BigDecimal startPrice;
 
         @Positive(message = "Durata licitatiei trebuie sa fie de cel putin un minut!")
+        @io.swagger.v3.oas.annotations.media.Schema(example = "1440", description = "durata in minute (implicit 60)")
         private Integer durationInMinutes;
 
         // Una dintre valorile din Category (ex: "ELECTRONICE"); lipsa = "ALTELE"

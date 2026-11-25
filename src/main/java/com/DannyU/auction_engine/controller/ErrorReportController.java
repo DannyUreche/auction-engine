@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 // Error monitoring: browsers report JavaScript errors here (public); admins list and resolve them
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Erori", description = "Raportarea erorilor din browser si lista lor pentru administratori.")
 @RestController
 @RequiredArgsConstructor
 public class ErrorReportController {
@@ -24,6 +25,7 @@ public class ErrorReportController {
     public record ClientError(String message, String stack, String url) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Raporteaza o eroare JavaScript din browser")
     @PostMapping("/api/client-errors")
     public ResponseEntity<Void> report(@RequestBody ClientError error, Authentication authentication, HttpServletRequest request) {
         String username = authentication == null || authentication instanceof AnonymousAuthenticationToken ? null : authentication.getName();
@@ -33,11 +35,13 @@ public class ErrorReportController {
         return ResponseEntity.noContent().build();
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Erorile inregistrate")
     @GetMapping("/api/admin/errors")
     public List<AppError> list() {
         return errorMonitorService.list();
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Marcheaza o eroare ca rezolvata")
     @PostMapping("/api/admin/errors/{id}/resolve")
     public ResponseEntity<Void> resolve(@PathVariable Integer id, Authentication authentication) {
         errorMonitorService.resolve(id);
@@ -45,6 +49,7 @@ public class ErrorReportController {
         return ResponseEntity.noContent().build();
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Sterge erorile rezolvate")
     @DeleteMapping("/api/admin/errors/resolved")
     public Map<String, Integer> deleteResolved(Authentication authentication) {
         int deleted = errorMonitorService.deleteResolved();

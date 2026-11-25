@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 // Live shows: list and details are public, creating one needs a logged-in seller
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Licitatii live", description = "Serii de loturi licitate unul dupa altul, pe scena.")
 @RestController
 @RequestMapping("/api/shows")
 @RequiredArgsConstructor
@@ -26,21 +27,25 @@ public class LiveShowController {
                               List<Integer> itemIds) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Licitatiile live (programate, in desfasurare, incheiate)")
     @GetMapping
     public List<LiveShowService.ShowSummary> list() {
         return liveShowService.list();
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "O licitatie live cu loturile ei")
     @GetMapping("/{id}")
     public LiveShowService.ShowDetails details(@PathVariable Integer id) {
         return liveShowService.details(id);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Obiectele mele care pot intra intr-o licitatie live")
     @GetMapping("/eligible-items")
     public List<Item> eligible(Authentication authentication) {
         return liveShowService.eligibleItems(authentication.getName());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Organizeaza o licitatie live")
     @PostMapping
     public LiveShowService.ShowDetails create(@Valid @RequestBody ShowRequest request, Authentication authentication) {
         return liveShowService.create(authentication.getName(), request.title(), request.startTime(), request.slotMinutes(), request.itemIds());

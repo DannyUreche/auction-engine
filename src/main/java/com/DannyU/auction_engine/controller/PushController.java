@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 // Push notifications on this device (the browser sends what PushManager.subscribe() returned)
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Notificari push", description = "Abonarea browserului la notificari push (Web Push, VAPID).")
 @RestController
 @RequestMapping("/api/push")
 @RequiredArgsConstructor
@@ -33,11 +34,13 @@ public class PushController {
     }
 
     // Public: the browser needs it before subscribing
+    @io.swagger.v3.oas.annotations.Operation(summary = "Cheia publica VAPID")
     @GetMapping("/public-key")
     public PublicKey publicKey() {
         return new PublicKey(pushNotificationService.publicKey());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Aboneaza browserul la notificari push")
     @PostMapping("/subscribe")
     public ResponseEntity<Void> subscribe(@Valid @RequestBody SubscriptionRequest request, Authentication authentication) {
         pushNotificationService.subscribe(userRepository.findByUsername(authentication.getName()).orElseThrow(),
@@ -45,6 +48,7 @@ public class PushController {
         return ResponseEntity.noContent().build();
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Dezaboneaza browserul")
     @PostMapping("/unsubscribe")
     public ResponseEntity<Void> unsubscribe(@Valid @RequestBody EndpointRequest request) {
         pushNotificationService.unsubscribe(request.endpoint());

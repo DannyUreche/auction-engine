@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 // Public questions about an item; anyone logged in may ask (except the seller), only the seller answers
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Intrebari", description = "Intrebari publice catre vanzator si raspunsurile lui.")
 @RestController
 @RequestMapping("/api/items/{id}/questions")
 @RequiredArgsConstructor
@@ -36,11 +37,13 @@ public class QuestionController {
             String text) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Intrebarile unui obiect")
     @GetMapping
     public List<Question> list(@PathVariable Integer id) {
         return questionRepository.findByItemIdOrderByCreatedAtAscIdAsc(id);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Pune o intrebare")
     @PostMapping
     @Transactional
     public Question ask(@PathVariable Integer id, @Valid @RequestBody TextRequest request, Authentication authentication) {
@@ -60,6 +63,7 @@ public class QuestionController {
         return saved;
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Raspunde la o intrebare (vanzatorul)")
     @PostMapping("/{questionId}/answer")
     @Transactional
     public Question answer(@PathVariable Integer id, @PathVariable Integer questionId, @Valid @RequestBody TextRequest request,

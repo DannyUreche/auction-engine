@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.concurrent.TimeUnit;
 
 // Trimite imaginile obiectelor catre browser. Ruta este publica (tag-ul <img> nu trimite token-ul JWT).
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Imagini", description = "Pozele obiectelor (publice, pentru <img>); ?size=thumb da miniatura de 480 px.")
 @RestController
 @RequestMapping("/api/images")
 @RequiredArgsConstructor
@@ -22,6 +23,7 @@ public class ImageController {
     private final com.DannyU.auction_engine.service.ThumbnailService thumbnailService;
 
     // ?size=thumb: a small JPEG for cards and lists (the original when it can't be resized)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Miniatura unei poze (480 px, JPEG)")
     @GetMapping(value = "/{filename}", params = "size=thumb")
     public ResponseEntity<byte[]> getThumbnail(@PathVariable String filename) {
         return thumbnailService.thumbnail(filename)
@@ -32,6 +34,7 @@ public class ImageController {
                 .orElseGet(() -> getImage(filename));
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "O poza a unui obiect")
     @GetMapping("/{filename}")
     public ResponseEntity<byte[]> getImage(@PathVariable String filename) {
         return imageStorageService.find(filename)

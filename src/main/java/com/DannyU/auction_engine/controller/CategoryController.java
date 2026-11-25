@@ -9,10 +9,12 @@ import java.util.Arrays;
 import java.util.List;
 
 // Lista categoriilor, folosita de interfata (filtre si formularul "Vinde un obiect"). Publica.
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Categorii", description = "Lista fixa de categorii.")
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Toate categoriile")
     @GetMapping
     public List<CategoryDto> categories() {
         return Arrays.stream(Category.values())

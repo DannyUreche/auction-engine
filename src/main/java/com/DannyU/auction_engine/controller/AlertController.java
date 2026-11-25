@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 // The logged-in user's saved searches ("alerts")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Alerte", description = "Cautari salvate: anunt cand apare o licitatie potrivita.")
 @RestController
 @RequestMapping("/api/alerts")
 @RequiredArgsConstructor
@@ -26,16 +27,19 @@ public class AlertController {
                                @PositiveOrZero(message = "Pretul nu poate fi negativ!") BigDecimal maxPrice) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Alertele mele")
     @GetMapping
     public List<SavedAlert> list(Authentication authentication) {
         return alertService.list(authentication.getName());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Salveaza o alerta")
     @PostMapping
     public SavedAlert create(@Valid @RequestBody AlertRequest request, Authentication authentication) {
         return alertService.create(authentication.getName(), request.query(), request.category(), request.minPrice(), request.maxPrice());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Sterge o alerta")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id, Authentication authentication) {
         alertService.delete(id, authentication.getName());

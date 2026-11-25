@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 // Licitarea automata a utilizatorului logat pentru un obiect (suma maxima o vede doar el)
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Licitare automata", description = "Suma maxima pana la care aplicatia liciteaza in locul tau (proxy bidding).")
 @RestController
 @RequestMapping("/api/items/{id}/auto-bid")
 @RequiredArgsConstructor
@@ -30,18 +31,21 @@ public class AutoBidController {
     public record AutoBidStatus(Integer itemId, BigDecimal maxAmount) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Licitarea mea automata pe acest obiect")
     @GetMapping
     public AutoBidStatus get(@PathVariable Integer id, Authentication authentication) {
         return new AutoBidStatus(id, bidService.getAutoBid(id, authentication.getName())
                 .map(a -> a.getMaxAmount()).orElse(null));
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Seteaza sau schimba suma maxima")
     @PutMapping
     public AutoBidStatus set(@PathVariable Integer id, @Valid @RequestBody AutoBidRequest request,
                              Authentication authentication) {
         return new AutoBidStatus(id, bidService.setAutoBid(id, authentication.getName(), request.maxAmount()).getMaxAmount());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Opreste licitarea automata")
     @DeleteMapping
     public AutoBidStatus cancel(@PathVariable Integer id, Authentication authentication) {
         bidService.cancelAutoBid(id, authentication.getName());

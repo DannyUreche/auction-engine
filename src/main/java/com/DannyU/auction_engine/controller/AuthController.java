@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Autentificare", description = "Cont nou, login (cu pas 2FA optional), Google, resetare parola, confirmare email. Limitat la 10 cereri POST pe minut per IP.")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -24,12 +25,14 @@ public class AuthController {
     private final com.DannyU.auction_engine.service.GoogleTokenVerifier googleTokenVerifier;
 
     // "Am uitat parola": trimite un link pe email (raspunsul e acelasi daca emailul exista sau nu)
+    @io.swagger.v3.oas.annotations.Operation(summary = "Cere un link de resetare a parolei")
     @PostMapping("/forgot-password")
     public MessageResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         passwordResetService.requestReset(request.email());
         return new MessageResponse("Daca exista un cont cu acest email, ti-am trimis un link de resetare a parolei.");
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Seteaza o parola noua cu tokenul din email")
     @PostMapping("/reset-password")
     public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         passwordResetService.resetPassword(request.token(), request.password());
@@ -53,6 +56,7 @@ public class AuthController {
             String password) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Creeaza un cont")
     @PostMapping("/register")
     public AuthService.RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
@@ -60,12 +64,14 @@ public class AuthController {
 
     // ---------- Email confirmation ----------
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Confirma adresa de email")
     @PostMapping("/verify-email")
     public MessageResponse verifyEmail(@Valid @RequestBody TokenRequest request) {
         emailVerificationService.verify(request.token());
         return new MessageResponse("Adresa de email a fost confirmata. Acum te poti autentifica.");
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Retrimite emailul de confirmare")
     @PostMapping("/resend-verification")
     public MessageResponse resendVerification(@Valid @RequestBody ForgotPasswordRequest request) {
         emailVerificationService.resend(request.email());
@@ -83,11 +89,13 @@ public class AuthController {
     public record GoogleRequest(@NotBlank(message = "Autentificarea cu Google a esuat!") String credential) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Client ID-ul pentru \"Continua cu Google\"")
     @GetMapping("/google/config")
     public GoogleConfig googleConfig() {
         return new GoogleConfig(googleTokenVerifier.clientId());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Intra cu un ID token Google")
     @PostMapping("/google")
     public AuthResponse google(@Valid @RequestBody GoogleRequest request) {
         return authService.loginWithGoogle(request.credential());
@@ -97,11 +105,13 @@ public class AuthController {
                                         @jakarta.validation.constraints.NotBlank(message = "Introdu codul!") String code) {
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Al doilea pas al logarii (cod 2FA sau cod de rezerva)")
     @PostMapping("/login/2fa")
     public AuthResponse loginSecondStep(@Valid @RequestBody TwoFactorLoginRequest request) {
         return authService.loginSecondStep(request.ticket(), request.code());
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Intra in cont (primesti tokenul JWT)")
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));

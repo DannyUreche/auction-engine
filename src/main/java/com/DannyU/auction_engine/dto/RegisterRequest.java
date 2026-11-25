@@ -10,14 +10,17 @@ public class RegisterRequest {
 
     @NotBlank(message = "Username-ul este obligatoriu!")
     @Size(min = 3, max = 50, message = "Username-ul trebuie sa aiba intre 3 si 50 de caractere!")
+    @io.swagger.v3.oas.annotations.media.Schema(example = "ana_pop")
     private String username;
 
     @NotBlank(message = "Email-ul este obligatoriu!")
     @Email(message = "Email-ul nu este valid!")
     @Size(max = 100, message = "Email-ul poate avea maxim 100 de caractere!")
+    @io.swagger.v3.oas.annotations.media.Schema(example = "ana@example.com")
     private String email;
 
     @NotBlank(message = "Parola este obligatorie!")
     @Size(min = 6, message = "Parola trebuie sa aiba minim 6 caractere!")
+    @io.swagger.v3.oas.annotations.media.Schema(example = "parola123", description = "minim 6 caractere")
     private String password;
 }

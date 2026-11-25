@@ -19,6 +19,7 @@ import java.util.Locale;
 // In productie interfata React este servita de Spring Boot (din static/index.html).
 // Paginile React (ex: /items/5) nu exista pe server, asa ca le trimitem tot la index.html,
 // iar React Router afiseaza pagina potrivita. Fara asta, un refresh pe /items/5 ar da 404.
+@io.swagger.v3.oas.annotations.Hidden
 @Controller
 public class SpaController {
 
