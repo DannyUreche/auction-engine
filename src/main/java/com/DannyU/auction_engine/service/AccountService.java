@@ -20,7 +20,7 @@ import java.util.UUID;
 // The user's own data: a full export (GDPR "right of access") and account deletion.
 // Deletion anonymizes instead of removing the row: bids, sales, reviews and chat messages also belong to
 // the other people involved, so they stay, but under "sters_<id>" with no email and no way to log in.
-// Everything that only concerns the user (notifications, watchlist, auto-bids, push, tokens) is deleted.
+// Everything that only concerns the user (notifications, watchlist, auto-bids, lists, push, tokens) is deleted.
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -60,6 +60,9 @@ public class AccountService {
         data.put("obiecte_urmarite", rows("""
                 SELECT w.item.id, w.item.name, w.createdAt FROM WatchedItem w WHERE w.user = :user""", user,
                 "obiect_id", "obiect", "data"));
+        data.put("colectii", rows("""
+                SELECT c.id, c.title, c.description, c.publicList, c.createdAt FROM ItemCollection c WHERE c.owner = :user""", user,
+                "id", "titlu", "descriere", "publica", "data"));
         data.put("intrebari", rows("""
                 SELECT q.item.id, q.text, q.answer, q.createdAt FROM Question q WHERE q.author = :user ORDER BY q.createdAt""", user,
                 "obiect_id", "intrebare", "raspuns", "data"));
@@ -111,6 +114,12 @@ public class AccountService {
             entityManager.createQuery("DELETE FROM " + entity + " e WHERE e.user = :user")
                     .setParameter("user", user).executeUpdate();
         }
+
+        // Personal lists go too (their items are deleted by the cascade in the database)
+        entityManager.createQuery("DELETE FROM CollectionItem ci WHERE ci.collection.owner = :user")
+                .setParameter("user", user).executeUpdate();
+        entityManager.createQuery("DELETE FROM ItemCollection c WHERE c.owner = :user")
+                .setParameter("user", user).executeUpdate();
 
         user.setUsername(DELETED_PREFIX + user.getId());
         user.setEmail(DELETED_PREFIX + user.getId() + "@sters.invalid");

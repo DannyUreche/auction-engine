@@ -376,6 +376,13 @@ Object.assign(ICONS, {
       { t: 'base', rect: [13.5, 18, 3, 3, 0.6] },
     ],
   },
+  bookmark: {
+    hue: 'amber',
+    parts: [
+      { t: 'base', d: 'M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4.2-6.5 4.2v-16a1 1 0 0 1 1-1z' },
+      { t: 'accent', d: 'M12 7.2l1.1 2.2 2.4.35-1.75 1.7.4 2.4L12 12.7l-2.15 1.15.4-2.4-1.75-1.7 2.4-.35z' },
+    ],
+  },
   flag: {
     hue: 'rose',
     parts: [

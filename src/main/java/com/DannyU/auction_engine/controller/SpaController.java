@@ -32,7 +32,7 @@ public class SpaController {
     }
 
     @GetMapping({"/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/sell", "/account", "/admin",
-            "/users/{username}", "/despre", "/confidentialitate", "/termeni", "/clasament", "/piata", "/compara", "/live", "/live/nou", "/live/{id}"})
+            "/users/{username}", "/despre", "/confidentialitate", "/termeni", "/clasament", "/piata", "/colectii/{id}", "/compara", "/live", "/live/nou", "/live/{id}"})
     public String forwardToReact() {
         return "forward:/index.html";
     }

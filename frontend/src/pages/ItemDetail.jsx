@@ -31,6 +31,7 @@ import FollowButton from '../components/FollowButton.jsx'
 import { deliveryLabel } from '../components/LocationFields.jsx'
 import ReportButton from '../components/ReportButton.jsx'
 import ShareButton from '../components/ShareButton.jsx'
+import CollectionButton from '../components/CollectionButton.jsx'
 import { CategoryIcon, Icon } from '../components/icons.jsx'
 import { launchConfetti } from '../confetti.js'
 import { disintegrate } from '../disintegrate.js'
@@ -196,6 +197,7 @@ export default function ItemDetail() {
             </div>
             <p className="mt-4 whitespace-pre-line text-slate-600">{item.description || 'Fara descriere.'}</p>
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+              <CollectionButton item={item} />
               <ShareButton item={item} />
               {user && !isSeller && <ReportButton item={item} />}
             </div>

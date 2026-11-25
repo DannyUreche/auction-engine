@@ -246,6 +246,24 @@ Authorization: Bearer {{loginCumparator.response.body.$.token}}
   "query": "un ceas vechi sub 500 lei in Cluj"
 }
 
+### Colectie noua (lista personala de licitatii)
+# @name colectie
+POST {{baseUrl}}/api/collections
+Content-Type: application/json
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+{
+  "title": "Cadouri de Craciun",
+  "publicList": true
+}
+
+### Adauga obiectul in colectie
+PUT {{baseUrl}}/api/collections/{{colectie.response.body.$.id}}/items/{{creareObiect.response.body.$.id}}
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### Colectia (publica, fara token)
+GET {{baseUrl}}/api/collections/{{colectie.response.body.$.id}}
+
 ### ---------- 5. Erori de validare si autentificare ----------
 
 ### EROARE asteptata: date invalide la inregistrare (400)

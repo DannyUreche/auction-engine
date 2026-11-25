@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import Badges from '../components/Badges.jsx'
+import CollectionCard from '../components/CollectionCard.jsx'
 import FollowButton from '../components/FollowButton.jsx'
 import ItemCard from '../components/ItemCard.jsx'
 import { ReviewCard, Stars } from '../components/Reviews.jsx'
@@ -13,6 +14,13 @@ export default function Profile() {
   const [profile, setProfile] = useState(null)
   const [error, setError] = useState('')
   const [followersOverride, setFollowers] = useState(null)
+  const [collections, setCollections] = useState([])
+
+  useEffect(() => {
+    api(`/users/${encodeURIComponent(username)}/collections`, { auth: false })
+      .then(setCollections)
+      .catch(() => setCollections([]))
+  }, [username])
 
   useEffect(() => {
     api(`/users/${encodeURIComponent(username)}/profile`, { auth: false })
@@ -105,6 +113,17 @@ export default function Profile() {
           </div>
         )}
       </div>
+
+      {collections.length > 0 && (
+        <>
+          <h2 className="mt-10 text-lg font-semibold text-slate-900">Colectii</h2>
+          <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {collections.map((list, index) => (
+              <CollectionCard key={list.id} list={list} index={index} />
+            ))}
+          </div>
+        </>
+      )}
 
       {profile.reviews.length > 0 && (
         <>

@@ -45,7 +45,7 @@ export function Privacy() {
         </li>
         <li>
           <b>Activitatea pe site:</b> obiectele puse la vanzare (cu poze si descrieri), ofertele, obiectele urmarite, intrebarile
-          si raspunsurile, mesajele din chat dupa o vanzare, recenziile, raportarile si notificarile.
+          si raspunsurile, mesajele din chat dupa o vanzare, recenziile, raportarile, notificarile si colectiile tale (cele publice le poate vedea oricine are linkul si apar pe profilul tau).
         </li>
         <li>
           <b>Portofelul:</b> soldul virtual si istoricul tranzactiilor. Banii din portofel sunt credite de test, fara valoare

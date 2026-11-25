@@ -9,6 +9,7 @@ import WalletPanel from '../components/WalletPanel.jsx'
 import { useWallet } from '../wallet.js'
 import AccountSettings from '../components/AccountSettings.jsx'
 import AlertsPanel from '../components/AlertsPanel.jsx'
+import CollectionsPanel from '../components/CollectionsPanel.jsx'
 import SellerStats from '../components/SellerStats.jsx'
 import { useWatchlist } from '../watchlist.jsx'
 
@@ -17,6 +18,7 @@ const TABS = [
   { key: 'bids', label: 'Ofertele mele' },
   { key: 'won', label: 'Castigate' },
   { key: 'watched', label: 'Urmarite' },
+  { key: 'collections', label: 'Colectii' },
   { key: 'wallet', label: 'Portofel' },
   { key: 'stats', label: 'Statistici' },
   { key: 'alerts', label: 'Alerte' },
@@ -81,6 +83,7 @@ export default function Account() {
         {data && tab === 'watched' && <WatchedItems items={watchlist.items} loaded={watchlist.loaded} />}
         {data && tab === 'stats' && <SellerStats />}
         {data && tab === 'alerts' && <AlertsPanel />}
+        {data && tab === 'collections' && <CollectionsPanel />}
         {data && tab === 'settings' && <AccountSettings user={user} />}
         {data && tab === 'wallet' && (
           <WalletPanel
