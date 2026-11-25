@@ -9,6 +9,9 @@ public final class BidRules {
     // Ofertele din ultimele 2 minute prelungesc licitatia pana la 2 minute dupa oferta (anti-"sniping")
     public static final Duration ANTI_SNIPING_WINDOW = Duration.ofMinutes(2);
 
+    // Lots of a live show: "going once, going twice" - a late bid gives everyone 15 more seconds
+    public static final Duration LIVE_SHOW_WINDOW = Duration.ofSeconds(15);
+
     private BidRules() {
     }
 

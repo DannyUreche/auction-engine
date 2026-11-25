@@ -46,9 +46,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Rutele "ale mele" cer autentificare - trebuie declarate INAINTEA celor publice de mai jos,
                         // altfel /api/items/{id} s-ar potrivi si pe /api/items/my
-                        .requestMatchers("/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/items/*/auto-bid", "/api/items/*/messages", "/api/items/recommended", "/api/bids/my").authenticated()
+                        .requestMatchers("/api/shows/eligible-items", "/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/items/*/auto-bid", "/api/items/*/messages", "/api/items/recommended", "/api/bids/my").authenticated()
                         // Oricine (si fara cont) poate vedea licitatiile si istoricul ofertelor
-                        .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats", "/api/health", "/api/users/*/profile", "/api/users/*/badges", "/api/leaderboard", "/api/push/public-key").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats", "/api/health", "/api/users/*/profile", "/api/users/*/badges", "/api/leaderboard", "/api/shows", "/api/shows/*", "/api/push/public-key").permitAll()
                         // Browsers report JavaScript errors without needing an account (rate-limited per IP)
                         .requestMatchers(HttpMethod.POST, "/api/client-errors").permitAll()
                         // Live room presence heartbeat: visitors without an account count as viewers too

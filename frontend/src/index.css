@@ -305,3 +305,13 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
   from { transform: translate(-50%, -160%); opacity: 0; }
   to { transform: translate(-50%, -50%); opacity: 1; }
 }
+
+/* Live show (pages/LiveShowStage.jsx): the gavel comes down when a lot is sold */
+.hammer-slam { transform-origin: 85% 85%; animation: hammer-slam 0.9s cubic-bezier(0.5, 0, 0.3, 1) both; }
+@keyframes hammer-slam {
+  0% { transform: rotate(-60deg) scale(0.8); opacity: 0; }
+  40% { transform: rotate(-60deg) scale(1); opacity: 1; }
+  70% { transform: rotate(10deg); }
+  82% { transform: rotate(-6deg); }
+  100% { transform: rotate(0deg); }
+}

@@ -209,10 +209,22 @@ public class BidService {
 
     private Bid saveBid(Item item, User bidder, BigDecimal amount, boolean automatic) {
         // Anti-"sniping": o oferta in ultimele minute prelungeste licitatia
+        // (live show lots: 15 s, and the later lots of the show move by the same amount, so they never overlap)
         LocalDateTime now = LocalDateTime.now();
-        if (item.getActive()
-                && Duration.between(now, item.getEndTime()).compareTo(BidRules.ANTI_SNIPING_WINDOW) < 0) {
-            item.setEndTime(now.plus(BidRules.ANTI_SNIPING_WINDOW));
+        Duration window = item.getLiveShow() != null ? BidRules.LIVE_SHOW_WINDOW : BidRules.ANTI_SNIPING_WINDOW;
+        if (item.getActive() && Duration.between(now, item.getEndTime()).compareTo(window) < 0) {
+            LocalDateTime newEnd = now.plus(window);
+            Duration shift = Duration.between(item.getEndTime(), newEnd);
+            item.setEndTime(newEnd);
+            if (item.getLiveShow() != null) {
+                for (Item later : itemRepository.findByLiveShow_IdOrderByShowPositionAsc(item.getLiveShow().getId())) {
+                    if (later.getShowPosition() > item.getShowPosition() && Boolean.TRUE.equals(later.getActive())) {
+                        later.setStartTime(later.getStartTime().plus(shift));
+                        later.setEndTime(later.getEndTime().plus(shift));
+                        itemRepository.save(later);
+                    }
+                }
+            }
         }
         // Cine conducea inainte de aceasta oferta (primeste notificarea "oferta depasita")
         User previousLeader = bidRepository.findTopByItemIdOrderByAmountDesc(item.getId())

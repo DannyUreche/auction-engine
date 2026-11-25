@@ -75,6 +75,11 @@ export default function Layout() {
             <NavItem to="/">{t('Licitatii active')}</NavItem>
             <NavItem to="/sell">{t('Vinde un obiect')}</NavItem>
             <NavItem to="/account">{t('Contul meu')}</NavItem>
+            <NavItem to="/live">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" /> Live
+              </span>
+            </NavItem>
             <NavItem to="/clasament">{t('Clasament')}</NavItem>
             {user?.admin && <NavItem to="/admin">Admin</NavItem>}
           </nav>
@@ -143,6 +148,7 @@ export default function Layout() {
           <NavItem to="/">{t('Active')}</NavItem>
           <NavItem to="/sell">{t('Vinde')}</NavItem>
           <NavItem to="/account">{t('Contul meu')}</NavItem>
+          <NavItem to="/live">Live</NavItem>
           <NavItem to="/clasament">{t('Clasament')}</NavItem>
           <NavItem to="/despre">{t('Despre')}</NavItem>
           {user?.admin && <NavItem to="/admin">Admin</NavItem>}

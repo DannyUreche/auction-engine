@@ -36,6 +36,11 @@ public class AuctionScheduler {
     public void updateRunningAuctions() {
         LocalDateTime now = LocalDateTime.now();
         for (Item item : itemRepository.findByActiveTrueAndStartNotifiedFalseAndStartTimeBefore(now)) {
+            // Re-read with a row lock: a bid placed since the query must not be overwritten by this save
+            lockAndRefresh(item);
+            if (!Boolean.TRUE.equals(item.getActive()) || item.isStartNotified() || item.getStartTime().isAfter(now)) {
+                continue;
+            }
             item.setStartNotified(true);
             itemRepository.save(item);
             String message = "Licitatia pentru \"" + item.getName() + "\" a inceput!";
@@ -51,6 +56,12 @@ public class AuctionScheduler {
             }
             java.math.BigDecimal price = item.dutchPriceAt(now);
             if (price.compareTo(item.getCurrentPrice()) != 0) {
+                lockAndRefresh(item);
+                if (!Boolean.TRUE.equals(item.getActive())) {
+                    continue;
+                }
+            }
+            if (Boolean.TRUE.equals(item.getActive()) && price.compareTo(item.getCurrentPrice()) != 0) {
                 item.setCurrentPrice(price);
                 itemRepository.save(item);
                 eventPublisher.publishEvent(AuctionEvent.update(item.getId(), price));
@@ -58,7 +69,12 @@ public class AuctionScheduler {
         }
     }
 
-    @Scheduled(fixedRate = 60000)
+    private void lockAndRefresh(Item item) {
+        entityManager.refresh(item, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+    }
+
+    // Every 15 s, so live show slots close almost on time
+    @Scheduled(fixedRate = 15000)
     @Transactional
     public void closeExpiredAuctions() {
         // 1. Cautam toate licitatiile care inca apar ca active, dar au trecut de endTime

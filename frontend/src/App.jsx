@@ -21,6 +21,9 @@ const Privacy = lazy(() => import('./pages/Legal.jsx').then((m) => ({ default: m
 const Terms = lazy(() => import('./pages/Legal.jsx').then((m) => ({ default: m.Terms })))
 const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
 const Compare = lazy(() => import('./pages/Compare.jsx'))
+const LiveShows = lazy(() => import('./pages/LiveShows.jsx'))
+const LiveShowStage = lazy(() => import('./pages/LiveShowStage.jsx'))
+const NewLiveShow = lazy(() => import('./pages/NewLiveShow.jsx'))
 
 // Paginile pentru vanzare si cont cer autentificare; licitatiile se pot vedea si fara cont
 // adminOnly: pagina e doar pentru administratori (ceilalti sunt trimisi pe pagina principala)
@@ -53,6 +56,16 @@ export default function App() {
           <Route path="/termeni" element={<Terms />} />
           <Route path="/clasament" element={<Leaderboard />} />
           <Route path="/compara" element={<Compare />} />
+          <Route path="/live" element={<LiveShows />} />
+          <Route path="/live/:id" element={<LiveShowStage />} />
+          <Route
+            path="/live/nou"
+            element={
+              <RequireAuth>
+                <NewLiveShow />
+              </RequireAuth>
+            }
+          />
           {/* Doar pentru utilizatori logati */}
           <Route
             path="/sell"

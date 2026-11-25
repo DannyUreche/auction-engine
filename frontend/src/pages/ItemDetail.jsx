@@ -174,6 +174,11 @@ export default function ItemDetail() {
             <div className="flex flex-wrap items-center gap-2">
               <Countdown endTime={item.endTime} active={item.active} startTime={item.startTime} />
               {isSeller && <Badge tone="indigo">{t('Obiectul tau')}</Badge>}
+              {item.liveShowId && (
+                <Link to={`/live/${item.liveShowId}`} className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-0.5 text-xs font-bold text-white shadow-sm hover:bg-red-500">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Licitatie live · lotul {item.showPosition + 1}
+                </Link>
+              )}
               {/* Editarea e permisa doar pana la prima oferta */}
               {isSeller && item.active && bids.length === 0 && (
                 <button

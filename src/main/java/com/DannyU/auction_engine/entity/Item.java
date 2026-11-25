@@ -102,6 +102,19 @@ public class Item {
     @Column(nullable = false, length = 20)
     private Delivery delivery = Delivery.BOTH;
 
+    // Part of a live show (LiveShowService): the show and the item's place in it
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "live_show_id")
+    private LiveShow liveShow;
+
+    @Column(name = "show_position")
+    private Integer showPosition;
+
+    public Integer getLiveShowId() {
+        return liveShow == null ? null : liveShow.getId();
+    }
+
     // Has the AI moderation looked at this listing yet? (AiModerationService; new listings start as false)
     @JsonIgnore
     @Column(name = "ai_checked", nullable = false)

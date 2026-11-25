@@ -186,6 +186,7 @@ const FEATURES = [
   { icon: 'bell', title: 'Alerte si statistici', text: 'Salvezi o cautare si esti anuntat cand apare ceva potrivit; vanzatorii vad vizualizari si oferte.' },
   { icon: 'trophy', title: 'Licitatia saptamanii si clasament', text: 'Licitatia evidentiata pe prima pagina, podiumul lunii si provocari cu insigne.' },
   { icon: 'coins', title: 'Oferte private', text: 'Propui vanzatorului un pret; el accepta, refuza sau face o contraoferta.' },
+  { icon: 'gavel', title: 'Licitatii live', text: 'Vanzatorul urca pe scena mai multe obiecte, unul dupa altul, cu cate un minut sau mai mult pentru fiecare lot.' },
   { icon: 'columns', title: 'Harta, comparatie, estimari', text: 'Harta Romaniei cu licitatii pe judete, comparatie intre 3 obiecte si cat s-au vandut obiectele asemanatoare.' },
   { icon: 'shield', title: 'Doi pasi si moderare AI', text: 'Autentificare cu cod din aplicatie, anunturi verificate de AI si jurnalul actiunilor de administrare.' },
   { icon: 'pin', title: 'Oras, livrare, insigne', text: 'Filtrezi dupa oras, vezi cum se livreaza si cat de sigur e vanzatorul (insigne de reputatie).' },

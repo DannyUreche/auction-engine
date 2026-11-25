@@ -5,6 +5,7 @@ import { useCategories } from '../categories.js'
 import ItemCard from '../components/ItemCard.jsx'
 import CountUp from '../components/CountUp.jsx'
 import FeaturedAuction from '../components/FeaturedAuction.jsx'
+import LiveNowBanner from '../components/LiveNowBanner.jsx'
 import Recommendations from '../components/Recommendations.jsx'
 import { CategoryIcon, Icon } from '../components/icons.jsx'
 import { Alert, Button, CardSkeleton, EmptyState, Input, Select } from '../components/ui.jsx'
@@ -250,6 +251,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <LiveNowBanner />
 
       <FeaturedAuction />
 

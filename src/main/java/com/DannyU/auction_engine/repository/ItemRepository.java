@@ -68,4 +68,6 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id = :id")
     java.util.Optional<Item> findByIdForUpdate(@Param("id") Integer id);
+
+    List<Item> findByLiveShow_IdOrderByShowPositionAsc(Integer liveShowId);
 }
