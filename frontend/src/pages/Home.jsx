@@ -1,3 +1,4 @@
+import AiSearch from '../components/AiSearch.jsx'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { api } from '../api.js'
@@ -318,6 +319,19 @@ export default function Home() {
             className="block w-full rounded-2xl border-0 bg-white py-3.5 pr-4 pl-12 text-base text-slate-900 shadow-inner ring-2 ring-indigo-100 transition placeholder:text-slate-400 focus:ring-indigo-500 focus:outline-none"
           />
         </label>
+        <AiSearch
+          onApply={(found) =>
+            setFilters((current) => ({
+              cat: found.cat ?? '',
+              q: found.q ?? '',
+              min: found.min != null ? String(found.min) : '',
+              max: found.max != null ? String(found.max) : '',
+              county: found.county ?? '',
+              type: found.type ?? '',
+              sort: found.sort ?? current.sort,
+            }))
+          }
+        />
 
         {/* Categories */}
         <p className="mt-5 text-xs font-semibold tracking-wide text-slate-500 uppercase">{t('Categorii')}</p>

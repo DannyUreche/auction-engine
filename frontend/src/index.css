@@ -315,3 +315,18 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
   82% { transform: rotate(-6deg); }
   100% { transform: rotate(0deg); }
 }
+
+/* AI search: slowly flowing gradient border and a breathing orb */
+.ai-border {
+  background: linear-gradient(110deg, #8b5cf6, #d946ef, #6366f1, #8b5cf6);
+  background-size: 300% 100%;
+  animation: ai-border 6s linear infinite;
+}
+@keyframes ai-border {
+  to { background-position: 300% 0; }
+}
+.ai-orb { animation: ai-orb 2.6s ease-in-out infinite; }
+@keyframes ai-orb {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(168 85 247 / 0.45); }
+  50% { box-shadow: 0 0 0 6px rgb(168 85 247 / 0); }
+}

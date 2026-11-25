@@ -237,6 +237,15 @@ Authorization: Bearer {{loginCumparator.response.body.$.token}}
 }
 
 
+### Cautare cu AI (merge doar cu ANTHROPIC_API_KEY setat; altfel 400)
+POST {{baseUrl}}/api/ai/search
+Content-Type: application/json
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+{
+  "query": "un ceas vechi sub 500 lei in Cluj"
+}
+
 ### ---------- 5. Erori de validare si autentificare ----------
 
 ### EROARE asteptata: date invalide la inregistrare (400)

@@ -181,7 +181,7 @@ const FEATURES = [
   { icon: 'download', title: 'Aplicatie instalabila', text: 'Se instaleaza pe telefon (PWA) si trimite notificari push chiar si cu site-ul inchis.' },
   { icon: 'flag', title: 'Moderare', text: 'Obiectele pot fi raportate; administratorii le verifica si pot bloca conturi.' },
   { icon: 'globe', title: 'Cont rapid, in doua limbi', text: 'Intrare cu Google, confirmarea emailului si interfata in romana sau engleza.' },
-  { icon: 'sparkles', title: 'Asistent AI', text: 'Incarci poza obiectului, iar Claude propune titlul, descrierea, categoria si pretul de pornire.' },
+  { icon: 'sparkles', title: 'Asistent AI', text: 'Incarci poza obiectului, iar Claude propune titlul, descrierea, categoria si pretul de pornire; cautarea cu AI transforma o cerere scrisa liber in filtre.' },
   { icon: 'eye', title: 'Camera live', text: 'Vezi cine urmareste licitatia acum, scrii in chatul public si ofertele noi apar animat.' },
   { icon: 'bell', title: 'Alerte si statistici', text: 'Salvezi o cautare si esti anuntat cand apare ceva potrivit; vanzatorii vad vizualizari si oferte.' },
   { icon: 'trophy', title: 'Licitatia saptamanii si clasament', text: 'Licitatia evidentiata pe prima pagina, podiumul lunii si provocari cu insigne.' },
