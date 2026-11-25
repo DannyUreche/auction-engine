@@ -102,6 +102,11 @@ public class Item {
     @Column(nullable = false, length = 20)
     private Delivery delivery = Delivery.BOTH;
 
+    // Has the AI moderation looked at this listing yet? (AiModerationService; new listings start as false)
+    @JsonIgnore
+    @Column(name = "ai_checked", nullable = false)
+    private boolean aiChecked = true;
+
     // Unique visits of the item page (LiveRoomService); shown only in the seller's statistics
     @JsonIgnore
     // Written only by the UPDATE in LiveRoomService, never by saving the entity (a save would overwrite it with a stale value)

@@ -57,4 +57,9 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     // Valoarea totala a obiectelor vandute (pretul final al celor cu castigator)
     @Query("SELECT COALESCE(SUM(i.currentPrice), 0) FROM Item i WHERE i.winner IS NOT NULL")
     BigDecimal sumSoldValue();
+
+    // Listings the AI moderation hasn't looked at yet (oldest first)
+    List<Item> findTop5ByAiCheckedFalseAndActiveTrueOrderByIdAsc();
+
+    long countByAiCheckedFalseAndActiveTrue();
 }

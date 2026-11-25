@@ -36,7 +36,7 @@ class AiListingServiceTest {
 
     @Test
     void disabledWithoutApiKey() {
-        AiListingService service = new AiListingService(null, "");
+        AiListingService service = new AiListingService(null, new ClaudeClient(""));
         assertThat(service.isEnabled()).isFalse();
         assertThatThrownBy(() -> service.suggest(new MockMultipartFile("image", new byte[]{1}), "ana"))
                 .isInstanceOf(IllegalArgumentException.class)

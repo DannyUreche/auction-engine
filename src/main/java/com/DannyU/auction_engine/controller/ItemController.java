@@ -65,6 +65,10 @@ public class ItemController {
         if (item.getImageFilenames().size() >= Item.MAX_IMAGES) {
             throw new IllegalArgumentException("Un obiect poate avea maxim " + Item.MAX_IMAGES + " poze!");
         }
+        // The first photo is the main one: the AI moderation looks at the listing again with it
+        if (item.getImageFilenames().isEmpty()) {
+            item.setAiChecked(false);
+        }
         item.getImageFilenames().add(imageStorageService.store(image));
         return itemRepository.save(item);
     }
@@ -253,6 +257,7 @@ public class ItemController {
         int minutes = request.getDurationInMinutes() != null ? request.getDurationInMinutes() : 60;
         newItem.setEndTime((start != null ? start : now).plusMinutes(minutes));
 
+        newItem.setAiChecked(false); // checked by the AI moderation in the background
         Item saved = itemRepository.save(newItem);
         if (saved.isStarted()) {
             alertService.auctionOpened(saved);
@@ -291,6 +296,7 @@ public class ItemController {
         item.setStartPrice(request.getStartPrice());
         // Fara oferte, pretul curent este chiar pretul de pornire
         item.setCurrentPrice(request.getStartPrice());
+        item.setAiChecked(false); // the edited text is checked again
         item.setBuyNowPrice(request.getBuyNowPrice());
         return itemRepository.save(item);
     }

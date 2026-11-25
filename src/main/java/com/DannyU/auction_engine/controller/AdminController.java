@@ -22,12 +22,23 @@ public class AdminController {
     private final DemoDataService demoDataService;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final com.DannyU.auction_engine.service.ClaudeClient claudeClient;
+    private final com.DannyU.auction_engine.repository.ItemRepository itemRepository;
     private final com.DannyU.auction_engine.service.FeaturedService featuredService;
 
     public record EmailStatus(boolean configured, String from) {
     }
 
     public record Message(String mesaj) {
+    }
+
+    public record AiStatus(boolean enabled, long pendingListings) {
+    }
+
+    // AI features on? (ANTHROPIC_API_KEY) and how many listings still wait for the AI moderation
+    @GetMapping("/ai")
+    public AiStatus aiStatus() {
+        return new AiStatus(claudeClient.isEnabled(), itemRepository.countByAiCheckedFalseAndActiveTrue());
     }
 
     // Is SMTP configured? (the admin panel shows it next to the "send test email" button)

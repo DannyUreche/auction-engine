@@ -1,8 +1,6 @@
 package com.DannyU.auction_engine.service;
 
 import com.DannyU.auction_engine.entity.Category;
-import com.anthropic.client.AnthropicClient;
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.errors.AnthropicServiceException;
 import com.anthropic.errors.RateLimitException;
 import com.anthropic.models.messages.Base64ImageSource;
@@ -15,14 +13,12 @@ import com.anthropic.models.messages.StructuredMessageCreateParams;
 import com.anthropic.models.messages.TextBlockParam;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Base64;
@@ -39,21 +35,17 @@ import java.util.stream.Collectors;
 @Service
 public class AiListingService {
 
-    static final String MODEL = "claude-opus-5-5";
+    static final String MODEL = ClaudeClient.MODEL;
     static final int MAX_REQUESTS_PER_HOUR = 10;
     private static final long MAX_IMAGE_BYTES = 5L * 1024 * 1024;
 
     private final ImageStorageService imageStorageService;
-    private final AnthropicClient client;
+    private final ClaudeClient claude;
     private final Map<String, Deque<Long>> requests = new ConcurrentHashMap<>();
 
-    public AiListingService(ImageStorageService imageStorageService,
-                            @Value("${app.ai.anthropic-api-key:}") String apiKey) {
+    public AiListingService(ImageStorageService imageStorageService, ClaudeClient claude) {
         this.imageStorageService = imageStorageService;
-        this.client = apiKey.isBlank() ? null : AnthropicOkHttpClient.builder()
-                .apiKey(apiKey)
-                .timeout(Duration.ofSeconds(90))
-                .build();
+        this.claude = claude;
     }
 
     // What Claude returns (the JSON schema is derived from this record by the SDK)
@@ -73,7 +65,7 @@ public class AiListingService {
     }
 
     public boolean isEnabled() {
-        return client != null;
+        return claude.isEnabled();
     }
 
     public ListingSuggestion suggest(MultipartFile file, String username) {
@@ -108,7 +100,7 @@ public class AiListingService {
                 .build();
 
         try {
-            StructuredMessage<Suggestion> response = client.messages().create(params);
+            StructuredMessage<Suggestion> response = claude.get().messages().create(params);
             if (response.stopReason().map(StopReason.REFUSAL::equals).orElse(false)) {
                 throw new IllegalArgumentException("Asistentul AI nu poate analiza aceasta poza. Completeaza anuntul manual.");
             }

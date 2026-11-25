@@ -14,7 +14,7 @@ public final class AdminDtos {
     }
 
     public record ReportRow(Integer id, Integer itemId, String itemName, String reporter, String reason, String details,
-                            LocalDateTime createdAt) {
+                            LocalDateTime createdAt, String source) {
     }
 
     public record UserRow(Integer id, String username, String email, LocalDateTime createdAt,

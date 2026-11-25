@@ -10,4 +10,7 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
     boolean existsByItemIdAndReporterUsername(Integer itemId, String username);
 
     List<Report> findByStatusOrderByCreatedAtAsc(Report.Status status);
+
+    boolean existsByItemIdAndSourceAndStatus(Integer itemId, com.DannyU.auction_engine.entity.Report.Source source,
+                                             com.DannyU.auction_engine.entity.Report.Status status);
 }

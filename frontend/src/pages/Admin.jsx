@@ -307,18 +307,56 @@ const REASONS = {
 
 // Open reports: look at the item, then dismiss the report or delete the item
 function ReportsTable({ reports, onDismiss, onDeleteItem }) {
-  if (reports.length === 0) return <p className="px-6 py-10 text-center text-sm text-slate-500">Nicio raportare deschisa.</p>
+  return (
+    <>
+      <AiModerationStatus />
+      {reports.length === 0 ? (
+        <p className="px-6 py-10 text-center text-sm text-slate-500">Nicio raportare deschisa.</p>
+      ) : (
+        <ReportList reports={reports} onDismiss={onDismiss} onDeleteItem={onDeleteItem} />
+      )}
+    </>
+  )
+}
+
+// Whether the AI moderation runs (ANTHROPIC_API_KEY) and how many new listings it still has to check
+function AiModerationStatus() {
+  const [status, setStatus] = useState(null)
+  useEffect(() => {
+    api('/admin/ai')
+      .then(setStatus)
+      .catch(() => {})
+  }, [])
+  if (!status) return null
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-violet-50/60 px-6 py-3 text-sm text-slate-700">
+      <Icon name="sparkles" size={18} />
+      <b>Moderare AI:</b>
+      {status.enabled ? (
+        <>
+          activa · Claude verifica fiecare anunt nou si il semnaleaza aici daca pare suspect
+          {status.pendingListings > 0 && <span className="text-slate-500">· {status.pendingListings} in asteptare</span>}
+        </>
+      ) : (
+        <span className="text-slate-500">inactiva (pune ANTHROPIC_API_KEY in Render ca sa o pornesti)</span>
+      )}
+    </div>
+  )
+}
+
+function ReportList({ reports, onDismiss, onDeleteItem }) {
   return (
     <ul className="divide-y divide-slate-100">
       {reports.map((report) => (
-        <li key={report.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <li key={report.id} className={`flex flex-wrap items-center justify-between gap-3 px-6 py-4 ${report.source === 'AI' ? 'bg-violet-50/40' : ''}`}>
           <div className="min-w-0">
-            <p className="flex items-center gap-2 font-medium text-slate-900">
-              <Icon name="flag" size={18} />
+            <p className="flex flex-wrap items-center gap-2 font-medium text-slate-900">
+              <Icon name={report.source === 'AI' ? 'sparkles' : 'flag'} size={18} />
               <Link to={`/items/${report.itemId}`} className="truncate hover:underline">
                 {report.itemName}
               </Link>
               <Badge tone="red">{REASONS[report.reason] ?? report.reason}</Badge>
+              {report.source === 'AI' && <Badge tone="indigo">Semnalat de AI</Badge>}
             </p>
             <p className="mt-0.5 text-sm text-slate-500">
               de la {report.reporter} · {formatDate(report.createdAt)}

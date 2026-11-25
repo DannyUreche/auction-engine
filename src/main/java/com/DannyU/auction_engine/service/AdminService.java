@@ -109,8 +109,9 @@ public class AdminService {
 
     public List<AdminDtos.ReportRow> openReports() {
         return reportRepository.findByStatusOrderByCreatedAtAsc(com.DannyU.auction_engine.entity.Report.Status.OPEN).stream()
-                .map(r -> new AdminDtos.ReportRow(r.getId(), r.getItem().getId(), r.getItem().getName(), r.getReporter().getUsername(),
-                        r.getReason().name(), r.getDetails(), r.getCreatedAt()))
+                .map(r -> new AdminDtos.ReportRow(r.getId(), r.getItem().getId(), r.getItem().getName(),
+                        r.getReporter() == null ? "Asistent AI" : r.getReporter().getUsername(),
+                        r.getReason().name(), r.getDetails(), r.getCreatedAt(), r.getSource().name()))
                 .toList();
     }
 

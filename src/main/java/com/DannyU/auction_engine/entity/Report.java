@@ -16,6 +16,9 @@ public class Report {
 
     public enum Status { OPEN, DISMISSED }
 
+    // USER = reported by a person, AI = flagged by the AI moderation (no reporter)
+    public enum Source { USER, AI }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -27,7 +30,7 @@ public class Report {
 
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "reporter_id", nullable = false)
+    @JoinColumn(name = "reporter_id")
     private User reporter;
 
     @Enumerated(EnumType.STRING)
@@ -40,6 +43,10 @@ public class Report {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 12)
     private Status status = Status.OPEN;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Source source = Source.USER;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
