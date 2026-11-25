@@ -293,3 +293,15 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
   60% { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
+
+/* Price estimate (components/PriceEstimate.jsx): the typical range grows in, the current price drops onto it */
+.estimate-band { transform-origin: center; animation: estimate-band 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.estimate-dot { animation: estimate-dot 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) 0.5s both; }
+@keyframes estimate-band {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+@keyframes estimate-dot {
+  from { transform: translate(-50%, -160%); opacity: 0; }
+  to { transform: translate(-50%, -50%); opacity: 1; }
+}

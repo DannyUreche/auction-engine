@@ -220,7 +220,17 @@ public class DemoDataService {
             }
             itemRepository.save(item);
 
-            if (demo.kind() == DemoCatalog.Kind.ENGLISH) {
+            if (demo.kind() == DemoCatalog.Kind.ENGLISH && i % 10 == 7) {
+                // One listing per category already sold a few hours ago (data for "Cat valoreaza?")
+                LocalDateTime ended = now.minusHours(3 + random.nextInt(48));
+                item.setEndTime(ended);
+                addBids(item, users, seller, random, ended, 4 + random.nextInt(4));
+                bidRepository.findTopByItemIdOrderByAmountDesc(item.getId()).ifPresent(top -> {
+                    item.setActive(false);
+                    item.setWinner(top.getBidder());
+                    itemRepository.save(item);
+                });
+            } else if (demo.kind() == DemoCatalog.Kind.ENGLISH) {
                 addBids(item, users, seller, random, now, random.nextInt(7));
             }
         }

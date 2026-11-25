@@ -12,6 +12,7 @@ import com.DannyU.auction_engine.entity.Counties;
 import com.DannyU.auction_engine.entity.Delivery;
 import com.DannyU.auction_engine.service.AlertService;
 import com.DannyU.auction_engine.service.FeaturedService;
+import com.DannyU.auction_engine.service.PriceEstimateService;
 import com.DannyU.auction_engine.service.BidService;
 import com.DannyU.auction_engine.service.ImageStorageService;
 import com.DannyU.auction_engine.service.ItemSearchService;
@@ -45,6 +46,7 @@ public class ItemController {
     private final ItemSearchService itemSearchService;
     private final AlertService alertService;
     private final FeaturedService featuredService;
+    private final PriceEstimateService priceEstimateService;
 
     // "Cumpara acum": utilizatorul logat plateste pretul fix si castiga imediat
     @PostMapping("/{id}/buy-now")
@@ -148,6 +150,13 @@ public class ItemController {
             }
         }
         return itemSearchService.search(new ItemSearchService.Filters(q, category, county, min, max, type, sort), page, size);
+    }
+
+    // What similar items sold for (public); 204 when there are not enough sales to compare
+    @GetMapping("/{id}/price-estimate")
+    public org.springframework.http.ResponseEntity<PriceEstimateService.Estimate> priceEstimate(@PathVariable Integer id) {
+        return priceEstimateService.estimate(id).map(org.springframework.http.ResponseEntity::ok)
+                .orElse(org.springframework.http.ResponseEntity.noContent().build());
     }
 
     // "Licitatia saptamanii" for the home page (public); 204 when there is no running auction

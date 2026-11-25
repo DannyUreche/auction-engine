@@ -187,11 +187,11 @@ class AdminApiTest {
         mockMvc.perform(post("/api/admin/demo-data").header("Authorization", bearer(admin)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").value(106));
-        // The catalog fills every category with at least 10 listings, each with photos and a description
+        // The catalog fills every category with 10 listings (one of them already sold), each with photos and a description
         for (Category category : Category.values()) {
             mockMvc.perform(get("/api/items/active"))
                     .andExpect(jsonPath("$[?(@.category == '" + category.name() + "' && @.seller.username =~ /demo_.*/)]",
-                            hasSize(greaterThanOrEqualTo(10))));
+                            hasSize(greaterThanOrEqualTo(9))));
         }
         mockMvc.perform(get("/api/items/active"))
                 .andExpect(jsonPath("$[?(@.seller.username =~ /demo_.*/ && @.imageUrl == null)]", hasSize(0)))

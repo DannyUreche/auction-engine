@@ -26,6 +26,7 @@ import Questions from '../components/Questions.jsx'
 import LiveRoom from '../components/LiveRoom.jsx'
 import { BuyerOffer, SellerOffers } from '../components/Offers.jsx'
 import Badges from '../components/Badges.jsx'
+import PriceEstimate from '../components/PriceEstimate.jsx'
 import FollowButton from '../components/FollowButton.jsx'
 import { deliveryLabel } from '../components/LocationFields.jsx'
 import ReportButton from '../components/ReportButton.jsx'
@@ -236,6 +237,8 @@ export default function ItemDetail() {
               </div>
             </Card>
           )}
+
+          <PriceEstimate item={item} />
 
           <Card>
             <div className="flex items-center justify-between">
