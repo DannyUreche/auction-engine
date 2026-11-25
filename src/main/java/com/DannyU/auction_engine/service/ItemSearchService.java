@@ -2,6 +2,7 @@ package com.DannyU.auction_engine.service;
 
 import com.DannyU.auction_engine.entity.AuctionType;
 import com.DannyU.auction_engine.entity.Category;
+import com.DannyU.auction_engine.entity.Counties;
 import com.DannyU.auction_engine.entity.Item;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-// Search over the active auctions, done in the database: text, category, price, auction type,
+// Search over the active auctions, done in the database: text, category, county, price, auction type,
 // sorting and pages. Also counts the matches per category (ignoring the category filter), for the chips.
 @Service
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class ItemSearchService {
 
     private final EntityManager entityManager;
 
-    public record Filters(String q, Category category, String city, BigDecimal min, BigDecimal max, String type, String sort) {
+    public record Filters(String q, Category category, String county, BigDecimal min, BigDecimal max, String type, String sort) {
     }
 
     public record Page(List<Item> items, long total, int page, int size, int totalPages,
@@ -73,17 +74,19 @@ public class ItemSearchService {
         return new Page(items, total, safePage, safeSize, totalPages, counts, all);
     }
 
-    public record CityCount(String city, long items) {
+    public record CountyCount(String county, long items) {
     }
 
-    // Cities that have active auctions, most items first (the city filter on the home page)
+    // Every county (alphabetical, also the ones without auctions) with its number of active auctions
     @Transactional(readOnly = true)
-    public List<CityCount> cities() {
-        List<Object[]> rows = entityManager.createQuery(
-                        "SELECT i.city, COUNT(i) FROM Item i WHERE i.active = true AND i.city IS NOT NULL "
-                                + "GROUP BY i.city ORDER BY COUNT(i) DESC, i.city", Object[].class)
-                .getResultList();
-        return rows.stream().map(row -> new CityCount((String) row[0], (Long) row[1])).toList();
+    public List<CountyCount> counties() {
+        Map<String, Long> counts = new java.util.HashMap<>();
+        for (Object[] row : entityManager.createQuery(
+                "SELECT i.county, COUNT(i) FROM Item i WHERE i.active = true AND i.county IS NOT NULL GROUP BY i.county",
+                Object[].class).getResultList()) {
+            counts.put((String) row[0], (Long) row[1]);
+        }
+        return Counties.ALL.stream().map(county -> new CountyCount(county, counts.getOrDefault(county, 0L))).toList();
     }
 
     private Predicate[] predicates(CriteriaBuilder cb, Root<Item> item, Filters filters, LocalDateTime now, boolean withCategory) {
@@ -98,8 +101,8 @@ public class ItemSearchService {
         if (withCategory && filters.category() != null) {
             list.add(cb.equal(item.get("category"), filters.category()));
         }
-        if (filters.city() != null && !filters.city().isBlank()) {
-            list.add(cb.equal(cb.lower(item.get("city")), filters.city().trim().toLowerCase(Locale.ROOT)));
+        if (filters.county() != null && !filters.county().isBlank()) {
+            list.add(cb.equal(item.get("county"), Counties.canonical(filters.county())));
         }
         if (filters.min() != null) {
             list.add(cb.greaterThanOrEqualTo(item.get("currentPrice"), filters.min()));

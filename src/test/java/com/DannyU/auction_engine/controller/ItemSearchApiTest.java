@@ -107,20 +107,22 @@ class ItemSearchApiTest {
     }
 
     @Test
-    void cityFilterAndCityList() throws Exception {
-        String city = "Oras" + word;
+    void countyFilterAndCountyList() throws Exception {
         Item here = item("Bicicleta " + word, Category.SPORT, "500", null);
-        here.setCity(city);
+        here.setCounty("Caras-Severin");
         itemRepository.save(here);
         item("Minge " + word, Category.SPORT, "50", null);
 
-        mockMvc.perform(get("/api/items/search").param("q", word).param("city", city.toLowerCase()))
+        // Any spelling of the county works
+        mockMvc.perform(get("/api/items/search").param("q", word).param("county", "caraș severin"))
                 .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.items[0].city").value(city))
+                .andExpect(jsonPath("$.items[0].county").value("Caras-Severin"))
                 .andExpect(jsonPath("$.items[0].delivery").value("BOTH"));
-        mockMvc.perform(get("/api/items/cities"))
+        mockMvc.perform(get("/api/items/search").param("county", "Atlantida")).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/items/counties"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.city == '" + city + "')].items").value(org.hamcrest.Matchers.contains(1)));
+                .andExpect(jsonPath("$.length()").value(42))
+                .andExpect(jsonPath("$[0].county").value("Alba"));
     }
 
     @Test

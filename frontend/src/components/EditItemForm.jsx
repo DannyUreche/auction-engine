@@ -15,7 +15,7 @@ export default function EditItemForm({ item, onSaved, onCancel }) {
     category: item.category,
     startPrice: String(item.startPrice),
     buyNowPrice: item.buyNowPrice != null ? String(item.buyNowPrice) : '',
-    city: item.city ?? '',
+    county: item.county ?? '',
     delivery: item.delivery ?? 'BOTH',
   })
   const [error, setError] = useState('')
@@ -36,7 +36,7 @@ export default function EditItemForm({ item, onSaved, onCancel }) {
           category: form.category,
           startPrice: Number(form.startPrice),
           buyNowPrice: form.buyNowPrice ? Number(form.buyNowPrice) : null,
-          city: form.city,
+          county: form.county || null,
           delivery: form.delivery,
         },
       })
@@ -86,7 +86,7 @@ export default function EditItemForm({ item, onSaved, onCancel }) {
           </Field>
         </div>
 
-        <LocationFields city={form.city} delivery={form.delivery} onChange={(change) => setForm((current) => ({ ...current, ...change }))} />
+        <LocationFields county={form.county} delivery={form.delivery} onChange={(change) => setForm((current) => ({ ...current, ...change }))} />
 
         <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
           <Button type="button" variant="secondary" onClick={onCancel}>

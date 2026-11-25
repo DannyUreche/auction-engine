@@ -34,7 +34,7 @@ export default function NewItem() {
     priceDrop: '',
     scheduled: false,
     startTime: '',
-    city: '',
+    county: '',
     delivery: 'BOTH',
   })
   const dutch = form.auctionType === 'DUTCH'
@@ -62,7 +62,7 @@ export default function NewItem() {
           // Optional: gol = fara "Cumpara acum"
           buyNowPrice: !dutch && form.buyNowPrice ? Number(form.buyNowPrice) : null,
           durationInMinutes: Number(form.durationInMinutes),
-          city: form.city,
+          county: form.county || null,
           delivery: form.delivery,
           auctionType: form.auctionType,
           floorPrice: dutch ? Number(form.floorPrice) : null,
@@ -200,7 +200,7 @@ export default function NewItem() {
             </Field>
           </div>
 
-          <LocationFields city={form.city} delivery={form.delivery} onChange={(change) => setForm((current) => ({ ...current, ...change }))} />
+          <LocationFields county={form.county} delivery={form.delivery} onChange={(change) => setForm((current) => ({ ...current, ...change }))} />
 
           {!dutch && (
           <Field

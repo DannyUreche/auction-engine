@@ -77,9 +77,9 @@ export default function ItemCard({ item, extra, index = 0 }) {
       <div className="flex flex-1 flex-col p-5">
         <p className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
           <CategoryIcon category={category} size={15} /> {t(category.label)}
-          {item.city && (
+          {item.county && (
             <span className="ml-auto flex min-w-0 items-center gap-1">
-              <Icon name="pin" size={14} /> <span className="truncate">{item.city}</span>
+              <Icon name="pin" size={14} /> <span className="truncate">{item.county}</span>
             </span>
           )}
         </p>

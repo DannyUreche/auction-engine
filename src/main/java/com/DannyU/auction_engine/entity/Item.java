@@ -94,9 +94,9 @@ public class Item {
     @Column(name = "price_drop")
     private BigDecimal priceDrop;
 
-    // City where the item is (optional, free text; filter on the home page)
+    // County where the item is (one of Counties.ALL, optional; filter on the home page)
     @Column(length = 60)
-    private String city;
+    private String county;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

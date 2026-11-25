@@ -11,6 +11,7 @@ import { useAuctionEvents } from '../events.jsx'
 import Hero3D from '../hero/Hero3D.jsx'
 import { useT } from '../i18n.jsx'
 import { useAuth } from '../auth.jsx'
+import { COUNTIES } from '../counties.js'
 
 const SORTS = {
   ending: { label: 'Se termina curand' },
@@ -33,9 +34,9 @@ const PAGE_SIZE = 12
 // /items/search URL for the filters and one page of results (the server does the filtering, see ItemSearchService)
 function searchUrl(filters, page, size = PAGE_SIZE) {
   const params = new URLSearchParams({ page, size })
-  const { cat, q, min, max, city, type, sort } = filters
+  const { cat, q, min, max, county, type, sort } = filters
   if (cat) params.set('cat', cat)
-  if (city) params.set('city', city)
+  if (county) params.set('county', county)
   if (q.trim()) params.set('q', q.trim())
   if (min) params.set('min', min)
   if (max) params.set('max', max)
@@ -50,10 +51,11 @@ export default function Home() {
   const [pages, setPages] = useState(1)
   const [loadingMore, setLoadingMore] = useState(false)
   const [heroItems, setHeroItems] = useState(null)
-  const [cities, setCities] = useState([])
+  // All 42 counties with their number of auctions (also the ones with 0)
+  const [counties, setCounties] = useState(() => COUNTIES.map((name) => ({ county: name, items: 0 })))
   useEffect(() => {
-    api('/items/cities', { auth: false })
-      .then(setCities)
+    api('/items/counties', { auth: false })
+      .then(setCounties)
       .catch(() => {})
   }, [])
   const [error, setError] = useState('')
@@ -70,11 +72,11 @@ export default function Home() {
     q: params.get('q') ?? '',
     min: params.get('min') ?? '',
     max: params.get('max') ?? '',
-    city: params.get('city') ?? '',
+    county: params.get('county') ?? '',
     type: TYPES.some(([key]) => key === params.get('type')) ? params.get('type') : '',
     sort: SORTS[params.get('sort')] ? params.get('sort') : 'ending',
   }))
-  const { cat: category, q: search, min: minPrice, max: maxPrice, city, type, sort } = filters
+  const { cat: category, q: search, min: minPrice, max: maxPrice, county, type, sort } = filters
 
   useEffect(() => {
     const next = new URLSearchParams()
@@ -86,7 +88,7 @@ export default function Home() {
   }, [filters, setParams])
 
   const setFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }))
-  const clearFilters = () => setFilters((current) => ({ cat: '', q: '', min: '', max: '', city: '', type: '', sort: current.sort }))
+  const clearFilters = () => setFilters((current) => ({ cat: '', q: '', min: '', max: '', county: '', type: '', sort: current.sort }))
 
   // Typing in the search or price fields waits a moment before asking the server
   const [query, setQuery] = useState(filters)
@@ -175,7 +177,7 @@ export default function Home() {
   const total = result?.total ?? 0
   const countFor = (code) => result?.categoryCounts?.[code] ?? 0
   const term = search.trim()
-  const hasFilters = Boolean(category || term || minPrice || maxPrice || city || type)
+  const hasFilters = Boolean(category || term || minPrice || maxPrice || county || type)
 
   return (
     <div>
@@ -310,14 +312,13 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-[12rem_9rem_9rem_14rem]">
             <div className="col-span-2 sm:col-span-1">
-              <Select value={city} onChange={(e) => setFilter('city', e.target.value)} aria-label={t('Oras')}>
-                <option value="">{t('Toate orasele')}</option>
-                {cities.map((c) => (
-                  <option key={c.city} value={c.city}>
-                    {c.city} ({c.items})
+              <Select value={county} onChange={(e) => setFilter('county', e.target.value)} aria-label={t('Judet')}>
+                <option value="">{t('Toate judetele')}</option>
+                {counties.map((c) => (
+                  <option key={c.county} value={c.county}>
+                    {c.county} ({c.items})
                   </option>
                 ))}
-                {city && !cities.some((c) => c.city === city) && <option value={city}>{city}</option>}
               </Select>
             </div>
             <Input type="number" min="0" placeholder={t('Pret minim')} value={minPrice} onChange={(e) => setFilter('min', e.target.value)} />
@@ -344,7 +345,7 @@ export default function Home() {
             {type && <FilterPill onRemove={() => setFilter('type', '')}>{t(TYPES.find(([key]) => key === type)[1])}</FilterPill>}
             {minPrice && <FilterPill onRemove={() => setFilter('min', '')}>{t('de la')} {minPrice} RON</FilterPill>}
             {maxPrice && <FilterPill onRemove={() => setFilter('max', '')}>{t('pana la')} {maxPrice} RON</FilterPill>}
-            {city && <FilterPill onRemove={() => setFilter('city', '')}>{city}</FilterPill>}
+            {county && <FilterPill onRemove={() => setFilter('county', '')}>{t('jud.')} {county}</FilterPill>}
             {user && (term || category || minPrice || maxPrice) && (
               <SaveAlertButton
                 key={`${term}|${category}|${minPrice}|${maxPrice}`}

@@ -8,6 +8,7 @@ import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.entity.Bid;
 import com.DannyU.auction_engine.entity.AuctionType;
 import com.DannyU.auction_engine.entity.Category;
+import com.DannyU.auction_engine.entity.Counties;
 import com.DannyU.auction_engine.entity.Delivery;
 import com.DannyU.auction_engine.service.AlertService;
 import com.DannyU.auction_engine.service.BidService;
@@ -129,7 +130,7 @@ public class ItemController {
     @GetMapping("/search")
     public ItemSearchService.Page search(@RequestParam(required = false) String q,
                                          @RequestParam(required = false) String cat,
-                                         @RequestParam(required = false) String city,
+                                         @RequestParam(required = false) String county,
                                          @RequestParam(required = false) BigDecimal min,
                                          @RequestParam(required = false) BigDecimal max,
                                          @RequestParam(required = false) String type,
@@ -144,13 +145,13 @@ public class ItemController {
                 throw new IllegalArgumentException("Categorie necunoscuta: " + cat);
             }
         }
-        return itemSearchService.search(new ItemSearchService.Filters(q, category, city, min, max, type, sort), page, size);
+        return itemSearchService.search(new ItemSearchService.Filters(q, category, county, min, max, type, sort), page, size);
     }
 
-    // Cities with active auctions and how many each has (public)
-    @GetMapping("/cities")
-    public List<ItemSearchService.CityCount> cities() {
-        return itemSearchService.cities();
+    // All counties with how many active auctions each has (public; the county filter)
+    @GetMapping("/counties")
+    public List<ItemSearchService.CountyCount> counties() {
+        return itemSearchService.counties();
     }
 
     // Doar licitatiile inca deschise
@@ -199,7 +200,7 @@ public class ItemController {
 
         // Categoria e optionala: implicit "Altele"
         newItem.setCategory(request.getCategory() != null ? request.getCategory() : Category.ALTELE);
-        newItem.setCity(cleanCity(request.getCity()));
+        newItem.setCounty(Counties.canonical(request.getCounty()));
         newItem.setDelivery(request.getDelivery() != null ? request.getDelivery() : Delivery.BOTH);
 
         // Scheduled start (optional): between 1 minute and 30 days from now
@@ -267,22 +268,13 @@ public class ItemController {
         item.setName(request.getName());
         item.setDescription(request.getDescription());
         item.setCategory(request.getCategory() != null ? request.getCategory() : Category.ALTELE);
-        item.setCity(cleanCity(request.getCity()));
+        item.setCounty(Counties.canonical(request.getCounty()));
         item.setDelivery(request.getDelivery() != null ? request.getDelivery() : Delivery.BOTH);
         item.setStartPrice(request.getStartPrice());
         // Fara oferte, pretul curent este chiar pretul de pornire
         item.setCurrentPrice(request.getStartPrice());
         item.setBuyNowPrice(request.getBuyNowPrice());
         return itemRepository.save(item);
-    }
-
-    // City as typed, trimmed and with single spaces; blank = unknown
-    private static String cleanCity(String city) {
-        if (city == null || city.isBlank()) {
-            return null;
-        }
-        String cleaned = city.trim().replaceAll("\\s+", " ");
-        return Character.toUpperCase(cleaned.charAt(0)) + cleaned.substring(1);
     }
 
     // Aceleasi campuri ca la creare, fara durata (data de incheiere nu se schimba)
@@ -306,8 +298,8 @@ public class ItemController {
         @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
         private BigDecimal buyNowPrice;
 
-        @Size(max = 60, message = "Orasul poate avea maxim 60 de caractere!")
-        private String city;
+        // One of the 41 counties or Bucuresti (any case, with or without diacritics); empty = not given
+        private String county;
 
         // COURIER, PICKUP or BOTH (default)
         private Delivery delivery;
@@ -338,8 +330,8 @@ public class ItemController {
         @Digits(integer = 8, fraction = 2, message = "Pretul poate avea maxim 8 cifre si 2 zecimale!")
         private BigDecimal buyNowPrice;
 
-        @Size(max = 60, message = "Orasul poate avea maxim 60 de caractere!")
-        private String city;
+        // One of the 41 counties or Bucuresti (any case, with or without diacritics); empty = not given
+        private String county;
 
         // COURIER, PICKUP or BOTH (default)
         private Delivery delivery;

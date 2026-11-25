@@ -46,8 +46,8 @@ public class DemoDataService {
                             Color from, Color to, DemoImagePainter.Shape shape) {
     }
 
-    private static final String[] CITIES = {"Bucuresti", "Cluj-Napoca", "Iasi", "Timisoara", "Suceava", "Brasov",
-            "Constanta", "Craiova", "Oradea", "Sibiu"};
+    // Demo listings are spread over every county
+    private static final java.util.List<String> COUNTIES = com.DannyU.auction_engine.entity.Counties.ALL;
 
     private static final String[] USERS = {"ana", "mihai", "ioana", "radu", "elena", "vlad", "bianca"};
 
@@ -123,7 +123,7 @@ public class DemoDataService {
             item.setCurrentPrice(BigDecimal.valueOf(demo.startPrice()));
             item.setBuyNowPrice(demo.buyNow() == null ? null : BigDecimal.valueOf(demo.buyNow()));
             item.setSeller(seller);
-            item.setCity(CITIES[random.nextInt(CITIES.length)]);
+            item.setCounty(COUNTIES.get(random.nextInt(COUNTIES.size())));
             item.setDelivery(com.DannyU.auction_engine.entity.Delivery.values()[random.nextInt(3)]);
             item.setEndTime(sold ? now.minusHours(1 + random.nextInt(20)) : now.plus(remaining[i % remaining.length]));
             int photos = 1 + random.nextInt(3);
@@ -189,7 +189,7 @@ public class DemoDataService {
             item.setStartPrice(start);
             item.setCurrentPrice(start);
             item.setSeller(seller);
-            item.setCity(CITIES[random.nextInt(CITIES.length)]);
+            item.setCounty(COUNTIES.get(random.nextInt(COUNTIES.size())));
             item.setDelivery(com.DannyU.auction_engine.entity.Delivery.values()[random.nextInt(3)]);
             switch (demo.kind()) {
                 case ENGLISH -> {

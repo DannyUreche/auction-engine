@@ -1,5 +1,6 @@
 import { Icon } from './icons.jsx'
-import { Field, Input } from './ui.jsx'
+import { COUNTIES } from '../counties.js'
+import { Field, Select } from './ui.jsx'
 
 export const DELIVERY = [
   { code: 'BOTH', label: 'Curier sau predare personala', short: 'Curier / personal' },
@@ -9,26 +10,20 @@ export const DELIVERY = [
 
 export const deliveryLabel = (code) => DELIVERY.find((d) => d.code === code)?.label ?? DELIVERY[0].label
 
-const CITIES = ['Bucuresti', 'Cluj-Napoca', 'Iasi', 'Timisoara', 'Constanta', 'Craiova', 'Brasov', 'Galati', 'Ploiesti',
-  'Oradea', 'Braila', 'Arad', 'Pitesti', 'Sibiu', 'Bacau', 'Targu Mures', 'Baia Mare', 'Buzau', 'Botosani', 'Suceava']
 
-// City (with suggestions) and how the item reaches the buyer; used by the sell and edit forms
-export default function LocationFields({ city, delivery, onChange }) {
+// County and how the item reaches the buyer; used by the sell and edit forms
+export default function LocationFields({ county, delivery, onChange }) {
   return (
     <div className="grid gap-6 sm:grid-cols-2">
-      <Field label="Oras (optional)" hint="Cumparatorii pot filtra licitatiile dupa oras.">
-        <Input
-          list="city-suggestions"
-          value={city}
-          maxLength={60}
-          onChange={(e) => onChange({ city: e.target.value })}
-          placeholder="ex: Suceava"
-        />
-        <datalist id="city-suggestions">
-          {CITIES.map((name) => (
-            <option key={name} value={name} />
+      <Field label="Judet (optional)" hint="Cumparatorii pot filtra licitatiile dupa judet.">
+        <Select value={county} onChange={(e) => onChange({ county: e.target.value })}>
+          <option value="">Alege judetul</option>
+          {COUNTIES.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
           ))}
-        </datalist>
+        </Select>
       </Field>
       <div>
         <span className="mb-1.5 block text-sm font-medium text-slate-700">Livrare</span>
