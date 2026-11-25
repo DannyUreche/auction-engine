@@ -62,4 +62,10 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     List<Item> findTop5ByAiCheckedFalseAndActiveTrueOrderByIdAsc();
 
     long countByAiCheckedFalseAndActiveTrue();
+
+    // Reads the item and locks its row until the transaction ends (SELECT ... FOR UPDATE): two bids on the same
+    // item are handled one after the other, so the second one sees the price set by the first
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT i FROM Item i WHERE i.id = :id")
+    java.util.Optional<Item> findByIdForUpdate(@Param("id") Integer id);
 }

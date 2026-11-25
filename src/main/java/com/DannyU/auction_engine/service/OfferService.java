@@ -74,7 +74,8 @@ public class OfferService {
     @Transactional
     public Offer respond(Integer offerId, String username, Action action, BigDecimal counterAmount) {
         Offer offer = offerRepository.findById(offerId).orElseThrow(() -> new IllegalArgumentException("Oferta nu a fost gasita!"));
-        Item item = offer.getItem();
+        // Locked: accepting an offer and a bid at the same moment can't both win
+        Item item = itemRepository.findByIdForUpdate(offer.getItem().getId()).orElseThrow();
         boolean seller = item.getSeller().getUsername().equals(username);
         boolean buyer = offer.getBuyer().getUsername().equals(username);
         if (!seller && !buyer) {

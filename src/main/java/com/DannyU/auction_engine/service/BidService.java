@@ -157,8 +157,9 @@ public class BidService {
         return bidRepository.findByBidderUsernameOrderByCreatedAtDesc(bidderUsername);
     }
 
+    // Locked read: every path that changes the price (bid, auto-bid, buy now) waits for the previous one
     private Item findItem(Integer itemId) {
-        return itemRepository.findById(itemId)
+        return itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
     }
 

@@ -26,6 +26,7 @@ public class AuctionScheduler {
     private final WalletService walletService;
     private final com.DannyU.auction_engine.repository.WatchedItemRepository watchedItemRepository;
     private final AlertService alertService;
+    private final jakarta.persistence.EntityManager entityManager;
     private final com.DannyU.auction_engine.repository.OfferRepository offerRepository;
 
     // Se executa automat o data la 60.000 milisecunde (1 minut)
@@ -70,7 +71,19 @@ public class AuctionScheduler {
 
     // Inchide o licitatie si stabileste castigatorul. Folosita si de administrator ("Inchide acum").
     @Transactional
-    public void closeAuction(Item item) {
+    public void closeAuction(Item toClose) {
+        // Lock the row and re-read it: a bid that arrives while we close waits, and an auction is never closed twice
+        Item item;
+        if (entityManager.contains(toClose)) {
+            entityManager.flush(); // keep changes made earlier in this transaction (e.g. the buy-now price)
+            entityManager.refresh(toClose, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+            item = toClose;
+        } else {
+            item = itemRepository.findByIdForUpdate(toClose.getId()).orElseThrow();
+        }
+        if (!Boolean.TRUE.equals(item.getActive())) {
+            return;
+        }
         offerRepository.expireOpen(item.getId());
         // 2. Cautam oferta cea mai mare
         Optional<Bid> winningBid = bidRepository.findTopByItemIdOrderByAmountDesc(item.getId());
