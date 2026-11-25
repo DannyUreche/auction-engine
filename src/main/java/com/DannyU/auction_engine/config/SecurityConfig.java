@@ -48,7 +48,7 @@ public class SecurityConfig {
                         // altfel /api/items/{id} s-ar potrivi si pe /api/items/my
                         .requestMatchers("/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/items/*/auto-bid", "/api/items/*/messages", "/api/items/recommended", "/api/bids/my").authenticated()
                         // Oricine (si fara cont) poate vedea licitatiile si istoricul ofertelor
-                        .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats", "/api/health", "/api/users/*/profile", "/api/push/public-key").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats", "/api/health", "/api/users/*/profile", "/api/users/*/badges", "/api/push/public-key").permitAll()
                         // Live room presence heartbeat: visitors without an account count as viewers too
                         .requestMatchers(HttpMethod.POST, "/api/items/*/presence", "/api/items/*/presence/leave").permitAll()
                         // Evenimentele in timp real (EventSource nu poate trimite token-ul)

@@ -6,6 +6,7 @@ import com.DannyU.auction_engine.repository.ItemRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.service.AccountService;
 import com.DannyU.auction_engine.service.AdminAccess;
+import com.DannyU.auction_engine.service.BadgeService;
 import com.DannyU.auction_engine.service.ReviewService;
 import com.DannyU.auction_engine.service.SellerStatsService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class UserController {
     private final ReviewService reviewService;
     private final AccountService accountService;
     private final SellerStatsService sellerStatsService;
+    private final BadgeService badgeService;
 
     public record DeleteRequest(String confirm) {
     }
@@ -67,6 +69,14 @@ public class UserController {
                 adminAccess.isAdmin(user.getUsername()));
     }
 
+    // Only the badges (the item page shows the seller's next to their name). Public.
+    @GetMapping("/{username}/badges")
+    public List<BadgeService.BadgeDto> getBadges(@PathVariable String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Utilizatorul nu a fost gasit!"));
+        return badgeService.badgesOf(user);
+    }
+
     // Profilul public al unui utilizator (fara email): obiectele lui active si cele vandute
     @GetMapping("/{username}/profile")
     public PublicProfile getProfile(@PathVariable String username) {
@@ -80,12 +90,14 @@ public class UserController {
                 items.stream().filter(Item::getActive).toList(),
                 items.stream().filter(item -> !item.getActive() && item.getWinner() != null).toList(),
                 reviewService.ratingOf(username),
-                reviewService.receivedBy(username));
+                reviewService.receivedBy(username),
+                badgeService.badgesOf(user));
     }
 
     public record PublicProfile(Integer id, String username, LocalDateTime createdAt,
                                 List<Item> activeItems, List<Item> soldItems,
-                                ReviewService.Rating rating, List<ReviewService.ReviewDto> reviews) {
+                                ReviewService.Rating rating, List<ReviewService.ReviewDto> reviews,
+                                List<BadgeService.BadgeDto> badges) {
     }
 
     public record CurrentUser(Integer id, String username, String email, LocalDateTime createdAt, boolean admin) {

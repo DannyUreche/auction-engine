@@ -24,6 +24,7 @@ import { ItemReviews } from '../components/Reviews.jsx'
 import ChatBox from '../components/ChatBox.jsx'
 import Questions from '../components/Questions.jsx'
 import LiveRoom from '../components/LiveRoom.jsx'
+import Badges from '../components/Badges.jsx'
 import ReportButton from '../components/ReportButton.jsx'
 import ShareButton from '../components/ShareButton.jsx'
 import { CategoryIcon, Icon } from '../components/icons.jsx'
@@ -201,6 +202,7 @@ export default function ItemDetail() {
                     {item.seller?.username}
                   </Link>
                 }
+                extra={<SellerBadges username={item.seller?.username} />}
               />
               <Detail
                 label={t('Categorie')}
@@ -521,13 +523,26 @@ function ArrowButton({ label, className, onClick, children }) {
   )
 }
 
-function Detail({ label, value }) {
+function Detail({ label, value, extra }) {
   return (
     <div>
       <dt className="text-xs font-medium tracking-wide text-slate-400 uppercase">{label}</dt>
       <dd className="mt-1 text-sm font-semibold text-slate-900">{value}</dd>
+      {extra && <dd className="mt-1.5">{extra}</dd>}
     </div>
   )
+}
+
+// The seller's reputation badges, next to their name
+function SellerBadges({ username }) {
+  const [badges, setBadges] = useState([])
+  useEffect(() => {
+    if (!username) return
+    api(`/users/${encodeURIComponent(username)}/badges`, { auth: false })
+      .then(setBadges)
+      .catch(() => setBadges([]))
+  }, [username])
+  return <Badges badges={badges} compact />
 }
 
 function BidPanel({ item, user, isSeller, leadingBid, onBid }) {

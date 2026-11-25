@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
+import Badges from '../components/Badges.jsx'
 import ItemCard from '../components/ItemCard.jsx'
 import { ReviewCard, Stars } from '../components/Reviews.jsx'
 import { Alert, Badge, Card, EmptyState, Loading } from '../components/ui.jsx'
@@ -62,6 +63,15 @@ export default function Profile() {
         <Stat label="Obiecte vandute" value={profile.soldItems.length} />
         <Stat label="Valoare vanduta" value={formatPrice(soldValue)} />
       </div>
+
+      {profile.badges?.length > 0 && (
+        <>
+          <h2 className="mt-10 text-lg font-semibold text-slate-900">Insigne</h2>
+          <div className="mt-4">
+            <Badges badges={profile.badges} />
+          </div>
+        </>
+      )}
 
       <h2 className="mt-10 text-lg font-semibold text-slate-900">La licitatie acum</h2>
       <div className="mt-4">
