@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { api, clearToken } from '../api.js'
 import { Icon } from './icons.jsx'
+import TwoFactorCard from './TwoFactorCard.jsx'
 import { Alert, Button, Card, Input } from './ui.jsx'
 
 // "Account settings" tab: download all your data (JSON) or delete the account
@@ -46,6 +47,7 @@ export default function AccountSettings({ user }) {
   return (
     <div className="space-y-6">
       <Alert>{error}</Alert>
+      <TwoFactorCard />
       <Card>
         <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
           <Icon name="download" size={22} /> Descarca datele tale

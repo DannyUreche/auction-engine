@@ -93,6 +93,15 @@ public class AuthController {
         return authService.loginWithGoogle(request.credential());
     }
 
+    public record TwoFactorLoginRequest(@jakarta.validation.constraints.NotBlank(message = "Sesiune invalida!") String ticket,
+                                        @jakarta.validation.constraints.NotBlank(message = "Introdu codul!") String code) {
+    }
+
+    @PostMapping("/login/2fa")
+    public AuthResponse loginSecondStep(@Valid @RequestBody TwoFactorLoginRequest request) {
+        return authService.loginSecondStep(request.ticket(), request.code());
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));

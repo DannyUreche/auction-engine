@@ -24,7 +24,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     private static final long WINDOW_MS = 60_000;
     private static final Set<String> LIMITED = Set.of("/api/auth/login", "/api/auth/register", "/api/auth/forgot-password",
-            "/api/auth/resend-verification", "/api/auth/google");
+            "/api/auth/resend-verification", "/api/auth/google", "/api/auth/login/2fa");
 
     private final int maxPerMinute;
     private final Map<String, Deque<Long>> requests = new ConcurrentHashMap<>();

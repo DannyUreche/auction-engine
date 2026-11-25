@@ -27,12 +27,21 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:expired', handleExpired)
   }, [])
 
+  // Returns { twoFactorTicket } when the account has 2FA: then call loginTwoFactor with the code
   async function login(username, password) {
-    const { token } = await api('/auth/login', {
+    const result = await api('/auth/login', {
       method: 'POST',
       body: { username, password },
       auth: false,
     })
+    if (result.twoFactorRequired) return { twoFactorTicket: result.twoFactorTicket }
+    setToken(result.token)
+    setUser(await api('/users/me'))
+    return {}
+  }
+
+  async function loginTwoFactor(ticket, code) {
+    const { token } = await api('/auth/login/2fa', { method: 'POST', body: { ticket, code }, auth: false })
     setToken(token)
     setUser(await api('/users/me'))
   }
@@ -60,7 +69,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, loginWithGoogle }}>
+    <AuthContext.Provider value={{ user, loading, login, loginTwoFactor, register, logout, loginWithGoogle }}>
       {children}
     </AuthContext.Provider>
   )

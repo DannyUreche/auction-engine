@@ -19,6 +19,7 @@ public class AuthService {
     private final EmailService emailService;
     private final EmailVerificationService emailVerificationService;
     private final GoogleTokenVerifier googleTokenVerifier;
+    private final TwoFactorService twoFactorService;
 
     public record RegisterResponse(String mesaj, boolean verificationRequired) {
     }
@@ -55,8 +56,22 @@ public class AuthService {
         }
         checkCanLogIn(user);
 
+        if (user.isTwoFactorEnabled()) {
+            return new AuthResponse(null, true, jwtService.generateTwoFactorTicket(user.getUsername()));
+        }
         String token = jwtService.generateToken(user.getUsername());
         return new AuthResponse(token);
+    }
+
+    // Second login step: the ticket from the password step plus a code from the app (or a backup code)
+    public AuthResponse loginSecondStep(String ticket, String code) {
+        User user = userRepository.findByUsername(jwtService.usernameFromTwoFactorTicket(ticket))
+                .orElseThrow(() -> new IllegalArgumentException("Utilizatorul nu a fost gasit!"));
+        checkCanLogIn(user);
+        if (!user.isTwoFactorEnabled() || !twoFactorService.checkCode(user, code)) {
+            throw new IllegalArgumentException("Codul nu este corect!");
+        }
+        return new AuthResponse(jwtService.generateToken(user.getUsername()));
     }
 
     // "Sign in with Google": an existing account with the same email logs in, otherwise one is created

@@ -35,13 +35,38 @@ public class JwtService {
                 .compact();
     }
 
+    // Short-lived ticket between the password and the 2FA code: signed like a login token but marked with a
+    // purpose, so it is never accepted as a login token (isTokenValid rejects it)
+    public String generateTwoFactorTicket(String username) {
+        return Jwts.builder()
+                .subject(username)
+                .claim("purpose", "2fa")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000))
+                .signWith(key)
+                .compact();
+    }
+
+    // The username in a valid, unexpired 2FA ticket
+    public String usernameFromTwoFactorTicket(String ticket) {
+        try {
+            Claims claims = extractAllClaims(ticket);
+            if (!"2fa".equals(claims.get("purpose")) || claims.getExpiration().before(new Date())) {
+                throw new IllegalArgumentException();
+            }
+            return claims.getSubject();
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("Sesiunea de conectare a expirat. Introdu din nou parola.");
+        }
+    }
+
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
 
     public boolean isTokenValid(String token, String username) {
         final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
+        return extractedUsername.equals(username) && !isTokenExpired(token) && extractAllClaims(token).get("purpose") == null;
     }
 
     private boolean isTokenExpired(String token) {

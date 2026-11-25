@@ -159,6 +159,13 @@ const EN = {
 
   // Auth
   'Bine ai revenit': 'Welcome back',
+  'Verificare in doi pasi': 'Two-step verification',
+  'Deschide aplicatia de autentificare si scrie codul de 6 cifre.': 'Open your authenticator app and enter the 6-digit code.',
+  'Cod de rezerva': 'Backup code',
+  'Foloseste codul din aplicatie': 'Use the code from the app',
+  'Foloseste un cod de rezerva': 'Use a backup code',
+  Cifra: 'Digit',
+  Inapoi: 'Back',
   'Intra in cont ca sa licitezi si sa vinzi obiecte.': 'Log in to bid and sell items.',
   Parola: 'Password',
   'Ai uitat parola?': 'Forgot your password?',

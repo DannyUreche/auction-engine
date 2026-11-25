@@ -42,4 +42,13 @@ public class User {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = true;
 
+    // Two-factor authentication (TwoFactorService); the secret never leaves the server after setup
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(name = "two_factor_secret", length = 64)
+    private String twoFactorSecret;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(name = "two_factor_enabled", nullable = false)
+    private boolean twoFactorEnabled = false;
+
 }
