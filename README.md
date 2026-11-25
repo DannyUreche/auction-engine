@@ -36,6 +36,7 @@ The interface is in Romanian, with an English toggle.
 
 **Accounts and safety**
 - JWT login, sign-in with Google, email verification, password reset, rate limiting on the auth endpoints.
+- AI listing assistant: Claude suggests the name, description, category and starting price from a photo.
 - Reporting items, an admin panel with moderation (dismiss / delete), blocking accounts, charts and demo data.
 
 **Interface**
@@ -81,7 +82,7 @@ npm run dev                                   # UI on http://localhost:5173
 - Browser tests: `cd frontend && npm run test:e2e` (needs the backend running)
 
 Optional environment variables: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` (email
-and email verification), `GOOGLE_CLIENT_ID` (sign-in with Google), `ADMIN_USERNAMES` (admin accounts), `APP_BASE_URL`.
+and email verification), `GOOGLE_CLIENT_ID` (sign-in with Google), `ANTHROPIC_API_KEY` (AI listing assistant), `ADMIN_USERNAMES` (admin accounts), `APP_BASE_URL`.
 Without them the app still runs: emails are only logged, and the Google button is hidden.
 
 **Emails with Brevo (free, 300 emails/day):** create an account at brevo.com, then in *SMTP & API → SMTP* generate an

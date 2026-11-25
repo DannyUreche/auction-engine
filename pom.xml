@@ -83,6 +83,12 @@
 			<artifactId>web-push</artifactId>
 			<version>5.1.1</version>
 		</dependency>
+		<!-- Official Anthropic SDK: Claude suggests listing details from a photo (AiListingService) -->
+		<dependency>
+			<groupId>com.anthropic</groupId>
+			<artifactId>anthropic-java</artifactId>
+			<version>3.3.0</version>
+		</dependency>
 		<!-- Cryptography provider used by web-push (EC keys, ECDH) -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>

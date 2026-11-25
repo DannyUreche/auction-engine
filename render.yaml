@@ -43,3 +43,6 @@ services:
       # Optional "Sign in with Google": OAuth client id from Google Cloud Console (empty = button hidden)
       - key: GOOGLE_CLIENT_ID
         sync: false
+      # Optional AI listing assistant (Claude): API key from console.anthropic.com (empty = feature hidden)
+      - key: ANTHROPIC_API_KEY
+        sync: false

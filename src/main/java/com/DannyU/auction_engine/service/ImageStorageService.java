@@ -34,6 +34,11 @@ public class ImageStorageService {
         }
     }
 
+    // MIME type of an image recognized from its first bytes (empty if it isn't a supported image)
+    public Optional<String> contentTypeOf(byte[] data) {
+        return detectType(data).map(type -> type.contentType);
+    }
+
     // Salveaza imaginea si intoarce numele generat (UUID + extensie)
     public String store(MultipartFile file) {
         if (file == null || file.isEmpty()) {

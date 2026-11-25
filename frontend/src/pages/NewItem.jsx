@@ -4,6 +4,7 @@ import { api, MAX_IMAGES, uploadItemImage } from '../api.js'
 import { useCategories } from '../categories.js'
 import CategoryPicker from '../components/CategoryPicker.jsx'
 import { Icon } from '../components/icons.jsx'
+import AiAssistant from '../components/AiAssistant.jsx'
 import ImagePicker from '../components/ImagePicker.jsx'
 import { Alert, Button, Card, Field, Input, Select, Textarea } from '../components/ui.jsx'
 
@@ -108,6 +109,19 @@ export default function NewItem() {
             </span>
             <ImagePicker files={images} onChange={setImages} onError={setError} />
           </div>
+
+          <AiAssistant
+            image={images[0]}
+            onSuggestion={(suggestion) =>
+              setForm((current) => ({
+                ...current,
+                name: suggestion.name,
+                description: suggestion.description,
+                category: suggestion.category,
+                startPrice: String(suggestion.startPrice),
+              }))
+            }
+          />
 
           <Field label="Nume" hint="Maxim 100 de caractere">
             <Input
