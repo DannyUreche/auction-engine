@@ -1,9 +1,19 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { api } from '../api.js'
 import { Icon } from '../components/icons.jsx'
 import { Card } from '../components/ui.jsx'
 
 // Pagina "Despre proiect": arhitectura (diagrama animata), functiile si tehnologiile folosite
 export default function About() {
+  // The AI features need ANTHROPIC_API_KEY on the server; without it their card says they are off
+  const [aiEnabled, setAiEnabled] = useState(null)
+  useEffect(() => {
+    api('/ai/config', { auth: false })
+      .then((config) => setAiEnabled(config.enabled))
+      .catch(() => setAiEnabled(false))
+  }, [])
+
   return (
     <div className="space-y-12">
       <section className="stay-dark relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-12 text-white ring-1 ring-white/10 sm:px-10">
@@ -40,7 +50,14 @@ export default function About() {
               style={{ animationDelay: `${i * 50}ms` }}
               className="animate-fade-up rounded-2xl bg-white/85 p-5 ring-1 ring-slate-200/80 backdrop-blur transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/10"
             >
-              <Icon name={f.icon} size={34} />
+              <div className="flex items-start justify-between gap-2">
+                <Icon name={f.icon} size={34} />
+                {f.ai && aiEnabled === false && (
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200">
+                    Oprit momentan · necesita cheie API
+                  </span>
+                )}
+              </div>
               <h3 className="mt-2 font-semibold text-slate-900">{f.title}</h3>
               <p className="mt-1 text-sm text-slate-600">{f.text}</p>
             </div>
@@ -181,7 +198,12 @@ const FEATURES = [
   { icon: 'download', title: 'Aplicatie instalabila', text: 'Se instaleaza pe telefon (PWA) si trimite notificari push chiar si cu site-ul inchis.' },
   { icon: 'flag', title: 'Moderare', text: 'Obiectele pot fi raportate; administratorii le verifica si pot bloca conturi.' },
   { icon: 'globe', title: 'Cont rapid, in doua limbi', text: 'Intrare cu Google, confirmarea emailului si interfata in romana sau engleza.' },
-  { icon: 'sparkles', title: 'Asistent AI', text: 'Incarci poza obiectului, iar Claude propune titlul, descrierea, categoria si pretul de pornire; cautarea cu AI transforma o cerere scrisa liber in filtre.' },
+  {
+    icon: 'sparkles',
+    title: 'Asistent AI (Claude)',
+    text: 'Claude propune titlul, descrierea, categoria si pretul din poza obiectului, transforma o cautare scrisa liber in filtre si verifica anunturile noi pentru administratori.',
+    ai: true,
+  },
   { icon: 'eye', title: 'Camera live', text: 'Vezi cine urmareste licitatia acum, scrii in chatul public si ofertele noi apar animat.' },
   { icon: 'bell', title: 'Alerte si statistici', text: 'Salvezi o cautare si esti anuntat cand apare ceva potrivit; vanzatorii vad vizualizari si oferte.' },
   { icon: 'trophy', title: 'Licitatia saptamanii si clasament', text: 'Licitatia evidentiata pe prima pagina, podiumul lunii si provocari cu insigne.' },
@@ -190,7 +212,7 @@ const FEATURES = [
   { icon: 'chart', title: 'Piata in cifre', text: 'Statistici publice: pret median pe categorii, evolutia vanzarilor, cele mai disputate licitatii si orele de varf.' },
   { icon: 'gavel', title: 'Licitatii live', text: 'Vanzatorul urca pe scena mai multe obiecte, unul dupa altul, cu cate un minut sau mai mult pentru fiecare lot.' },
   { icon: 'columns', title: 'Harta, comparatie, estimari', text: 'Harta Romaniei cu licitatii pe judete, comparatie intre 3 obiecte si cat s-au vandut obiectele asemanatoare.' },
-  { icon: 'shield', title: 'Doi pasi si moderare AI', text: 'Autentificare cu cod din aplicatie, anunturi verificate de AI si jurnalul actiunilor de administrare.' },
+  { icon: 'shield', title: 'Doi pasi si jurnal de administrare', text: 'Autentificare cu cod din aplicatie, coduri de rezerva si jurnalul tuturor actiunilor de administrare.' },
   { icon: 'pin', title: 'Oras, livrare, insigne', text: 'Filtrezi dupa oras, vezi cum se livreaza si cat de sigur e vanzatorul (insigne de reputatie).' },
 ]
 
@@ -202,7 +224,7 @@ const STACK = [
       ['Spring Security + JWT', 'autentificare fara sesiuni, roluri'],
       ['JPA / Hibernate + Flyway', 'acces la date si migrari versionate'],
       ['JUnit + MockMvc + JaCoCo', 'teste automate pe baza de date reala, cu acoperire'],
-      ['Claude API (SDK Java)', 'asistentul AI pentru anunturi'],
+      ['Claude API (SDK Java)', 'functiile AI (optionale, active doar cu cheie API)'],
     ],
   },
   {
