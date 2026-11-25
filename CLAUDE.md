@@ -15,6 +15,9 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 
 ## CI and browser tests
 
+- Frontend unit tests: Vitest (`npm test`, `npm run test:coverage`), files `src/__tests__/*.test.js`, config in `vite.config.js` (`test:`); they cover plain logic modules (`api.js`, `i18n.jsx` `translate`, `pwa.js`, `errorReporting.js`) and stub browser globals with `vi.stubGlobal`. On Windows run them from a path with an uppercase drive letter (`D:\...`) - with `d:` Vitest loads itself twice and every file fails with "Cannot read properties of undefined (reading 'config')".
+- Backend coverage: Maven profile `coverage` (JaCoCo) -> `target/site/jacoco/`. CI (`ci.yml`) runs `test -Pcoverage`, a separate `frontend` job runs Vitest with coverage, and both write the line coverage to the run summary.
+
 - `.github/workflows/ci.yml` runs on every push/PR to `main`: job `backend` (`./mvnw -B test` against a `postgres:16` service on port 5433, dummy `JWT_SECRET`), then job `e2e` (packages and starts the jar, then Playwright).
 - Playwright tests live in `frontend/e2e/` (`npm run test:e2e`, config `frontend/playwright.config.js`). They need the backend on 8080; Playwright starts Vite itself (or reuses a running one locally). Locally they use the installed Google Chrome (`channel: 'chrome'`), in CI the downloaded Chromium. Each run registers a fresh `e2e_*` user.
 

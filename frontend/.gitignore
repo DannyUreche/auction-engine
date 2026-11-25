@@ -5,3 +5,4 @@ dist/
 # Rezultatele testelor Playwright
 test-results/
 playwright-report/
+coverage/

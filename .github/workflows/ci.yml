@@ -1,6 +1,8 @@
 # Testele automate ruleaza pe GitHub la fiecare push si pull request (tab-ul "Actions" din repository).
 # 1. backend: testele JUnit/MockMvc pe un PostgreSQL adevarat
-# 2. e2e: aplicatia pornita complet + teste Playwright in browser (dupa ce trec testele backend)
+# 2. frontend: teste unitare Vitest pentru logica interfetei (in paralel cu backend)
+# 3. e2e: aplicatia pornita complet + teste Playwright in browser (dupa ce trec testele backend)
+# Procentele de acoperire a codului apar in sumarul fiecarei rulari (JaCoCo si Vitest).
 name: Teste
 
 on:
@@ -35,13 +37,45 @@ jobs:
           java-version: 21
           cache: maven
       - name: Teste
-        run: chmod +x mvnw && ./mvnw -B test
+        run: chmod +x mvnw && ./mvnw -B test -Pcoverage
+      # Line coverage from the JaCoCo report, shown in the run summary on GitHub
+      - name: Acoperire cod (JaCoCo)
+        run: |
+          awk -F, 'NR > 1 { missed += $8; covered += $9 } END {
+            printf "### Acoperire backend (JaCoCo)\n\n%.1f%% din linii (%d din %d)\n", 100 * covered / (missed + covered), covered, missed + covered
+          }' target/site/jacoco/jacoco.csv >> "$GITHUB_STEP_SUMMARY"
+      - name: Raport acoperire backend
+        uses: actions/upload-artifact@v4
+        with:
+          name: acoperire-backend
+          path: target/site/jacoco/
       - name: Rapoarte teste (la esec)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: rapoarte-junit
           path: target/surefire-reports/
+
+  frontend:
+    name: Teste interfata (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Teste unitare cu acoperire
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run test:coverage
+      - name: Acoperire cod (Vitest)
+        working-directory: frontend
+        run: |
+          node -e "const t = require('./coverage/coverage-summary.json').total;
+            console.log('### Acoperire interfata (Vitest)\n\n' + t.lines.pct + '% din linii (' + t.lines.covered + ' din ' + t.lines.total + ')')" >> "$GITHUB_STEP_SUMMARY"
 
   e2e:
     name: Teste in browser (Playwright)

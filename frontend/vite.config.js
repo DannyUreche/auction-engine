@@ -11,4 +11,13 @@ export default defineConfig({
       '/api': 'http://localhost:8080',
     },
   },
+  // Unit tests (npm test): plain logic modules; Playwright covers the pages (e2e/)
+  test: {
+    include: ['src/**/*.test.js'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/*.js', 'src/i18n.jsx'],
+      reporter: ['text', 'json-summary'],
+    },
+  },
 })

@@ -153,6 +153,13 @@ const EN = {
 }
 
 const DICTIONARIES = { en: EN }
+
+// The translation for a language, with {placeholders} filled in; unknown text stays as it is (Romanian)
+export function translate(lang, text, vars) {
+  let result = DICTIONARIES[lang]?.[text] ?? text
+  if (vars) for (const [key, value] of Object.entries(vars)) result = result.replaceAll(`{${key}}`, value)
+  return result
+}
 const LanguageContext = createContext(null)
 
 function detectLanguage() {
@@ -169,14 +176,7 @@ export function LanguageProvider({ children }) {
     localStorage.setItem('lang', lang)
   }, [lang])
 
-  const t = useCallback(
-    (text, vars) => {
-      let result = DICTIONARIES[lang]?.[text] ?? text
-      if (vars) for (const [key, value] of Object.entries(vars)) result = result.replaceAll(`{${key}}`, value)
-      return result
-    },
-    [lang],
-  )
+  const t = useCallback((text, vars) => translate(lang, text, vars), [lang])
   const value = useMemo(() => ({ lang, setLang, t }), [lang, t])
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
 }

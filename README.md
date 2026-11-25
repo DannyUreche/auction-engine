@@ -61,7 +61,7 @@ flowchart LR
 
 - **Backend:** Java 21, Spring Boot 4 (Web MVC, Security, Data JPA, Mail), PostgreSQL, Flyway, Lombok, springdoc OpenAPI.
 - **Frontend:** React 19, React Router, Vite, Tailwind CSS v4 (plain JavaScript).
-- **Tests:** about 100 Spring Boot integration tests against a real PostgreSQL, plus Playwright browser tests.
+- **Tests:** about 120 Spring Boot integration tests against a real PostgreSQL, Vitest unit tests for the frontend logic and Playwright browser tests; CI shows the line coverage (JaCoCo, Vitest) in each run summary.
 - **CI/CD:** GitHub Actions runs both test suites on every push; Render builds the Docker image and deploys `main`; the database is on Neon.
 
 ## Running locally
@@ -80,6 +80,8 @@ npm run dev                                   # UI on http://localhost:5173
 
 - API documentation (Swagger UI): http://localhost:8080/swagger-ui.html
 - Backend tests: `./mvnw test` (needs the Docker database)
+- Frontend unit tests: `cd frontend && npm test` (`npm run test:coverage` for the coverage report)
+- Backend coverage report: `./mvnw test -Pcoverage` -> `target/site/jacoco/index.html`
 - Browser tests: `cd frontend && npm run test:e2e` (needs the backend running)
 
 Optional environment variables: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` (email

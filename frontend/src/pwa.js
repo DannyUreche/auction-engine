@@ -45,7 +45,7 @@ export function useInstallPrompt() {
 export const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
 
 // The VAPID public key is base64url; the Push API wants raw bytes
-function urlBase64ToUint8Array(base64) {
+export function urlBase64ToUint8Array(base64) {
   const padded = (base64 + '='.repeat((4 - (base64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/')
   return Uint8Array.from(atob(padded), (char) => char.charCodeAt(0))
 }
