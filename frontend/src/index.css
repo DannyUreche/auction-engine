@@ -175,3 +175,12 @@ html.dark .icon-neon,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Light mode surfaces: cards and panels (the semi-transparent white backgrounds) get a gray-blue tint, so they
+   stand out from the page and the white buttons and inputs inside them stay easy to see. Dark mode keeps its
+   own surfaces (dark.css); areas marked stay-dark are untouched. */
+html:not(.dark) :is(.bg-white\/70, .bg-white\/80, .bg-white\/85, .bg-white\/90, .bg-white\/95):not(.stay-dark, .stay-dark *) {
+  background-color: color-mix(in oklab, #e6ecf5 var(--surface-alpha, 88%), transparent);
+}
+html:not(.dark) .bg-white\/70:not(.stay-dark, .stay-dark *) { --surface-alpha: 75%; }
+html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 97%; }
