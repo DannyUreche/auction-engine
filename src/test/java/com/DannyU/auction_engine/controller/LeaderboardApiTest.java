@@ -76,7 +76,8 @@ class LeaderboardApiTest {
             if (i == 0) {
                 item.setActive(false);
                 item.setWinner(player);
-                item.setCurrentPrice(new BigDecimal("150"));
+                // A big sale, so the seller is in the top 10 whatever else the database holds
+                item.setCurrentPrice(new BigDecimal("9999999"));
                 itemRepository.save(item);
                 Question question = new Question();
                 question.setItem(item);

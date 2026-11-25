@@ -32,16 +32,18 @@ The interface is in Romanian, with an English toggle.
 - Notifications in the bell, by email (SMTP) and as browser push (Web Push with VAPID), even when the site is closed.
 - Watchlist, recommendations ("You might like"), public seller profiles with ratings, reviews and reputation badges.
 - Live auction room: viewer count, public live chat and new bids floating in real time.
-- Saved search alerts, seller statistics (views, bids, watchers) and city / delivery filters.
+- Saved search alerts, seller statistics (views, bids, watchers), county and delivery filters.
+- Interactive map of Romania with auctions per county, the auction of the week, a monthly leaderboard with challenges.
+- Private offers with counter offers, following sellers, side-by-side comparison, price estimates from similar sales.
 - Public questions and answers on each item, private chat between seller and winner after the sale.
 - Sharing with link previews (Open Graph tags rendered by the server) and a QR code.
 
 **Accounts and safety**
-- JWT login, sign-in with Google, email verification, password reset, rate limiting on the auth endpoints.
+- JWT login, optional two-factor authentication (authenticator app), sign-in with Google, email verification, password reset, rate limiting on the auth endpoints.
 - AI listing assistant: Claude suggests the name, description, category and starting price from a photo.
 - Built-in error monitoring: unexpected server errors and JavaScript errors from browsers are grouped in the admin panel.
 - Account data export and account deletion (GDPR), and a keep-alive health check for the free hosting.
-- Reporting items, an admin panel with moderation (dismiss / delete), blocking accounts, charts and demo data.
+- Reporting items, AI moderation of new listings, an admin panel with moderation, blocking accounts, an audit log, charts and demo data.
 
 **Interface**
 - React 19 + Tailwind CSS v4, animated dot-grid background, CSS 3D carousel, custom neon icon set, dark mode, RO/EN.
