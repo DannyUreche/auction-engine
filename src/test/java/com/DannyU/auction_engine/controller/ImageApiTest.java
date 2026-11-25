@@ -73,6 +73,35 @@ class ImageApiTest {
     }
 
     @Test
+    void thumbnailsAreSmallJpegsMadeOnce() throws Exception {
+        User seller = createUser("vanzator");
+        Item item = createItem(seller);
+        BufferedImage big = new BufferedImage(1600, 1200, BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < 1600; x += 7) {
+            for (int y = 0; y < 1200; y += 5) {
+                big.setRGB(x, y, (x * 131 + y * 71) & 0xFFFFFF);
+            }
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(big, "png", out);
+        String imageUrl = upload(item, seller, new MockMultipartFile("image", "mare.png", "image/png", out.toByteArray()))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()
+                .replaceAll(".*\"imageUrl\":\"([^\"]+)\".*", "$1");
+
+        byte[] thumb = mockMvc.perform(get(imageUrl).param("size", "thumb"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/jpeg"))
+                .andReturn().getResponse().getContentAsByteArray();
+        BufferedImage small = ImageIO.read(new java.io.ByteArrayInputStream(thumb));
+        assertThat(small.getWidth()).isEqualTo(480);
+        assertThat(small.getHeight()).isEqualTo(360);
+        assertThat(thumb.length).isLessThan(out.size());
+        // Second request: served from the stored copy, same bytes
+        mockMvc.perform(get(imageUrl).param("size", "thumb")).andExpect(content().bytes(thumb));
+        mockMvc.perform(get("/api/images/nu-exista.jpg").param("size", "thumb")).andExpect(status().isNotFound());
+    }
+
+    @Test
     void tipulImaginiiSeStabilesteDupaContinutNuDupaExtensie() throws Exception {
         User seller = createUser("vanzator");
         Item item = createItem(seller);

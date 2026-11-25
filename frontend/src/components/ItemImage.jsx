@@ -1,3 +1,4 @@
+import { useState } from 'react'
 // Imaginea unui obiect sau, daca nu are, un fundal colorat cu initiala numelui
 const PLACEHOLDER_COLORS = [
   'from-indigo-100 to-violet-200 text-indigo-500',
@@ -8,9 +9,21 @@ const PLACEHOLDER_COLORS = [
 ]
 
 // small: pentru miniaturi (ex: tabelul din pagina de administrare)
-export default function ItemImage({ item, className = '', small = false }) {
+// Cards and lists get the server-made thumbnail (?size=thumb, ~30 KB); full = the original photo (item page).
+// The photo fades in from a blur when it has loaded.
+export default function ItemImage({ item, className = '', small = false, full = false }) {
+  const [loaded, setLoaded] = useState(false)
   if (item.imageUrl) {
-    return <img src={item.imageUrl} alt={item.name} loading="lazy" className={`object-cover ${className}`} />
+    return (
+      <img
+        src={full ? item.imageUrl : `${item.imageUrl}?size=thumb`}
+        alt={item.name}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        className={`object-cover transition-[filter,opacity] duration-500 ${loaded ? 'opacity-100 blur-0' : 'bg-slate-200 opacity-60 blur-md'} ${className}`}
+      />
+    )
   }
   const color = PLACEHOLDER_COLORS[item.id % PLACEHOLDER_COLORS.length]
   return (

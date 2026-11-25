@@ -421,7 +421,7 @@ function Gallery({ item, isSeller, onChange }) {
         {urls.length > 0 ? (
           <img data-main-image src={urls[current]} alt={item.name} className="aspect-[16/10] w-full bg-slate-100 object-contain" />
         ) : (
-          <ItemImage item={item} className="aspect-[16/10] w-full" />
+          <ItemImage item={item} full className="aspect-[16/10] w-full" />
         )}
 
         {urls.length > 1 && (
@@ -477,7 +477,7 @@ function Gallery({ item, isSeller, onChange }) {
                 index === current ? 'ring-indigo-500' : 'opacity-70 ring-transparent hover:opacity-100'
               }`}
             >
-              <img src={url} alt="" className="h-16 w-20 object-cover" />
+              <img src={`${url}?size=thumb`} alt="" loading="lazy" className="h-16 w-20 object-cover" />
             </button>
           ))}
         </div>

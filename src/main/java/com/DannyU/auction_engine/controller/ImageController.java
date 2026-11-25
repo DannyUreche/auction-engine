@@ -19,6 +19,18 @@ import java.util.concurrent.TimeUnit;
 public class ImageController {
 
     private final ImageStorageService imageStorageService;
+    private final com.DannyU.auction_engine.service.ThumbnailService thumbnailService;
+
+    // ?size=thumb: a small JPEG for cards and lists (the original when it can't be resized)
+    @GetMapping(value = "/{filename}", params = "size=thumb")
+    public ResponseEntity<byte[]> getThumbnail(@PathVariable String filename) {
+        return thumbnailService.thumbnail(filename)
+                .map(data -> ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .cacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic())
+                        .body(data))
+                .orElseGet(() -> getImage(filename));
+    }
 
     @GetMapping("/{filename}")
     public ResponseEntity<byte[]> getImage(@PathVariable String filename) {
