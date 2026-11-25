@@ -10,6 +10,7 @@ import { Alert, Button, CardSkeleton, EmptyState, Input, Select } from '../compo
 import { useAuctionEvents } from '../events.jsx'
 import Hero3D from '../hero/Hero3D.jsx'
 import { useT } from '../i18n.jsx'
+import { useAuth } from '../auth.jsx'
 
 const SORTS = {
   ending: { label: 'Se termina curand' },
@@ -51,6 +52,7 @@ export default function Home() {
   const [error, setError] = useState('')
   const categories = useCategories()
   const t = useT()
+  const { user } = useAuth()
 
   // Filtrele stau in adresa paginii (ex: /?cat=ELECTRONICE&max=500), ca sa poata fi trimise ca link
   // Filtrele sunt tinute local (sursa de adevar) si copiate in adresa paginii (ex: /?cat=ELECTRONICE&max=500),
@@ -315,7 +317,7 @@ export default function Home() {
 
         {/* Active filters as removable pills */}
         {hasFilters && (
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
             {category && (
               <FilterPill onRemove={() => setFilter('cat', '')}>{t(categories.find((c) => c.code === category)?.label ?? category)}</FilterPill>
             )}
@@ -323,6 +325,12 @@ export default function Home() {
             {type && <FilterPill onRemove={() => setFilter('type', '')}>{t(TYPES.find(([key]) => key === type)[1])}</FilterPill>}
             {minPrice && <FilterPill onRemove={() => setFilter('min', '')}>{t('de la')} {minPrice} RON</FilterPill>}
             {maxPrice && <FilterPill onRemove={() => setFilter('max', '')}>{t('pana la')} {maxPrice} RON</FilterPill>}
+            {user && (term || category || minPrice || maxPrice) && (
+              <SaveAlertButton
+                key={`${term}|${category}|${minPrice}|${maxPrice}`}
+                filters={{ query: term, category: category || null, minPrice: minPrice || null, maxPrice: maxPrice || null }}
+              />
+            )}
           </div>
         )}
       </section>
@@ -409,6 +417,33 @@ function FilterPill({ children, onRemove }) {
         className="grid h-5 w-5 place-items-center rounded-full text-indigo-500 transition hover:bg-indigo-100 hover:text-indigo-800"
       >
         ×
+      </button>
+    </span>
+  )
+}
+
+// Saves the current search as an alert (notification when a matching auction opens)
+function SaveAlertButton({ filters }) {
+  const t = useT()
+  const [state, setState] = useState({ busy: false, text: '', ok: true })
+  async function save() {
+    setState({ busy: true, text: '', ok: true })
+    try {
+      await api('/alerts', { method: 'POST', body: filters })
+      setState({ busy: false, text: t('Alerta salvata! O gasesti in Contul meu.'), ok: true })
+    } catch (err) {
+      setState({ busy: false, text: err.message, ok: false })
+    }
+  }
+  return (
+    <span className="ml-auto flex flex-wrap items-center gap-2">
+      {state.text && <span className={`text-sm ${state.ok ? 'text-emerald-700' : 'text-red-600'}`}>{state.text}</span>}
+      <button
+        onClick={save}
+        disabled={state.busy || Boolean(state.ok && state.text)}
+        className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-3 py-1.5 text-sm font-semibold text-white shadow-md shadow-violet-500/25 transition hover:bg-violet-500 disabled:opacity-60"
+      >
+        <Icon name="bell" size={16} mono /> {t('Salveaza ca alerta')}
       </button>
     </span>
   )

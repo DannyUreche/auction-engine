@@ -8,6 +8,7 @@ import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.entity.Bid;
 import com.DannyU.auction_engine.entity.AuctionType;
 import com.DannyU.auction_engine.entity.Category;
+import com.DannyU.auction_engine.service.AlertService;
 import com.DannyU.auction_engine.service.BidService;
 import com.DannyU.auction_engine.service.ImageStorageService;
 import com.DannyU.auction_engine.service.ItemSearchService;
@@ -39,6 +40,7 @@ public class ItemController {
     private final BidService bidService;
     private final BidRepository bidRepository;
     private final ItemSearchService itemSearchService;
+    private final AlertService alertService;
 
     // "Cumpara acum": utilizatorul logat plateste pretul fix si castiga imediat
     @PostMapping("/{id}/buy-now")
@@ -222,7 +224,11 @@ public class ItemController {
         int minutes = request.getDurationInMinutes() != null ? request.getDurationInMinutes() : 60;
         newItem.setEndTime((start != null ? start : now).plusMinutes(minutes));
 
-        return itemRepository.save(newItem);
+        Item saved = itemRepository.save(newItem);
+        if (saved.isStarted()) {
+            alertService.auctionOpened(saved);
+        }
+        return saved;
     }
 
     // Editarea obiectului de catre vanzator: doar cat timp licitatia e deschisa si nu exista oferte

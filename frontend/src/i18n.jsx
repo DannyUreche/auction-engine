@@ -71,6 +71,8 @@ const EN = {
   'Incep curand': 'Starting soon',
   Sortare: 'Sort',
   'Incarca mai multe': 'Load more',
+  'Salveaza ca alerta': 'Save as alert',
+  'Alerta salvata! O gasesti in Contul meu.': 'Alert saved! You can find it in My account.',
   '{shown} din {total}': '{shown} of {total}',
   'de la': 'from',
   'pana la': 'up to',

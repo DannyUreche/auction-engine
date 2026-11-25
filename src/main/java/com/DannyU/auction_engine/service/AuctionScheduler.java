@@ -25,6 +25,7 @@ public class AuctionScheduler {
     private final NotificationService notificationService;
     private final WalletService walletService;
     private final com.DannyU.auction_engine.repository.WatchedItemRepository watchedItemRepository;
+    private final AlertService alertService;
 
     // Se executa automat o data la 60.000 milisecunde (1 minut)
     // Every 15 s: open the scheduled auctions whose time has come and lower the Dutch prices
@@ -40,6 +41,7 @@ public class AuctionScheduler {
             watchedItemRepository.findByItemId(item.getId())
                     .forEach(watch -> notificationService.notify(watch.getUser(), Notification.Type.STARTED, item, message));
             eventPublisher.publishEvent(AuctionEvent.update(item.getId(), item.getCurrentPrice()));
+            alertService.auctionOpened(item);
         }
         for (Item item : itemRepository.findByActiveTrueAndAuctionType(com.DannyU.auction_engine.entity.AuctionType.DUTCH)) {
             if (!item.isStarted() || now.isAfter(item.getEndTime())) {
