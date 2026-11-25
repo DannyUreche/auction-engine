@@ -20,6 +20,7 @@ const NewItem = lazy(() => import('./pages/NewItem.jsx'))
 const Privacy = lazy(() => import('./pages/Legal.jsx').then((m) => ({ default: m.Privacy })))
 const Terms = lazy(() => import('./pages/Legal.jsx').then((m) => ({ default: m.Terms })))
 const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
+const Market = lazy(() => import('./pages/Market.jsx'))
 const Compare = lazy(() => import('./pages/Compare.jsx'))
 const LiveShows = lazy(() => import('./pages/LiveShows.jsx'))
 const LiveShowStage = lazy(() => import('./pages/LiveShowStage.jsx'))
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="/confidentialitate" element={<Privacy />} />
           <Route path="/termeni" element={<Terms />} />
           <Route path="/clasament" element={<Leaderboard />} />
+          <Route path="/piata" element={<Market />} />
           <Route path="/compara" element={<Compare />} />
           <Route path="/live" element={<LiveShows />} />
           <Route path="/live/:id" element={<LiveShowStage />} />

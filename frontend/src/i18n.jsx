@@ -62,6 +62,8 @@ const EN = {
   'Pune primul obiect la licitatie': 'Put the first item up for auction',
   'Te-ar putea interesa': 'You might like',
   'Gaseste ce cauti': 'Find what you want',
+  'Piata': 'Market',
+  'Piata in cifre': 'Market in numbers',
   'Cauta cu AI': 'Search with AI',
   'Spune in cuvintele tale ce cauti, iar asistentul alege filtrele.': 'Describe what you want in your own words and the assistant picks the filters.',
   'ex: un ceas vechi sub 500 lei in Cluj': 'e.g. an old watch under 500 lei in Cluj',

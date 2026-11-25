@@ -150,6 +150,7 @@ export default function Layout() {
           <NavItem to="/account">{t('Contul meu')}</NavItem>
           <NavItem to="/live">Live</NavItem>
           <NavItem to="/clasament">{t('Clasament')}</NavItem>
+          <NavItem to="/piata">{t('Piata')}</NavItem>
           <NavItem to="/despre">{t('Despre')}</NavItem>
           {user?.admin && <NavItem to="/admin">Admin</NavItem>}
           <span className="ml-auto">
@@ -171,6 +172,10 @@ export default function Layout() {
               {t('Licitatii in timp real · oferte instant · castigator stabilit automat ·')}{' '}
               <Link to="/despre" className="font-medium text-indigo-600 hover:underline">
                 {t('Despre proiect')}
+              </Link>
+              {' · '}
+              <Link to="/piata" className="font-medium text-indigo-600 hover:underline">
+                {t('Piata in cifre')}
               </Link>
               {' · '}
               <Link to="/confidentialitate" className="font-medium text-indigo-600 hover:underline">
