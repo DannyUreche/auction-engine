@@ -11,6 +11,7 @@ import com.DannyU.auction_engine.entity.Category;
 import com.DannyU.auction_engine.entity.Counties;
 import com.DannyU.auction_engine.entity.Delivery;
 import com.DannyU.auction_engine.service.AlertService;
+import com.DannyU.auction_engine.service.FeaturedService;
 import com.DannyU.auction_engine.service.BidService;
 import com.DannyU.auction_engine.service.ImageStorageService;
 import com.DannyU.auction_engine.service.ItemSearchService;
@@ -43,6 +44,7 @@ public class ItemController {
     private final BidRepository bidRepository;
     private final ItemSearchService itemSearchService;
     private final AlertService alertService;
+    private final FeaturedService featuredService;
 
     // "Cumpara acum": utilizatorul logat plateste pretul fix si castiga imediat
     @PostMapping("/{id}/buy-now")
@@ -146,6 +148,13 @@ public class ItemController {
             }
         }
         return itemSearchService.search(new ItemSearchService.Filters(q, category, county, min, max, type, sort), page, size);
+    }
+
+    // "Licitatia saptamanii" for the home page (public); 204 when there is no running auction
+    @GetMapping("/featured")
+    public org.springframework.http.ResponseEntity<FeaturedService.Featured> featured() {
+        return featuredService.current().map(org.springframework.http.ResponseEntity::ok)
+                .orElse(org.springframework.http.ResponseEntity.noContent().build());
     }
 
     // All counties with how many active auctions each has (public; the county filter)

@@ -22,6 +22,7 @@ public class AdminController {
     private final DemoDataService demoDataService;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final com.DannyU.auction_engine.service.FeaturedService featuredService;
 
     public record EmailStatus(boolean configured, String from) {
     }
@@ -62,6 +63,19 @@ public class AdminController {
     @DeleteMapping("/demo-data")
     public DemoStatus deleteDemoData() {
         return new DemoStatus(false, demoDataService.delete());
+    }
+
+    // Choose / reset "Licitatia saptamanii" (without a choice the busiest auction is shown)
+    @PostMapping("/items/{id}/feature")
+    public ResponseEntity<Void> feature(@PathVariable Integer id) {
+        featuredService.choose(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/featured")
+    public ResponseEntity<Void> clearFeatured() {
+        featuredService.clear();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/stats")

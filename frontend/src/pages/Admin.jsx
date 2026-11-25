@@ -59,6 +59,17 @@ export default function Admin() {
     }
   }
 
+  async function featureItem(item) {
+    setError('')
+    setMessage('')
+    try {
+      await api(`/admin/items/${item.id}/feature`, { method: 'POST' })
+      setMessage(`"${item.name}" este acum licitatia saptamanii (pe pagina principala).`)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   async function deleteItem(item) {
     if (!window.confirm(`Stergi definitiv "${item.name}" impreuna cu cele ${item.bidsCount} oferte? Nu se poate anula.`)) return
     try {
@@ -138,7 +149,7 @@ export default function Admin() {
           </div>
 
           <Card className="mt-6 overflow-x-auto p-0">
-            {tab === 'items' && <ItemsTable items={data.items} onClose={closeNow} onDelete={deleteItem} />}
+            {tab === 'items' && <ItemsTable items={data.items} onClose={closeNow} onDelete={deleteItem} onFeature={featureItem} />}
             {tab === 'users' && <UsersTable users={data.users} onToggleBlock={toggleBlock} />}
             {tab === 'errors' && <ErrorsPanel />}
             {tab === 'reports' && (
@@ -167,7 +178,7 @@ function Stat({ label, value }) {
 const th = 'px-3 py-3 text-left text-xs font-semibold tracking-wide whitespace-nowrap text-slate-500 uppercase'
 const td = 'px-3 py-3 text-sm whitespace-nowrap text-slate-700'
 
-function ItemsTable({ items, onClose, onDelete }) {
+function ItemsTable({ items, onClose, onDelete, onFeature }) {
   if (items.length === 0) return <p className="p-6 text-sm text-slate-500">Nu exista obiecte.</p>
   return (
     <table className="min-w-full divide-y divide-slate-100">
@@ -208,6 +219,15 @@ function ItemsTable({ items, onClose, onDelete }) {
             <td className={`${td} text-xs text-slate-500`}>{formatDate(item.endTime)}</td>
             <td className={`${td} text-right`}>
               <div className="flex justify-end gap-2">
+                {item.active && (
+                  <button
+                    onClick={() => onFeature(item)}
+                    title="Licitatia saptamanii"
+                    className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 hover:bg-indigo-50"
+                  >
+                    <Icon name="trophy" size={14} /> Saptamana
+                  </button>
+                )}
                 {item.active && (
                   <button
                     onClick={() => onClose(item)}
