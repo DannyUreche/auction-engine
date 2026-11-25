@@ -71,6 +71,8 @@ const EN = {
   'Incep curand': 'Starting soon',
   Sortare: 'Sort',
   Judet: 'County',
+  'Licitatii in toata tara': 'Auctions across the country',
+  'Culoarea arata cate licitatii sunt in fiecare judet. Punctele verzi sunt oferte live.': 'The color shows how many auctions each county has. Green dots are live bids.',
   'Toate judetele': 'All counties',
   'jud.': 'county',
   'Incarca mai multe': 'Load more',

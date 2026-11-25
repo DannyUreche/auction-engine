@@ -225,3 +225,16 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
   85% { opacity: 0.75; }
   100% { transform: translate(0, -105vh) scale(var(--scale, 1)); opacity: 0; }
 }
+
+/* County map (map/CountyMap.jsx): counties appear one after another, colors change smoothly, live bids pulse */
+.county-shape { transition: fill 0.6s ease; animation: county-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; transform-box: fill-box; transform-origin: center; }
+.county-shape:focus-visible { stroke: var(--color-fuchsia-500); stroke-width: 2.5; }
+.county-pulse { transform-box: fill-box; transform-origin: center; animation: county-pulse 1.6s ease-out 2 both; }
+@keyframes county-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes county-pulse {
+  from { transform: scale(0.6); opacity: 1; }
+  to { transform: scale(3.2); opacity: 0; }
+}

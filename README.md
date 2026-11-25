@@ -87,6 +87,8 @@ npm run dev                                   # UI on http://localhost:5173
 - Backend coverage report: `./mvnw test -Pcoverage` -> `target/site/jacoco/index.html`
 - Browser tests: `cd frontend && npm run test:e2e` (needs the backend running)
 
+Map of Romania: county outlines from [@svg-maps/romania](https://github.com/VictorCazanave/svg-maps) by Popa Ioan Alexandru, licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
 Optional environment variables: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` (email
 and email verification), `GOOGLE_CLIENT_ID` (sign-in with Google), `ANTHROPIC_API_KEY` (AI listing assistant), `ADMIN_USERNAMES` (admin accounts), `APP_BASE_URL`.
 Without them the app still runs: emails are only logged, and the Google button is hidden.

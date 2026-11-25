@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { api } from '../api.js'
 import { useCategories } from '../categories.js'
@@ -28,6 +28,9 @@ const TYPES = [
   ['today', 'Se termina azi', 'hourglass'],
   ['soon', 'Incep curand', 'timer'],
 ]
+
+// The map carries ~130 KB of county outlines: loaded separately, after the rest of the page
+const CountyMap = lazy(() => import('../map/CountyMap.jsx'))
 
 const PAGE_SIZE = 12
 
@@ -156,10 +159,19 @@ export default function Home() {
   }, [loadStats])
 
   // Oferta noua sau licitatie inchisa: reincarcam imediat lista (preturi, licitatii active) si cifrele
-  useAuctionEvents(() => {
+  // Live bid on an item whose county we know: a pulse on the map
+  const [pulses, setPulses] = useState([])
+  const itemsRef = useRef([])
+  useAuctionEvents((event) => {
     load()
     loadHero()
     loadStats()
+    if (event.type !== 'bid') return
+    const item = itemsRef.current.find((candidate) => candidate.id === event.itemId)
+    if (!item?.county) return
+    const pulse = { id: `${event.itemId}-${Date.now()}`, county: item.county }
+    setPulses((current) => [...current.slice(-4), pulse])
+    setTimeout(() => setPulses((current) => current.filter((p) => p.id !== pulse.id)), 3400)
   })
 
   // Incarcare initiala + reimprospatare la 30 de secunde (pentru obiectele noi puse la vanzare)
@@ -173,6 +185,7 @@ export default function Home() {
   }, [load, loadHero])
 
   const items = result?.items ?? null
+  itemsRef.current = [...(items ?? []), ...(heroItems ?? [])]
   const visible = items ?? []
   const total = result?.total ?? 0
   const countFor = (code) => result?.categoryCounts?.[code] ?? 0
@@ -238,6 +251,29 @@ export default function Home() {
       </section>
 
       <Recommendations />
+
+      {/* Map of Romania: auctions per county; a click filters the list below */}
+      <section className="mt-10 overflow-hidden rounded-3xl bg-white/85 p-5 shadow-xl ring-1 shadow-indigo-500/5 ring-slate-200/80 backdrop-blur sm:p-7">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 sm:text-xl">
+              <Icon name="pin" size={24} /> {t('Licitatii in toata tara')}
+            </h2>
+            <p className="mt-0.5 text-sm text-slate-500">{t('Culoarea arata cate licitatii sunt in fiecare judet. Punctele verzi sunt oferte live.')}</p>
+          </div>
+        </div>
+        <Suspense fallback={<div className="skeleton h-72 rounded-2xl" />}>
+          <CountyMap
+            counties={counties}
+            selected={county}
+            pulses={pulses}
+            onSelect={(name) => {
+              setFilter('county', name)
+              if (name) document.getElementById('licitatii')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }}
+          />
+        </Suspense>
+      </section>
 
       {/* Filters: one highlighted panel (search, categories, auction type, price, sorting) */}
       <section

@@ -206,6 +206,7 @@ const STACK = [
       ['SVG + Canvas + CSS 3D', 'grafice, grila magnetica, vitrina 3D, iconite proprii (fara biblioteci)'],
       ['EventSource', 'actualizari live de la server'],
       ['Service Worker + Web Push', 'aplicatie instalabila si notificari push'],
+      ['Harta SVG a Romaniei', 'contururi @svg-maps/romania (Popa Ioan Alexandru, CC BY 4.0)'],
       ['Vitest + Playwright', 'teste unitare si teste in browser'],
     ],
   },
