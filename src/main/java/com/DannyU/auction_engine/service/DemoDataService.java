@@ -46,6 +46,9 @@ public class DemoDataService {
                             Color from, Color to, DemoImagePainter.Shape shape) {
     }
 
+    private static final String[] CITIES = {"Bucuresti", "Cluj-Napoca", "Iasi", "Timisoara", "Suceava", "Brasov",
+            "Constanta", "Craiova", "Oradea", "Sibiu"};
+
     private static final String[] USERS = {"ana", "mihai", "ioana", "radu", "elena", "vlad", "bianca"};
 
     private static final List<DemoItem> ITEMS = List.of(
@@ -120,6 +123,8 @@ public class DemoDataService {
             item.setCurrentPrice(BigDecimal.valueOf(demo.startPrice()));
             item.setBuyNowPrice(demo.buyNow() == null ? null : BigDecimal.valueOf(demo.buyNow()));
             item.setSeller(seller);
+            item.setCity(CITIES[random.nextInt(CITIES.length)]);
+            item.setDelivery(com.DannyU.auction_engine.entity.Delivery.values()[random.nextInt(3)]);
             item.setEndTime(sold ? now.minusHours(1 + random.nextInt(20)) : now.plus(remaining[i % remaining.length]));
             int photos = 1 + random.nextInt(3);
             for (int p = 0; p < photos; p++) {
@@ -184,6 +189,8 @@ public class DemoDataService {
             item.setStartPrice(start);
             item.setCurrentPrice(start);
             item.setSeller(seller);
+            item.setCity(CITIES[random.nextInt(CITIES.length)]);
+            item.setDelivery(com.DannyU.auction_engine.entity.Delivery.values()[random.nextInt(3)]);
             switch (demo.kind()) {
                 case ENGLISH -> {
                     item.setBuyNowPrice(BigDecimal.valueOf(demo.buyNowOrFloor()));

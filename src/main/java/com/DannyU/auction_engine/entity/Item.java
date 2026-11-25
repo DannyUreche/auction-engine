@@ -94,6 +94,14 @@ public class Item {
     @Column(name = "price_drop")
     private BigDecimal priceDrop;
 
+    // City where the item is (optional, free text; filter on the home page)
+    @Column(length = 60)
+    private String city;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Delivery delivery = Delivery.BOTH;
+
     // Unique visits of the item page (LiveRoomService); shown only in the seller's statistics
     @JsonIgnore
     // Written only by the UPDATE in LiveRoomService, never by saving the entity (a save would overwrite it with a stale value)

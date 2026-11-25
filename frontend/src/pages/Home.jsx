@@ -33,8 +33,9 @@ const PAGE_SIZE = 12
 // /items/search URL for the filters and one page of results (the server does the filtering, see ItemSearchService)
 function searchUrl(filters, page, size = PAGE_SIZE) {
   const params = new URLSearchParams({ page, size })
-  const { cat, q, min, max, type, sort } = filters
+  const { cat, q, min, max, city, type, sort } = filters
   if (cat) params.set('cat', cat)
+  if (city) params.set('city', city)
   if (q.trim()) params.set('q', q.trim())
   if (min) params.set('min', min)
   if (max) params.set('max', max)
@@ -49,6 +50,12 @@ export default function Home() {
   const [pages, setPages] = useState(1)
   const [loadingMore, setLoadingMore] = useState(false)
   const [heroItems, setHeroItems] = useState(null)
+  const [cities, setCities] = useState([])
+  useEffect(() => {
+    api('/items/cities', { auth: false })
+      .then(setCities)
+      .catch(() => {})
+  }, [])
   const [error, setError] = useState('')
   const categories = useCategories()
   const t = useT()
@@ -63,10 +70,11 @@ export default function Home() {
     q: params.get('q') ?? '',
     min: params.get('min') ?? '',
     max: params.get('max') ?? '',
+    city: params.get('city') ?? '',
     type: TYPES.some(([key]) => key === params.get('type')) ? params.get('type') : '',
     sort: SORTS[params.get('sort')] ? params.get('sort') : 'ending',
   }))
-  const { cat: category, q: search, min: minPrice, max: maxPrice, type, sort } = filters
+  const { cat: category, q: search, min: minPrice, max: maxPrice, city, type, sort } = filters
 
   useEffect(() => {
     const next = new URLSearchParams()
@@ -78,7 +86,7 @@ export default function Home() {
   }, [filters, setParams])
 
   const setFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }))
-  const clearFilters = () => setFilters((current) => ({ cat: '', q: '', min: '', max: '', type: '', sort: current.sort }))
+  const clearFilters = () => setFilters((current) => ({ cat: '', q: '', min: '', max: '', city: '', type: '', sort: current.sort }))
 
   // Typing in the search or price fields waits a moment before asking the server
   const [query, setQuery] = useState(filters)
@@ -167,7 +175,7 @@ export default function Home() {
   const total = result?.total ?? 0
   const countFor = (code) => result?.categoryCounts?.[code] ?? 0
   const term = search.trim()
-  const hasFilters = Boolean(category || term || minPrice || maxPrice || type)
+  const hasFilters = Boolean(category || term || minPrice || maxPrice || city || type)
 
   return (
     <div>
@@ -300,7 +308,18 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-[9rem_9rem_14rem]">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-[12rem_9rem_9rem_14rem]">
+            <div className="col-span-2 sm:col-span-1">
+              <Select value={city} onChange={(e) => setFilter('city', e.target.value)} aria-label={t('Oras')}>
+                <option value="">{t('Toate orasele')}</option>
+                {cities.map((c) => (
+                  <option key={c.city} value={c.city}>
+                    {c.city} ({c.items})
+                  </option>
+                ))}
+                {city && !cities.some((c) => c.city === city) && <option value={city}>{city}</option>}
+              </Select>
+            </div>
             <Input type="number" min="0" placeholder={t('Pret minim')} value={minPrice} onChange={(e) => setFilter('min', e.target.value)} />
             <Input type="number" min="0" placeholder={t('Pret maxim')} value={maxPrice} onChange={(e) => setFilter('max', e.target.value)} />
             <div className="col-span-2 sm:col-span-1">
@@ -325,6 +344,7 @@ export default function Home() {
             {type && <FilterPill onRemove={() => setFilter('type', '')}>{t(TYPES.find(([key]) => key === type)[1])}</FilterPill>}
             {minPrice && <FilterPill onRemove={() => setFilter('min', '')}>{t('de la')} {minPrice} RON</FilterPill>}
             {maxPrice && <FilterPill onRemove={() => setFilter('max', '')}>{t('pana la')} {maxPrice} RON</FilterPill>}
+            {city && <FilterPill onRemove={() => setFilter('city', '')}>{city}</FilterPill>}
             {user && (term || category || minPrice || maxPrice) && (
               <SaveAlertButton
                 key={`${term}|${category}|${minPrice}|${maxPrice}`}

@@ -25,6 +25,7 @@ import ChatBox from '../components/ChatBox.jsx'
 import Questions from '../components/Questions.jsx'
 import LiveRoom from '../components/LiveRoom.jsx'
 import Badges from '../components/Badges.jsx'
+import { deliveryLabel } from '../components/LocationFields.jsx'
 import ReportButton from '../components/ReportButton.jsx'
 import ShareButton from '../components/ShareButton.jsx'
 import { CategoryIcon, Icon } from '../components/icons.jsx'
@@ -212,6 +213,7 @@ export default function ItemDetail() {
                   </span>
                 }
               />
+              <Detail label="Livrare" value={<span className="flex items-center gap-1.5">{item.city && <><Icon name="pin" size={16} /> {item.city} · </>}{deliveryLabel(item.delivery)}</span>} />
               <Detail label={t('Pret de pornire')} value={formatPrice(item.startPrice)} />
               <Detail label={item.active ? 'Se termina' : 'S-a terminat'} value={formatDate(item.endTime)} />
               {item.buyNowPrice && <Detail label={t('Cumpara acum')} value={formatPrice(item.buyNowPrice)} />}

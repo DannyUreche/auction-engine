@@ -107,6 +107,23 @@ class ItemSearchApiTest {
     }
 
     @Test
+    void cityFilterAndCityList() throws Exception {
+        String city = "Oras" + word;
+        Item here = item("Bicicleta " + word, Category.SPORT, "500", null);
+        here.setCity(city);
+        itemRepository.save(here);
+        item("Minge " + word, Category.SPORT, "50", null);
+
+        mockMvc.perform(get("/api/items/search").param("q", word).param("city", city.toLowerCase()))
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].city").value(city))
+                .andExpect(jsonPath("$.items[0].delivery").value("BOTH"));
+        mockMvc.perform(get("/api/items/cities"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.city == '" + city + "')].items").value(org.hamcrest.Matchers.contains(1)));
+    }
+
+    @Test
     void unknownCategoryIsRejected() throws Exception {
         mockMvc.perform(get("/api/items/search").param("cat", "NIMIC"))
                 .andExpect(status().isBadRequest());

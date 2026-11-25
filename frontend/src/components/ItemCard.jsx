@@ -77,6 +77,11 @@ export default function ItemCard({ item, extra, index = 0 }) {
       <div className="flex flex-1 flex-col p-5">
         <p className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
           <CategoryIcon category={category} size={15} /> {t(category.label)}
+          {item.city && (
+            <span className="ml-auto flex min-w-0 items-center gap-1">
+              <Icon name="pin" size={14} /> <span className="truncate">{item.city}</span>
+            </span>
+          )}
         </p>
         <h3 className="mt-0.5 line-clamp-1 font-semibold text-slate-900 transition group-hover:text-indigo-600">{item.name}</h3>
         <p className="mt-1 line-clamp-2 min-h-10 text-sm text-slate-500">{item.description || t('Fara descriere')}</p>

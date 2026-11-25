@@ -70,6 +70,8 @@ const EN = {
   'Se termina azi': 'Ending today',
   'Incep curand': 'Starting soon',
   Sortare: 'Sort',
+  Oras: 'City',
+  'Toate orasele': 'All cities',
   'Incarca mai multe': 'Load more',
   'Salveaza ca alerta': 'Save as alert',
   'Alerta salvata! O gasesti in Contul meu.': 'Alert saved! You can find it in My account.',

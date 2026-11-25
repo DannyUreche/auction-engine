@@ -5,6 +5,7 @@ import { useCategories } from '../categories.js'
 import CategoryPicker from '../components/CategoryPicker.jsx'
 import { Icon } from '../components/icons.jsx'
 import AiAssistant from '../components/AiAssistant.jsx'
+import LocationFields from '../components/LocationFields.jsx'
 import ImagePicker from '../components/ImagePicker.jsx'
 import { Alert, Button, Card, Field, Input, Select, Textarea } from '../components/ui.jsx'
 
@@ -33,6 +34,8 @@ export default function NewItem() {
     priceDrop: '',
     scheduled: false,
     startTime: '',
+    city: '',
+    delivery: 'BOTH',
   })
   const dutch = form.auctionType === 'DUTCH'
   const [images, setImages] = useState([])
@@ -59,6 +62,8 @@ export default function NewItem() {
           // Optional: gol = fara "Cumpara acum"
           buyNowPrice: !dutch && form.buyNowPrice ? Number(form.buyNowPrice) : null,
           durationInMinutes: Number(form.durationInMinutes),
+          city: form.city,
+          delivery: form.delivery,
           auctionType: form.auctionType,
           floorPrice: dutch ? Number(form.floorPrice) : null,
           priceDrop: dutch ? Number(form.priceDrop) : null,
@@ -194,6 +199,8 @@ export default function NewItem() {
               </Select>
             </Field>
           </div>
+
+          <LocationFields city={form.city} delivery={form.delivery} onChange={(change) => setForm((current) => ({ ...current, ...change }))} />
 
           {!dutch && (
           <Field

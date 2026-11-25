@@ -3,6 +3,7 @@ import { api } from '../api.js'
 import { useCategories } from '../categories.js'
 import CategoryPicker from './CategoryPicker.jsx'
 import { Alert, Button, Card, Field, Input, Textarea } from './ui.jsx'
+import LocationFields from './LocationFields.jsx'
 
 // Formularul de editare al vanzatorului (doar cat timp licitatia nu are oferte; serverul verifica si el).
 // Data de incheiere nu se schimba; pozele se modifica direct din galerie.
@@ -14,6 +15,8 @@ export default function EditItemForm({ item, onSaved, onCancel }) {
     category: item.category,
     startPrice: String(item.startPrice),
     buyNowPrice: item.buyNowPrice != null ? String(item.buyNowPrice) : '',
+    city: item.city ?? '',
+    delivery: item.delivery ?? 'BOTH',
   })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -33,6 +36,8 @@ export default function EditItemForm({ item, onSaved, onCancel }) {
           category: form.category,
           startPrice: Number(form.startPrice),
           buyNowPrice: form.buyNowPrice ? Number(form.buyNowPrice) : null,
+          city: form.city,
+          delivery: form.delivery,
         },
       })
       onSaved(updated)
@@ -80,6 +85,8 @@ export default function EditItemForm({ item, onSaved, onCancel }) {
             />
           </Field>
         </div>
+
+        <LocationFields city={form.city} delivery={form.delivery} onChange={(change) => setForm((current) => ({ ...current, ...change }))} />
 
         <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
           <Button type="button" variant="secondary" onClick={onCancel}>

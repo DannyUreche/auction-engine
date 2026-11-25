@@ -31,7 +31,7 @@ public class ItemSearchService {
 
     private final EntityManager entityManager;
 
-    public record Filters(String q, Category category, BigDecimal min, BigDecimal max, String type, String sort) {
+    public record Filters(String q, Category category, String city, BigDecimal min, BigDecimal max, String type, String sort) {
     }
 
     public record Page(List<Item> items, long total, int page, int size, int totalPages,
@@ -73,6 +73,19 @@ public class ItemSearchService {
         return new Page(items, total, safePage, safeSize, totalPages, counts, all);
     }
 
+    public record CityCount(String city, long items) {
+    }
+
+    // Cities that have active auctions, most items first (the city filter on the home page)
+    @Transactional(readOnly = true)
+    public List<CityCount> cities() {
+        List<Object[]> rows = entityManager.createQuery(
+                        "SELECT i.city, COUNT(i) FROM Item i WHERE i.active = true AND i.city IS NOT NULL "
+                                + "GROUP BY i.city ORDER BY COUNT(i) DESC, i.city", Object[].class)
+                .getResultList();
+        return rows.stream().map(row -> new CityCount((String) row[0], (Long) row[1])).toList();
+    }
+
     private Predicate[] predicates(CriteriaBuilder cb, Root<Item> item, Filters filters, LocalDateTime now, boolean withCategory) {
         List<Predicate> list = new ArrayList<>();
         list.add(cb.isTrue(item.get("active")));
@@ -84,6 +97,9 @@ public class ItemSearchService {
         }
         if (withCategory && filters.category() != null) {
             list.add(cb.equal(item.get("category"), filters.category()));
+        }
+        if (filters.city() != null && !filters.city().isBlank()) {
+            list.add(cb.equal(cb.lower(item.get("city")), filters.city().trim().toLowerCase(Locale.ROOT)));
         }
         if (filters.min() != null) {
             list.add(cb.greaterThanOrEqualTo(item.get("currentPrice"), filters.min()));
