@@ -255,3 +255,26 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
   from { transform: rotateX(-85deg); opacity: 0.3; }
   to { transform: rotateX(0); opacity: 1; }
 }
+
+/* Leaderboard (pages/Leaderboard.jsx): floating crown and trophy, progress rings that fill up */
+.podium-crown { animation: podium-crown 2.8s ease-in-out infinite; }
+.leaderboard-trophy { animation: trophy-float 3.6s ease-in-out infinite; }
+.progress-ring { animation: progress-ring 1.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes podium-crown {
+  0%, 100% { transform: translate(-50%, 0) rotate(-6deg); }
+  50% { transform: translate(-50%, -5px) rotate(6deg); }
+}
+@keyframes trophy-float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-6px) rotate(4deg); }
+}
+@keyframes progress-ring {
+  from { stroke-dashoffset: var(--ring-from); }
+  to { stroke-dashoffset: var(--ring-to); }
+}
+
+.podium-rise { animation: podium-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes podium-rise {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}

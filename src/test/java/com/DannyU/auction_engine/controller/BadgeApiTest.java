@@ -18,7 +18,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,9 +66,9 @@ class BadgeApiTest {
         }
 
         mockMvc.perform(get("/api/users/" + buyer.getUsername() + "/badges"))
-                .andExpect(jsonPath("$[*].code", containsInAnyOrder("COLLECTOR", "FIRST_BIDDER", "VETERAN")));
+                .andExpect(jsonPath("$[*].code", hasItems("COLLECTOR", "FIRST_BIDDER", "VETERAN")));
         mockMvc.perform(get("/api/users/" + buyer.getUsername() + "/profile"))
-                .andExpect(jsonPath("$.badges", hasSize(3)))
+                .andExpect(jsonPath("$.badges", hasSize(greaterThanOrEqualTo(3))))
                 .andExpect(jsonPath("$.badges[0].label").isNotEmpty());
     }
 

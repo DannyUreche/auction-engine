@@ -73,7 +73,7 @@ export default function Layout() {
             <NavItem to="/">{t('Licitatii active')}</NavItem>
             <NavItem to="/sell">{t('Vinde un obiect')}</NavItem>
             <NavItem to="/account">{t('Contul meu')}</NavItem>
-            <NavItem to="/despre">{t('Despre')}</NavItem>
+            <NavItem to="/clasament">{t('Clasament')}</NavItem>
             {user?.admin && <NavItem to="/admin">Admin</NavItem>}
           </nav>
 
@@ -141,6 +141,7 @@ export default function Layout() {
           <NavItem to="/">{t('Active')}</NavItem>
           <NavItem to="/sell">{t('Vinde')}</NavItem>
           <NavItem to="/account">{t('Contul meu')}</NavItem>
+          <NavItem to="/clasament">{t('Clasament')}</NavItem>
           <NavItem to="/despre">{t('Despre')}</NavItem>
           {user?.admin && <NavItem to="/admin">Admin</NavItem>}
           <span className="ml-auto">

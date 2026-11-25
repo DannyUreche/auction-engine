@@ -8,6 +8,8 @@ const ICONS = {
   PASSIONATE_BIDDER: 'gavel',
   FIRST_BIDDER: 'bolt',
   VETERAN: 'star',
+  TOP_BIDDER: 'trophy',
+  CHALLENGER: 'sparkles',
 }
 
 // Reputation badges; compact = small pills (item page), otherwise cards with the description (profile)
