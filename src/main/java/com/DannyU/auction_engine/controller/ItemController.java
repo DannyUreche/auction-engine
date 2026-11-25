@@ -47,6 +47,7 @@ public class ItemController {
     private final AlertService alertService;
     private final FeaturedService featuredService;
     private final PriceEstimateService priceEstimateService;
+    private final com.DannyU.auction_engine.service.SellerAdviceService sellerAdviceService;
 
     // "Cumpara acum": utilizatorul logat plateste pretul fix si castiga imediat
     @PostMapping("/{id}/buy-now")
@@ -161,6 +162,19 @@ public class ItemController {
     public org.springframework.http.ResponseEntity<PriceEstimateService.Estimate> priceEstimate(@PathVariable Integer id) {
         return priceEstimateService.estimate(id).map(org.springframework.http.ResponseEntity::ok)
                 .orElse(org.springframework.http.ResponseEntity.noContent().build());
+    }
+
+    // Sell form advice: similar sales, monthly price history and what sells in the category (public, aggregated)
+    @GetMapping("/price-advice")
+    public com.DannyU.auction_engine.service.SellerAdviceService.Advice priceAdvice(@RequestParam(required = false) String name,
+                                                                                   @RequestParam String category) {
+        Category parsed;
+        try {
+            parsed = Category.valueOf(category);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Categorie necunoscuta: " + category);
+        }
+        return sellerAdviceService.advice(name, parsed);
     }
 
     // "Licitatia saptamanii" for the home page (public); 204 when there is no running auction

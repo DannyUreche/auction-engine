@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import SellerAdvice from '../components/SellerAdvice.jsx'
 import { useNavigate } from 'react-router'
 import { api, MAX_IMAGES, uploadItemImage } from '../api.js'
 import { useCategories } from '../categories.js'
@@ -176,6 +177,15 @@ export default function NewItem() {
               ))}
             </div>
           </div>
+
+          <SellerAdvice
+            name={form.name}
+            category={form.category}
+            dutch={dutch}
+            onUsePrices={(start, buyNow) =>
+              setForm((current) => ({ ...current, startPrice: String(start), buyNowPrice: buyNow ? String(buyNow) : current.buyNowPrice }))
+            }
+          />
 
           <div className="grid gap-6 sm:grid-cols-2">
             <Field label="Pret de pornire (RON)">

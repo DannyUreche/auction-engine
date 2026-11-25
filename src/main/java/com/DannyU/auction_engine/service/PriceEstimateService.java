@@ -1,5 +1,6 @@
 package com.DannyU.auction_engine.service;
 
+import com.DannyU.auction_engine.entity.Category;
 import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.repository.ItemRepository;
 import jakarta.persistence.EntityManager;
@@ -42,15 +43,21 @@ public class PriceEstimateService {
     @Transactional(readOnly = true)
     public Optional<Estimate> estimate(Integer itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));
+        return estimate(item.getName(), item.getCategory(), itemId);
+    }
+
+    // Also used before an item exists (seller advice in the sell form): excludeId may be null
+    @Transactional(readOnly = true)
+    public Optional<Estimate> estimate(String name, Category category, Integer excludeId) {
         List<Item> sold = entityManager.createQuery("""
                         SELECT i FROM Item i WHERE i.category = :category AND i.active = false AND i.winner IS NOT NULL
                         AND i.id <> :id ORDER BY i.endTime DESC""", Item.class)
-                .setParameter("category", item.getCategory())
-                .setParameter("id", itemId)
+                .setParameter("category", category)
+                .setParameter("id", excludeId == null ? -1 : excludeId)
                 .setMaxResults(200)
                 .getResultList();
 
-        Set<String> words = words(item.getName());
+        Set<String> words = words(name);
         List<Item> similar = sold.stream()
                 .filter(other -> overlap(words, words(other.getName())) > 0)
                 .sorted(Comparator.comparingInt((Item other) -> overlap(words, words(other.getName()))).reversed())
