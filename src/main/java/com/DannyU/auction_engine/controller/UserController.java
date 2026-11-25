@@ -7,6 +7,7 @@ import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.service.AccountService;
 import com.DannyU.auction_engine.service.AdminAccess;
 import com.DannyU.auction_engine.service.BadgeService;
+import com.DannyU.auction_engine.service.FollowService;
 import com.DannyU.auction_engine.service.ReviewService;
 import com.DannyU.auction_engine.service.SellerStatsService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class UserController {
     private final AccountService accountService;
     private final SellerStatsService sellerStatsService;
     private final BadgeService badgeService;
+    private final FollowService followService;
 
     public record DeleteRequest(String confirm) {
     }
@@ -69,6 +71,27 @@ public class UserController {
                 adminAccess.isAdmin(user.getUsername()));
     }
 
+    // Follow / unfollow a seller (idempotent) and the current state for the logged-in user
+    @GetMapping("/{username}/follow")
+    public FollowService.FollowStatus followStatus(@PathVariable String username, Authentication authentication) {
+        return followService.status(authentication.getName(), username);
+    }
+
+    @PostMapping("/{username}/follow")
+    public FollowService.FollowStatus follow(@PathVariable String username, Authentication authentication) {
+        return followService.follow(authentication.getName(), username);
+    }
+
+    @DeleteMapping("/{username}/follow")
+    public FollowService.FollowStatus unfollow(@PathVariable String username, Authentication authentication) {
+        return followService.unfollow(authentication.getName(), username);
+    }
+
+    @GetMapping("/me/following")
+    public List<FollowService.FollowedSeller> following(Authentication authentication) {
+        return followService.following(authentication.getName());
+    }
+
     // Only the badges (the item page shows the seller's next to their name). Public.
     @GetMapping("/{username}/badges")
     public List<BadgeService.BadgeDto> getBadges(@PathVariable String username) {
@@ -91,13 +114,14 @@ public class UserController {
                 items.stream().filter(item -> !item.getActive() && item.getWinner() != null).toList(),
                 reviewService.ratingOf(username),
                 reviewService.receivedBy(username),
-                badgeService.badgesOf(user));
+                badgeService.badgesOf(user),
+                followService.followers(username));
     }
 
     public record PublicProfile(Integer id, String username, LocalDateTime createdAt,
                                 List<Item> activeItems, List<Item> soldItems,
                                 ReviewService.Rating rating, List<ReviewService.ReviewDto> reviews,
-                                List<BadgeService.BadgeDto> badges) {
+                                List<BadgeService.BadgeDto> badges, long followers) {
     }
 
     public record CurrentUser(Integer id, String username, String email, LocalDateTime createdAt, boolean admin) {

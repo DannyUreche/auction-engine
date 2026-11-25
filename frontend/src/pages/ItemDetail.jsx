@@ -26,6 +26,7 @@ import Questions from '../components/Questions.jsx'
 import LiveRoom from '../components/LiveRoom.jsx'
 import { BuyerOffer, SellerOffers } from '../components/Offers.jsx'
 import Badges from '../components/Badges.jsx'
+import FollowButton from '../components/FollowButton.jsx'
 import { deliveryLabel } from '../components/LocationFields.jsx'
 import ReportButton from '../components/ReportButton.jsx'
 import ShareButton from '../components/ShareButton.jsx'
@@ -547,7 +548,12 @@ function SellerBadges({ username }) {
       .then(setBadges)
       .catch(() => setBadges([]))
   }, [username])
-  return <Badges badges={badges} compact />
+  return (
+    <span className="flex flex-wrap items-center gap-1.5">
+      <Badges badges={badges} compact />
+      <FollowButton username={username} compact />
+    </span>
+  )
 }
 
 function BidPanel({ item, user, isSeller, leadingBid, onBid }) {

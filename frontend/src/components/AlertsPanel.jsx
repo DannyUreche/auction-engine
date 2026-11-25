@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { api, formatPrice } from '../api.js'
 import { findCategory, useCategories } from '../categories.js'
 import { CategoryIcon, Icon } from './icons.jsx'
+import { Link } from 'react-router'
+import FollowButton from './FollowButton.jsx'
 import { Alert, Card, EmptyState, Loading } from './ui.jsx'
 
 // Account tab: the user's saved searches. New ones are added from the filter panel on the home page.
@@ -29,6 +31,7 @@ export default function AlertsPanel() {
   if (!alerts) return <Loading />
   return (
     <div className="space-y-4">
+      <FollowedSellers />
       <p className="text-sm text-slate-600">
         Primesti o notificare (si push, daca le-ai activat) cand apare o licitatie noua care se potriveste. Adauga alerte din
         panoul de filtre de pe pagina principala, cu butonul „Salveaza ca alerta”. Maxim 10.
@@ -66,5 +69,42 @@ export default function AlertsPanel() {
         </div>
       )}
     </div>
+  )
+}
+
+// Sellers the user follows: a notification arrives when they list something new
+function FollowedSellers() {
+  const [sellers, setSellers] = useState(null)
+  useEffect(() => {
+    api('/users/me/following')
+      .then(setSellers)
+      .catch(() => setSellers([]))
+  }, [])
+  if (!sellers || sellers.length === 0) return null
+  return (
+    <Card>
+      <h3 className="flex items-center gap-2 font-semibold text-slate-900">
+        <Icon name="bell" size={20} /> Vanzatori urmariti
+      </h3>
+      <p className="mt-0.5 text-sm text-slate-500">Primesti o notificare cand pun ceva nou la licitatie.</p>
+      <ul className="mt-3 divide-y divide-slate-100">
+        {sellers.map((seller) => (
+          <li key={seller.username} className="flex items-center justify-between gap-3 py-2.5">
+            <Link to={`/users/${encodeURIComponent(seller.username)}`} className="flex min-w-0 items-center gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-sm font-bold text-white">
+                {seller.username[0]?.toUpperCase()}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate font-medium text-slate-900 hover:text-indigo-600">{seller.username}</span>
+                <span className="block text-xs text-slate-500">
+                  {seller.activeItems} la licitatie · {seller.followers} urmaritori
+                </span>
+              </span>
+            </Link>
+            <FollowButton username={seller.username} compact />
+          </li>
+        ))}
+      </ul>
+    </Card>
   )
 }

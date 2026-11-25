@@ -4,6 +4,8 @@ import com.DannyU.auction_engine.entity.Category;
 import com.DannyU.auction_engine.entity.Item;
 import com.DannyU.auction_engine.entity.Notification;
 import com.DannyU.auction_engine.entity.SavedAlert;
+import com.DannyU.auction_engine.entity.SellerFollow;
+import com.DannyU.auction_engine.repository.SellerFollowRepository;
 import com.DannyU.auction_engine.entity.User;
 import com.DannyU.auction_engine.repository.SavedAlertRepository;
 import com.DannyU.auction_engine.repository.UserRepository;
@@ -27,6 +29,7 @@ public class AlertService {
     private final SavedAlertRepository savedAlertRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final SellerFollowRepository sellerFollowRepository;
 
     public List<SavedAlert> list(String username) {
         return savedAlertRepository.findByUserUsernameOrderByCreatedAtDesc(username);
@@ -66,10 +69,18 @@ public class AlertService {
         savedAlertRepository.delete(alert);
     }
 
-    // Called when an auction opens for bids
+    // Called when an auction opens for bids: first the seller's followers, then the matching saved searches
+    // (one notification per user even if they follow the seller and an alert matches too)
     @Transactional
     public void auctionOpened(Item item) {
         Set<Integer> notified = new HashSet<>();
+        for (SellerFollow follow : sellerFollowRepository.findBySeller_Id(item.getSeller().getId())) {
+            User follower = follow.getFollower();
+            if (!follower.isBlocked() && notified.add(follower.getId())) {
+                notificationService.notify(follower, Notification.Type.NEW_LISTING, item,
+                        item.getSeller().getUsername() + " a pus la licitatie \"" + item.getName() + "\"");
+            }
+        }
         for (SavedAlert alert : savedAlertRepository.findAll()) {
             User user = alert.getUser();
             if (user.getId().equals(item.getSeller().getId()) || user.isBlocked() || !alert.matches(item)
