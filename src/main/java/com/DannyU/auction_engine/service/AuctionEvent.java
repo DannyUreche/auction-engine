@@ -37,6 +37,11 @@ public record AuctionEvent(String type, Integer itemId, BigDecimal amount, Strin
         return new AuctionEvent("update", itemId, price, null);
     }
 
+    // New message in the public live chat of an item (no text: browsers reload the comments)
+    public static AuctionEvent comment(Integer itemId, String author) {
+        return new AuctionEvent("comment", itemId, null, author);
+    }
+
     // Mesaj nou in chat pentru destinatar (fara text: browserul lui isi cere mesajele)
     public static AuctionEvent message(Integer itemId, String recipientUsername) {
         return new AuctionEvent("message", itemId, null, recipientUsername);

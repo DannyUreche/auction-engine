@@ -24,7 +24,7 @@ function subscribe(listener, onStatus) {
       listeners.forEach((l) => l(event))
     }
     source.addEventListener('connected', () => setConnected(true))
-    for (const type of ['bid', 'closed', 'deleted', 'notification', 'message', 'update']) source.addEventListener(type, forward(type))
+    for (const type of ['bid', 'closed', 'deleted', 'notification', 'message', 'update', 'comment']) source.addEventListener(type, forward(type))
     source.onerror = () => setConnected(false)
   }
   onStatus(connected)

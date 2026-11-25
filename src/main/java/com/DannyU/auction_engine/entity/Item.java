@@ -94,6 +94,11 @@ public class Item {
     @Column(name = "price_drop")
     private BigDecimal priceDrop;
 
+    // Unique visits of the item page (LiveRoomService); shown only in the seller's statistics
+    @JsonIgnore
+    @Column(name = "view_count", nullable = false)
+    private int viewCount = 0;
+
     // Has the auction opened yet? (exposed as "started" in JSON)
     public boolean isStarted() {
         return startTime == null || !LocalDateTime.now().isBefore(startTime);
