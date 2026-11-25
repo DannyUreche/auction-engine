@@ -181,6 +181,10 @@ const FEATURES = [
   { icon: 'download', title: 'Aplicatie instalabila', text: 'Se instaleaza pe telefon (PWA) si trimite notificari push chiar si cu site-ul inchis.' },
   { icon: 'flag', title: 'Moderare', text: 'Obiectele pot fi raportate; administratorii le verifica si pot bloca conturi.' },
   { icon: 'globe', title: 'Cont rapid, in doua limbi', text: 'Intrare cu Google, confirmarea emailului si interfata in romana sau engleza.' },
+  { icon: 'sparkles', title: 'Asistent AI', text: 'Incarci poza obiectului, iar Claude propune titlul, descrierea, categoria si pretul de pornire.' },
+  { icon: 'eye', title: 'Camera live', text: 'Vezi cine urmareste licitatia acum, scrii in chatul public si ofertele noi apar animat.' },
+  { icon: 'bell', title: 'Alerte si statistici', text: 'Salvezi o cautare si esti anuntat cand apare ceva potrivit; vanzatorii vad vizualizari si oferte.' },
+  { icon: 'pin', title: 'Oras, livrare, insigne', text: 'Filtrezi dupa oras, vezi cum se livreaza si cat de sigur e vanzatorul (insigne de reputatie).' },
 ]
 
 const STACK = [
@@ -190,7 +194,8 @@ const STACK = [
       ['Spring Boot 4 / Java 21', 'API REST, programare la intervale, evenimente'],
       ['Spring Security + JWT', 'autentificare fara sesiuni, roluri'],
       ['JPA / Hibernate + Flyway', 'acces la date si migrari versionate'],
-      ['JUnit + MockMvc', 'teste automate pe baza de date reala'],
+      ['JUnit + MockMvc + JaCoCo', 'teste automate pe baza de date reala, cu acoperire'],
+      ['Claude API (SDK Java)', 'asistentul AI pentru anunturi'],
     ],
   },
   {
@@ -201,6 +206,7 @@ const STACK = [
       ['SVG + Canvas + CSS 3D', 'grafice, grila magnetica, vitrina 3D, iconite proprii (fara biblioteci)'],
       ['EventSource', 'actualizari live de la server'],
       ['Service Worker + Web Push', 'aplicatie instalabila si notificari push'],
+      ['Vitest + Playwright', 'teste unitare si teste in browser'],
     ],
   },
   {
