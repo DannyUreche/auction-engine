@@ -1,3 +1,4 @@
+import AuctionScene from './AuctionScene.jsx'
 // Componente mici de interfata, refolosite in toate paginile
 
 const buttonStyles = {
@@ -115,7 +116,8 @@ export function CardSkeleton() {
 
 export function EmptyState({ title, children }) {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-slate-200 px-6 py-14 text-center">
+    <div className="rounded-2xl border-2 border-dashed border-slate-200 px-6 pt-8 pb-12 text-center">
+      <AuctionScene className="mb-4" />
       <p className="font-semibold text-slate-700">{title}</p>
       {children && <div className="mt-2 text-sm text-slate-500">{children}</div>}
     </div>
