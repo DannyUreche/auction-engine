@@ -166,6 +166,21 @@ class AdminApiTest {
     }
 
     @Test
+    void adminActionsAreInTheAuditLog() throws Exception {
+        mockMvc.perform(post("/api/admin/users/" + seller.getId() + "/block").header("Authorization", bearer(admin)))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/api/admin/users/" + seller.getId() + "/unblock").header("Authorization", bearer(admin)))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/admin/audit").header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].action").value("UNBLOCK_USER"))
+                .andExpect(jsonPath("$[0].admin").value(admin.getUsername()))
+                .andExpect(jsonPath("$[0].targetLabel").value(seller.getUsername()))
+                .andExpect(jsonPath("$[1].action").value("BLOCK_USER"));
+        mockMvc.perform(get("/api/admin/audit").header("Authorization", bearer(seller))).andExpect(status().isForbidden());
+    }
+
+    @Test
     void emailStatusAndTestEmailWithoutSmtp() throws Exception {
         mockMvc.perform(get("/api/admin/email").header("Authorization", bearer(seller)))
                 .andExpect(status().isForbidden());

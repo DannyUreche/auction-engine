@@ -1,6 +1,7 @@
 package com.DannyU.auction_engine.controller;
 
 import com.DannyU.auction_engine.entity.AppError;
+import com.DannyU.auction_engine.entity.AuditEntry;
 import com.DannyU.auction_engine.service.ErrorMonitorService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class ErrorReportController {
 
     private final ErrorMonitorService errorMonitorService;
+    private final com.DannyU.auction_engine.service.AuditService auditService;
 
     public record ClientError(String message, String stack, String url) {
     }
@@ -37,13 +39,16 @@ public class ErrorReportController {
     }
 
     @PostMapping("/api/admin/errors/{id}/resolve")
-    public ResponseEntity<Void> resolve(@PathVariable Integer id) {
+    public ResponseEntity<Void> resolve(@PathVariable Integer id, Authentication authentication) {
         errorMonitorService.resolve(id);
+        auditService.record(authentication.getName(), AuditEntry.Action.RESOLVE_ERROR, "ERROR", id, null, null);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/api/admin/errors/resolved")
-    public Map<String, Integer> deleteResolved() {
-        return Map.of("sterse", errorMonitorService.deleteResolved());
+    public Map<String, Integer> deleteResolved(Authentication authentication) {
+        int deleted = errorMonitorService.deleteResolved();
+        auditService.record(authentication.getName(), AuditEntry.Action.DELETE_RESOLVED_ERRORS, null, null, null, deleted + " erori");
+        return Map.of("sterse", deleted);
     }
 }

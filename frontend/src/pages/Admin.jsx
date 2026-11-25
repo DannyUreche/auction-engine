@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import AdminCharts from '../components/AdminCharts.jsx'
 import ErrorsPanel from '../components/ErrorsPanel.jsx'
+import AuditLog from '../components/AuditLog.jsx'
 import { Icon } from '../components/icons.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, Loading } from '../components/ui.jsx'
@@ -13,6 +14,7 @@ const TABS = [
   { key: 'users', label: 'Utilizatori' },
   { key: 'reports', label: 'Raportari' },
   { key: 'errors', label: 'Erori' },
+  { key: 'audit', label: 'Jurnal' },
 ]
 
 // Pagina de administrare (doar pentru conturile din ADMIN_USERNAMES)
@@ -152,6 +154,7 @@ export default function Admin() {
             {tab === 'items' && <ItemsTable items={data.items} onClose={closeNow} onDelete={deleteItem} onFeature={featureItem} />}
             {tab === 'users' && <UsersTable users={data.users} onToggleBlock={toggleBlock} />}
             {tab === 'errors' && <ErrorsPanel />}
+            {tab === 'audit' && <AuditLog />}
             {tab === 'reports' && (
               <ReportsTable
                 reports={data.reports}
