@@ -96,7 +96,8 @@ public class Item {
 
     // Unique visits of the item page (LiveRoomService); shown only in the seller's statistics
     @JsonIgnore
-    @Column(name = "view_count", nullable = false)
+    // Written only by the UPDATE in LiveRoomService, never by saving the entity (a save would overwrite it with a stale value)
+    @Column(name = "view_count", nullable = false, insertable = false, updatable = false)
     private int viewCount = 0;
 
     // Has the auction opened yet? (exposed as "started" in JSON)

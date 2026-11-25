@@ -54,7 +54,7 @@ function useWidth() {
 }
 
 // Coloane: cate oferte au fost in fiecare zi
-function BidsPerDay({ days }) {
+export function BidsPerDay({ days }) {
   const [ref, width] = useWidth()
   const [hover, setHover] = useState(null)
   const height = 200

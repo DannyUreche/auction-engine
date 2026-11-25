@@ -69,6 +69,32 @@ class LiveRoomApiTest {
     }
 
     @Test
+    void sellerStatsShowViewsBidsAndWatchers() throws Exception {
+        User seller = createUser("vanzator");
+        User buyer = createUser("cumparator");
+        Item item = createItem(seller);
+        presence(item, "tab-x", null);
+        presence(item, "tab-y", buyer);
+        mockMvc.perform(post("/api/bids").header("Authorization", "Bearer " + jwtService.generateToken(buyer.getUsername()))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"itemId\": " + item.getId() + ", \"amount\": 110}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/items/" + item.getId() + "/watch")
+                .header("Authorization", "Bearer " + jwtService.generateToken(buyer.getUsername())));
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/users/me/seller-stats").header("Authorization", "Bearer " + jwtService.generateToken(seller.getUsername())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].views").value(2))
+                .andExpect(jsonPath("$.items[0].bids").value(1))
+                .andExpect(jsonPath("$.items[0].bidders").value(1))
+                .andExpect(jsonPath("$.items[0].watchers").value(1))
+                .andExpect(jsonPath("$.totals.items").value(1))
+                .andExpect(jsonPath("$.bidsPerDay.length()").value(14))
+                .andExpect(jsonPath("$.bidsPerDay[13].bids").value(1));
+    }
+
+    @Test
     void liveChatNeedsAnAccountAndAnOpenAuction() throws Exception {
         User seller = createUser("vanzator");
         User buyer = createUser("cumparator");

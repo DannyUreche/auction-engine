@@ -7,6 +7,7 @@ import com.DannyU.auction_engine.repository.UserRepository;
 import com.DannyU.auction_engine.service.AccountService;
 import com.DannyU.auction_engine.service.AdminAccess;
 import com.DannyU.auction_engine.service.ReviewService;
+import com.DannyU.auction_engine.service.SellerStatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -27,11 +28,18 @@ public class UserController {
     private final ItemRepository itemRepository;
     private final ReviewService reviewService;
     private final AccountService accountService;
+    private final SellerStatsService sellerStatsService;
 
     public record DeleteRequest(String confirm) {
     }
 
     public record Message(String mesaj) {
+    }
+
+    // Statistics for the logged-in user as a seller (views, bids, watchers per item; bids per day)
+    @GetMapping("/me/seller-stats")
+    public SellerStatsService.SellerStats sellerStats(Authentication authentication) {
+        return sellerStatsService.statsFor(authentication.getName());
     }
 
     // Everything the app stores about the logged-in user, as JSON (downloaded from the account page)
