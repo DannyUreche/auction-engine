@@ -21,6 +21,10 @@ Spring Boot 4.2 / Java 21 REST API for auctions (PostgreSQL, Flyway, Spring Secu
 - `.github/workflows/ci.yml` runs on every push/PR to `main`: job `backend` (`./mvnw -B test` against a `postgres:16` service on port 5433, dummy `JWT_SECRET`), then job `e2e` (packages and starts the jar, then Playwright).
 - Playwright tests live in `frontend/e2e/` (`npm run test:e2e`, config `frontend/playwright.config.js`). They need the backend on 8080; Playwright starts Vite itself (or reuses a running one locally). Locally they use the installed Google Chrome (`channel: 'chrome'`), in CI the downloaded Chromium. Each run registers a fresh `e2e_*` user.
 
+## Load test
+
+- `load-test/bid-storm.mjs` (Node, no deps): 200 bidders x 5 auctions x 30 s + 50 SSE listeners against the LOCAL backend (refuses other hosts without `--allow-remote`), then checks consistency; reports in `load-test/reports/` (git-ignored). Start the backend with `APP_RATE_LIMIT_AUTH_PER_MINUTE=100000` or registrations get 429. Results and conclusions in `load-test/README.md` (data stayed consistent; the laptop CPU was the limit). `BidService.placeBid` rejects a too-low bid from a lock-free price read (`ItemRepository.currentPrice`) before taking the row lock.
+
 ## Frontend
 
 - React 19 + Vite + Tailwind CSS v4 + React Router, plain JavaScript (no TypeScript), in `frontend/`.

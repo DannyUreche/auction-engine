@@ -36,16 +36,16 @@ public class BidService {
 
     @Transactional
     public Bid placeBid(Integer itemId, String bidderUsername, BigDecimal bidAmount) {
+        // Fast path under contention: a bid already below the minimum is rejected without waiting for the row
+        // lock (and holding a database connection meanwhile). The price of a classic auction only goes up, so
+        // the check after the lock below can't accept what this one rejects.
+        itemRepository.currentPrice(itemId).ifPresent(price -> rejectBelowMinimum(price, bidAmount));
         Item item = findItem(itemId);
         User bidder = checkCanBuy(item, bidderUsername);
         rejectDutch(item);
 
         // Oferta trebuie sa fie cel putin pretul curent + pasul minim (vezi BidRules)
-        BigDecimal minimum = BidRules.minimumNextBid(item.getCurrentPrice());
-        if (bidAmount.compareTo(minimum) < 0) {
-            throw new IllegalArgumentException("Oferta respinsa! Oferta minima este " + minimum
-                    + " RON (pretul curent + pasul de " + BidRules.increment(item.getCurrentPrice()) + " RON)");
-        }
+        rejectBelowMinimum(item.getCurrentPrice(), bidAmount);
         walletService.checkFunds(bidder, item, bidAmount);
 
         Bid bid = saveBid(item, bidder, bidAmount, false);
@@ -158,6 +158,14 @@ public class BidService {
     }
 
     // Locked read: every path that changes the price (bid, auto-bid, buy now) waits for the previous one
+    private static void rejectBelowMinimum(BigDecimal currentPrice, BigDecimal bidAmount) {
+        BigDecimal minimum = BidRules.minimumNextBid(currentPrice);
+        if (bidAmount.compareTo(minimum) < 0) {
+            throw new IllegalArgumentException("Oferta respinsa! Oferta minima este " + minimum
+                    + " RON (pretul curent + pasul de " + BidRules.increment(currentPrice) + " RON)");
+        }
+    }
+
     private Item findItem(Integer itemId) {
         return itemRepository.findByIdForUpdate(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Obiectul nu a fost gasit!"));

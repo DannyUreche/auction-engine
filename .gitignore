@@ -37,3 +37,6 @@ local.properties
 
 ### Imaginile incarcate de utilizatori ###
 uploads/
+
+### Load test reports (load-test/bid-storm.mjs) ###
+load-test/reports/

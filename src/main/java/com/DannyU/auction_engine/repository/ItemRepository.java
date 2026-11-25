@@ -69,5 +69,9 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     @Query("SELECT i FROM Item i WHERE i.id = :id")
     java.util.Optional<Item> findByIdForUpdate(@Param("id") Integer id);
 
+    // Only the price, without loading (or locking) the item: the cheap first check of a bid
+    @Query("SELECT i.currentPrice FROM Item i WHERE i.id = :id")
+    java.util.Optional<java.math.BigDecimal> currentPrice(@Param("id") Integer id);
+
     List<Item> findByLiveShow_IdOrderByShowPositionAsc(Integer liveShowId);
 }
