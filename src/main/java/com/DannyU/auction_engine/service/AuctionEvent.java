@@ -56,4 +56,14 @@ public record AuctionEvent(String type, Integer itemId, BigDecimal amount, Strin
     public static AuctionEvent read(Integer itemId, String senderUsername) {
         return new AuctionEvent("read", itemId, null, senderUsername);
     }
+
+    // Live show video: peer has new signaling messages waiting (itemId = show id; no content, see LiveStreamService)
+    public static AuctionEvent rtc(Integer showId, String peer) {
+        return new AuctionEvent("rtc", showId, null, peer);
+    }
+
+    // Live show video started (amount 1) or stopped (amount 0); itemId = show id
+    public static AuctionEvent stream(Integer showId, boolean live) {
+        return new AuctionEvent("stream", showId, live ? BigDecimal.ONE : BigDecimal.ZERO, null);
+    }
 }

@@ -34,8 +34,8 @@ public class SecurityConfig {
     static final String PUBLIC_ANY = "/api/auth/**";
     static final String[] PUBLIC_GET = {"/api/images/**", "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats",
             "/api/market", "/api/health", "/api/users/*/profile", "/api/users/*/badges", "/api/leaderboard", "/api/shows",
-            "/api/shows/*", "/api/collections/*", "/api/users/*/collections", "/api/push/public-key", "/api/ai/config", "/api/events"};
-    static final String[] PUBLIC_POST = {"/api/stripe/webhook", "/api/client-errors", "/api/items/*/presence", "/api/items/*/presence/leave"};
+            "/api/shows/*", "/api/shows/*/stream", "/api/shows/*/stream/inbox", "/api/collections/*", "/api/users/*/collections", "/api/push/public-key", "/api/ai/config", "/api/events"};
+    static final String[] PUBLIC_POST = {"/api/shows/*/stream/join", "/api/shows/*/stream/leave", "/api/shows/*/stream/signal", "/api/stripe/webhook", "/api/client-errors", "/api/items/*/presence", "/api/items/*/presence/leave"};
 
     // Same order as the filter chain below: can this API route be called without a token?
     static boolean isPublic(String method, String path) {

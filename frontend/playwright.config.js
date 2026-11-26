@@ -6,6 +6,9 @@ import { defineConfig } from '@playwright/test'
 export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
+  // One test at a time: they share the backend and its database, and the video test (fake camera + WebRTC)
+  // is heavy enough to slow down a test running next to it
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {

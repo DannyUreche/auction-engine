@@ -9,9 +9,11 @@ import { Icon } from '../components/icons.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Loading } from '../components/ui.jsx'
 import { useAuctionEvents } from '../events.jsx'
+import { useHostVideo, useViewerVideo } from '../liveVideo.js'
 
 // The live show "stage": the item being auctioned now in the spotlight with a countdown ring, quick bid buttons and
 // the live bid feed; a gavel comes down with "ADJUDECAT!" when an item's slot ends; the line-up runs along the bottom.
+// The organizer can turn on the camera: viewers then see live video instead of the photo (liveVideo.js, WebRTC).
 export default function LiveShowStage() {
   const { id } = useParams()
   const { user } = useAuth()
@@ -22,6 +24,11 @@ export default function LiveShowStage() {
   const [hammer, setHammer] = useState(null) // { name, winner, price } shown for a few seconds
   const [bidError, setBidError] = useState('')
   const [busy, setBusy] = useState(false)
+  const showId = Number(id)
+  const isHost = Boolean(user && data && user.username === data.show.sellerUsername)
+  const hostVideo = useHostVideo(showId)
+  const viewerVideo = useViewerVideo(showId, Boolean(data) && !isHost && data.show.status !== 'ENDED')
+  const video = isHost ? (hostVideo.stream ? { stream: hostVideo.stream, host: true } : null) : viewerVideo.stream ? { stream: viewerVideo.stream } : null
 
   const load = useCallback(
     () =>
@@ -114,9 +121,17 @@ export default function LiveShowStage() {
           <OnAir status={ended ? 'ENDED' : startsIn > 0 ? 'SCHEDULED' : 'LIVE'} />
         </div>
 
+        {isHost && !ended && <HostCamera video={hostVideo} />}
+        {!isHost && viewerVideo.live && !viewerVideo.stream && !ended && (
+          <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm text-white/80 ring-1 ring-white/15">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            {viewerVideo.error || 'Vanzatorul transmite video - se conecteaza...'}
+          </p>
+        )}
+
         <div className="mt-8">
           {startsIn > 0 ? (
-            <Waiting startsIn={startsIn} first={items[0]} />
+            <Waiting startsIn={startsIn} first={items[0]} video={video} />
           ) : ended ? (
             <Finale sold={sold.length} total={total} count={items.length} />
           ) : current ? (
@@ -130,6 +145,7 @@ export default function LiveShowStage() {
               onBid={bid}
               busy={busy}
               error={bidError}
+              video={video}
             />
           ) : (
             <p className="py-24 text-center text-white/60">Urmatorul obiect intra pe scena imediat...</p>
@@ -140,6 +156,69 @@ export default function LiveShowStage() {
       </div>
 
       {hammer && <HammerOverlay {...hammer} />}
+    </div>
+  )
+}
+
+// The organizer's camera switch, with how many people are watching
+function HostCamera({ video }) {
+  return (
+    <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
+      {video.stream ? (
+        <>
+          <span className="inline-flex items-center gap-2 text-sm font-semibold">
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" /> Esti in direct
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-sm text-white/70">
+            <Icon name="eye" size={16} mono /> {video.viewers} {video.viewers === 1 ? 'privitor conectat' : 'privitori conectati'}
+          </span>
+          <button
+            type="button"
+            onClick={video.stop}
+            className="ml-auto rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold ring-1 ring-white/20 transition hover:bg-white/20"
+          >
+            Opreste camera
+          </button>
+        </>
+      ) : (
+        <>
+          <span className="text-sm text-white/70">Arata obiectele in direct: privitorii te vad si te aud in timp real (pana la 8 conectati).</span>
+          <button
+            type="button"
+            onClick={video.start}
+            className="ml-auto inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold shadow-lg shadow-red-600/30 transition hover:bg-red-500"
+          >
+            <Icon name="camera" size={16} mono /> Porneste camera
+          </button>
+        </>
+      )}
+      {video.error && <p className="w-full text-sm text-rose-300">{video.error}</p>}
+    </div>
+  )
+}
+
+// Live video: the organizer sees a mirrored, muted preview; viewers start muted (browsers block autoplay with sound)
+function LiveVideo({ stream, host }) {
+  const ref = useRef(null)
+  const [muted, setMuted] = useState(true)
+  useEffect(() => {
+    if (ref.current && ref.current.srcObject !== stream) ref.current.srcObject = stream
+  }, [stream])
+  return (
+    <div className="relative bg-black">
+      <video ref={ref} autoPlay playsInline muted={host || muted} className={`aspect-[4/3] w-full object-cover ${host ? '-scale-x-100' : ''}`} />
+      <span className="absolute top-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-1 text-[11px] font-black tracking-widest shadow-lg">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> {host ? 'PREVIZUALIZARE' : 'VIDEO LIVE'}
+      </span>
+      {!host && (
+        <button
+          type="button"
+          onClick={() => setMuted(!muted)}
+          className="absolute bottom-4 left-4 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold backdrop-blur transition hover:bg-black/80"
+        >
+          {muted ? 'Porneste sunetul' : 'Opreste sunetul'}
+        </button>
+      )}
     </div>
   )
 }
@@ -171,9 +250,14 @@ function clock(ms) {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`
 }
 
-function Waiting({ startsIn, first }) {
+function Waiting({ startsIn, first, video }) {
   return (
     <div className="grid place-items-center py-10 text-center">
+      {video && (
+        <div className="mb-8 w-full max-w-2xl overflow-hidden rounded-3xl ring-1 ring-white/20">
+          <LiveVideo stream={video.stream} host={video.host} />
+        </div>
+      )}
       <p className="text-sm font-semibold tracking-[0.3em] text-amber-200/80 uppercase">Spectacolul incepe in</p>
       <p className="mt-3 bg-gradient-to-b from-white to-white/60 bg-clip-text text-7xl font-black text-transparent tabular-nums sm:text-8xl">{clock(startsIn)}</p>
       {first && (
@@ -190,7 +274,7 @@ function Waiting({ startsIn, first }) {
   )
 }
 
-function CurrentLot({ item, slotSeconds, now, bids, user, isSeller, onBid, busy, error }) {
+function CurrentLot({ item, slotSeconds, now, bids, user, isSeller, onBid, busy, error, video }) {
   const left = parseDate(item.endTime).getTime() - now
   const share = Math.max(0, Math.min(1, left / (slotSeconds * 1000)))
   const minimum = Number(item.minimumBid)
@@ -201,22 +285,39 @@ function CurrentLot({ item, slotSeconds, now, bids, user, isSeller, onBid, busy,
   const circumference = 2 * Math.PI * radius
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-center">
       <div className="relative">
         <div className="absolute -inset-2 rounded-[1.8rem] bg-gradient-to-br from-amber-300 via-fuchsia-500 to-sky-400 opacity-60 blur-md" />
-        <Link to={`/items/${item.id}`} className="relative block overflow-hidden rounded-3xl ring-1 ring-white/20">
-          <ItemImage key={item.id} item={item} full className="aspect-[4/3] w-full animate-fade-in" />
-          <span className="absolute top-4 left-4 rounded-xl bg-black/60 px-3 py-1.5 text-xs font-bold tracking-widest backdrop-blur">
-            LOTUL {item.showPosition + 1}
-          </span>
-        </Link>
+        {video ? (
+          <div className="relative overflow-hidden rounded-3xl ring-1 ring-white/20">
+            <LiveVideo stream={video.stream} host={video.host} />
+            <span className="absolute top-4 left-4 rounded-xl bg-black/60 px-3 py-1.5 text-xs font-bold tracking-widest backdrop-blur">
+              LOTUL {item.showPosition + 1}
+            </span>
+            {/* The lot's photo stays visible in the corner */}
+            <Link
+              to={`/items/${item.id}`}
+              className="absolute right-3 bottom-3 w-20 overflow-hidden rounded-xl shadow-2xl ring-2 ring-white/70 transition hover:scale-105 sm:right-4 sm:bottom-4 sm:w-36"
+              title={item.name}
+            >
+              <ItemImage key={item.id} item={item} className="aspect-[4/3] w-full" />
+            </Link>
+          </div>
+        ) : (
+          <Link to={`/items/${item.id}`} className="relative block overflow-hidden rounded-3xl ring-1 ring-white/20">
+            <ItemImage key={item.id} item={item} full className="aspect-[4/3] w-full animate-fade-in" />
+            <span className="absolute top-4 left-4 rounded-xl bg-black/60 px-3 py-1.5 text-xs font-bold tracking-widest backdrop-blur">
+              LOTUL {item.showPosition + 1}
+            </span>
+          </Link>
+        )}
       </div>
 
       <div>
         <h2 className="text-2xl leading-tight font-bold sm:text-3xl">{item.name}</h2>
         <div className="mt-6 flex items-center gap-6">
           {/* Countdown ring for this lot */}
-          <div className="relative h-32 w-32 shrink-0">
+          <div className="relative h-24 w-24 shrink-0 sm:h-32 sm:w-32">
             <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
               <circle cx="64" cy="64" r={radius} fill="none" stroke="rgb(255 255 255 / 0.1)" strokeWidth="10" />
               <circle
@@ -238,7 +339,7 @@ function CurrentLot({ item, slotSeconds, now, bids, user, isSeller, onBid, busy,
           </div>
           <div>
             <p className="text-xs font-semibold tracking-widest text-white/50 uppercase">{leader ? 'Oferta curenta' : 'Pret de pornire'}</p>
-            <p key={item.currentPrice} className="origin-left animate-price-flash bg-gradient-to-r from-amber-200 to-orange-300 bg-clip-text text-5xl font-black text-transparent">
+            <p key={item.currentPrice} className="origin-left animate-price-flash bg-gradient-to-r from-amber-200 to-orange-300 bg-clip-text text-3xl font-black text-transparent sm:text-5xl">
               {formatPrice(item.currentPrice)}
             </p>
             <p className="mt-1 text-sm text-white/60">{leader ? <>conduce <b className="text-white">{leader}</b></> : 'Nicio oferta inca'}</p>
@@ -260,13 +361,13 @@ function CurrentLot({ item, slotSeconds, now, bids, user, isSeller, onBid, busy,
                 key={amount}
                 onClick={() => onBid(amount)}
                 disabled={busy}
-                className={`rounded-2xl px-3 py-4 text-center font-black transition hover:-translate-y-0.5 disabled:opacity-50 ${
+                className={`rounded-2xl px-1.5 py-3 text-center font-black transition sm:px-3 sm:py-4 hover:-translate-y-0.5 disabled:opacity-50 ${
                   index === 0
                     ? 'bg-gradient-to-br from-amber-300 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/30'
                     : 'bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/15'
                 }`}
               >
-                <span className="block text-lg">{formatPrice(amount)}</span>
+                <span className="block text-sm sm:text-lg">{formatPrice(amount)}</span>
                 <span className="block text-[11px] font-semibold opacity-70">{index === 0 ? 'oferta minima' : `+${index === 1 ? 2 : 5} pasi`}</span>
               </button>
             ))}

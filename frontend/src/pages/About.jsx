@@ -212,7 +212,7 @@ const FEATURES = [
   { icon: 'shield', title: 'Licitatii verificabile', text: 'Ofertele sunt inlantuite cu SHA-256; browserul tau verifica istoricul si iti pastreaza chitantele, deci nimic nu poate fi schimbat pe ascuns.' },
   { icon: 'bookmark', title: 'Colectii', text: 'Liste personale de licitatii (ex: cadouri), publice cu link sau private.' },
   { icon: 'chart', title: 'Piata in cifre', text: 'Statistici publice: pret median pe categorii, evolutia vanzarilor, cele mai disputate licitatii si orele de varf.' },
-  { icon: 'gavel', title: 'Licitatii live', text: 'Vanzatorul urca pe scena mai multe obiecte, unul dupa altul, cu cate un minut sau mai mult pentru fiecare lot.' },
+  { icon: 'gavel', title: 'Licitatii live', text: 'Vanzatorul urca pe scena mai multe obiecte, unul dupa altul, si le poate arata pe camera: video in direct, de la browser la browser (WebRTC).' },
   { icon: 'columns', title: 'Harta, comparatie, estimari', text: 'Harta Romaniei cu licitatii pe judete, comparatie intre 3 obiecte si cat s-au vandut obiectele asemanatoare.' },
   { icon: 'shield', title: 'Doi pasi si jurnal de administrare', text: 'Autentificare cu cod din aplicatie, coduri de rezerva si jurnalul tuturor actiunilor de administrare.' },
   { icon: 'pin', title: 'Oras, livrare, insigne', text: 'Filtrezi dupa oras, vezi cum se livreaza si cat de sigur e vanzatorul (insigne de reputatie).' },

@@ -54,6 +54,11 @@ export function Privacy() {
           identificatorul platii si suma.
         </li>
         <li>
+          <b>Video in licitatiile live:</b> cand organizatorul porneste camera, imaginea si sunetul merg direct de la browserul lui
+          la browserul fiecarui privitor (WebRTC), fara sa treaca prin serverul nostru si fara sa fie inregistrate. Pentru conectare,
+          browserele isi schimba adresele de retea (IP) prin server; acestea ajung doar la organizator si la privitorul respectiv.
+        </li>
+        <li>
           <b>Notificarile push</b> (doar daca le activezi): adresa tehnica de abonare a browserului tau.
         </li>
       </ul>
