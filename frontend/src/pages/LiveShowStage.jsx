@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { saveReceipt } from '../bidChain.js'
 import { api, formatPrice, parseDate } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { launchConfetti } from '../confetti.js'
@@ -68,7 +69,7 @@ export default function LiveShowStage() {
     setBusy(true)
     setBidError('')
     try {
-      await api('/bids', { method: 'POST', body: { itemId: current.id, amount } })
+      saveReceipt(await api('/bids', { method: 'POST', body: { itemId: current.id, amount } }))
       await Promise.all([load(), loadBids()])
     } catch (err) {
       setBidError(err.message)

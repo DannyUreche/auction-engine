@@ -27,6 +27,7 @@ The interface is in Romanian, with an English toggle.
 - Proxy bidding: set a maximum and the server bids for you, only as much as needed.
 - Virtual wallet: bids are limited to the money you have available; it is settled when the auction closes.
 - Live shows: a seller puts several items on stage one after another, each with a short slot (with a 15 s anti-sniping window that shifts the next lots).
+- Verifiable auctions: bids are chained with SHA-256 by a database trigger and re-checked in the browser, which also keeps receipts of your own bids, so the history can't be changed unnoticed.
 - Safe under load: every price change locks the item row; a load test with 200 simultaneous bidders (`load-test/`) checks that no bid is lost or doubled.
 
 **Live and social**

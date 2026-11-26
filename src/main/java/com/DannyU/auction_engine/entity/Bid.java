@@ -33,6 +33,17 @@ public class Bid {
     @Column(nullable = false)
     private boolean automatic = false;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    // Microseconds, the precision PostgreSQL stores: the hash is computed from exactly this value
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+
+    // Verifiable history (V39): SHA-256 chain per item, written by the database trigger bids_chain and read back
+    // after the insert. hash = sha256("id|prevHash|itemId|bidderId|amount|createdAt|automatic").
+    @org.hibernate.annotations.Generated(event = org.hibernate.generator.EventType.INSERT)
+    @Column(name = "prev_hash", insertable = false, updatable = false)
+    private String prevHash;
+
+    @org.hibernate.annotations.Generated(event = org.hibernate.generator.EventType.INSERT)
+    @Column(insertable = false, updatable = false)
+    private String hash;
 }

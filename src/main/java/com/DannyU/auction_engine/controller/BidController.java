@@ -23,6 +23,7 @@ public class BidController {
 
     private final BidService bidService;
     private final BidRepository bidRepository;
+    private final com.DannyU.auction_engine.service.BidChainService bidChainService;
 
     @io.swagger.v3.oas.annotations.Operation(summary = "Plaseaza o oferta")
     @PostMapping
@@ -50,6 +51,13 @@ public class BidController {
     @GetMapping("/recent")
     public List<Bid> getRecentBids() {
         return bidRepository.findTop8ByOrderByCreatedAtDesc();
+    }
+
+    // Public: anyone can check that the bid history of an item was not changed
+    @io.swagger.v3.oas.annotations.Operation(summary = "Verifica lantul criptografic al ofertelor unui obiect")
+    @GetMapping("/{itemId}/verify")
+    public com.DannyU.auction_engine.service.BidChainService.Verification verify(@PathVariable Integer itemId) {
+        return bidChainService.verify(itemId);
     }
 
     @io.swagger.v3.oas.annotations.Operation(summary = "Ofertele mele")

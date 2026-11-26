@@ -16,6 +16,9 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
     // Pentru ruta GET /api/bids/{itemId}
     List<Bid> findByItemIdOrderByAmountDesc(Integer itemId);
 
+    // The bid chain of an item, oldest first (see BidChainService)
+    List<Bid> findByItemIdOrderByIdAsc(Integer itemId);
+
     // Pentru AuctionScheduler (cauta oferta castigatoare)
     Optional<Bid> findTopByItemIdOrderByAmountDesc(Integer itemId);
 

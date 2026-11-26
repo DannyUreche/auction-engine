@@ -31,6 +31,8 @@ import FollowButton from '../components/FollowButton.jsx'
 import { deliveryLabel } from '../components/LocationFields.jsx'
 import ReportButton from '../components/ReportButton.jsx'
 import ShareButton from '../components/ShareButton.jsx'
+import BidChainBadge from '../components/BidChainBadge.jsx'
+import { saveReceipt } from '../bidChain.js'
 import CollectionButton from '../components/CollectionButton.jsx'
 import { CategoryIcon, Icon } from '../components/icons.jsx'
 import { launchConfetti } from '../confetti.js'
@@ -252,6 +254,7 @@ export default function ItemDetail() {
               <h2 className="text-lg font-semibold text-slate-900">{t('Istoricul ofertelor')}</h2>
               <span className="text-sm text-slate-500">{bids.length} oferte</span>
             </div>
+            <BidChainBadge itemId={item.id} bids={bids} />
             <div className="mt-4">
               {bids.length === 0 ? (
                 <EmptyState title={t('Nicio oferta inca')}>{t('Fii primul care liciteaza!')}</EmptyState>
@@ -641,7 +644,7 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
     setSuccess('')
     setSubmitting(true)
     try {
-      await api('/bids', { method: 'POST', body: { itemId: item.id, amount: Number(amount) } })
+      saveReceipt(await api('/bids', { method: 'POST', body: { itemId: item.id, amount: Number(amount) } }))
       setSuccess(`Oferta de ${formatPrice(amount)} a fost plasata!`)
       await onBid()
     } catch (err) {
@@ -659,7 +662,7 @@ function BidPanel({ item, user, isSeller, leadingBid, onBid }) {
     setSuccess('')
     setSubmitting(true)
     try {
-      await api(`/items/${item.id}/buy-now`, { method: 'POST' })
+      saveReceipt(await api(`/items/${item.id}/buy-now`, { method: 'POST' }))
       await onBid()
     } catch (err) {
       setError(err.message)
@@ -899,7 +902,7 @@ function DutchPanel({ item, wallet, onBuy }) {
     setError('')
     setBuying(true)
     try {
-      await api(`/items/${item.id}/buy-now`, { method: 'POST' })
+      saveReceipt(await api(`/items/${item.id}/buy-now`, { method: 'POST' }))
       await onBuy()
     } catch (err) {
       setError(err.message)

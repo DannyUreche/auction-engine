@@ -337,3 +337,9 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
   0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
   30% { transform: translateY(-4px); opacity: 1; }
 }
+
+/* Verifiable bid history: the chain blocks snap in one after another */
+.chain-block { animation: chain-block 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
+@keyframes chain-block {
+  from { opacity: 0; transform: translateX(-6px) scale(0.85); }
+}
