@@ -22,6 +22,7 @@ import ItemImage from '../components/ItemImage.jsx'
 import PriceChart from '../components/PriceChart.jsx'
 import { ItemReviews } from '../components/Reviews.jsx'
 import ChatBox from '../components/ChatBox.jsx'
+import OrderPanel from '../components/OrderPanel.jsx'
 import Questions from '../components/Questions.jsx'
 import LiveRoom from '../components/LiveRoom.jsx'
 import { BuyerOffer, SellerOffers } from '../components/Offers.jsx'
@@ -300,6 +301,10 @@ export default function ItemDetail() {
           {isSeller && <SellerOffers item={item} onSold={load} />}
           <LiveRoom item={item} user={user} />
           <Questions item={item} user={user} />
+
+          {!item.active && item.winner && user && (user.id === item.seller?.id || user.id === item.winner.id || user.admin) && (
+            <OrderPanel item={item} user={user} />
+          )}
 
           {!item.active && item.winner && user && (user.id === item.seller?.id || user.id === item.winner.id) && (
             <Card>

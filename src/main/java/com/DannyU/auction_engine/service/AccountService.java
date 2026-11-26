@@ -29,6 +29,7 @@ public class AccountService {
 
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final com.DannyU.auction_engine.repository.PurchaseOrderRepository orderRepository;
     private final AdminService adminService;
     private final PasswordEncoder passwordEncoder;
     private final EntityManager entityManager;
@@ -60,6 +61,10 @@ public class AccountService {
         data.put("obiecte_urmarite", rows("""
                 SELECT w.item.id, w.item.name, w.createdAt FROM WatchedItem w WHERE w.user = :user""", user,
                 "obiect_id", "obiect", "data"));
+        data.put("comenzi", rows("""
+                SELECT o.item.id, o.item.name, o.amount, o.status, o.courier, o.awb, o.createdAt FROM PurchaseOrder o
+                WHERE o.buyer = :user OR o.seller = :user ORDER BY o.createdAt""", user,
+                "obiect_id", "obiect", "suma", "stare", "curier", "awb", "data"));
         data.put("colectii", rows("""
                 SELECT c.id, c.title, c.description, c.publicList, c.createdAt FROM ItemCollection c WHERE c.owner = :user""", user,
                 "id", "titlu", "descriere", "publica", "data"));
@@ -95,6 +100,9 @@ public class AccountService {
             throw new IllegalArgumentException("Scrie exact numele tau de utilizator ca sa confirmi stergerea contului!");
         }
         User user = find(username);
+        if (orderRepository.openFor(username) > 0) {
+            throw new IllegalArgumentException("Ai comenzi in desfasurare (cu bani in escrow). Poti sterge contul dupa ce se incheie.");
+        }
         if (itemRepository.reservedBy(username).compareTo(BigDecimal.ZERO) > 0) {
             throw new IllegalArgumentException("Conduci cel putin o licitatie activa. Poti sterge contul dupa ce se incheie.");
         }

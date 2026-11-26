@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "wallet_transactions")
 public class WalletTransaction {
 
-    public enum Type { TOP_UP, PURCHASE, SALE }
+    public enum Type { TOP_UP, PURCHASE, SALE, REFUND }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

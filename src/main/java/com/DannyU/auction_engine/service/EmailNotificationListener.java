@@ -33,6 +33,10 @@ public class EmailNotificationListener {
             case OUTBID -> "Oferta ta a fost depasita";
             case WON -> "Felicitari, ai castigat licitatia!";
             case SOLD -> "Obiectul tau s-a vandut";
+            case ORDER_SHIPPED -> "Obiectul tau a fost expediat";
+            case ORDER_COMPLETED -> "Ai primit banii pentru vanzare";
+            case ORDER_DISPUTE -> "Cumparatorul a deschis o disputa";
+            case ORDER_RESOLVED -> "Actualizare despre comanda ta";
             default -> null;
         };
         if (subject == null) {

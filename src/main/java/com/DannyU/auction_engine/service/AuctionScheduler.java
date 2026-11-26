@@ -23,7 +23,7 @@ public class AuctionScheduler {
     private final BidRepository bidRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final NotificationService notificationService;
-    private final WalletService walletService;
+    private final OrderService orderService;
     private final com.DannyU.auction_engine.repository.WatchedItemRepository watchedItemRepository;
     private final AlertService alertService;
     private final jakarta.persistence.EntityManager entityManager;
@@ -113,13 +113,14 @@ public class AuctionScheduler {
         eventPublisher.publishEvent(AuctionEvent.closed(item.getId(), item.getCurrentPrice(),
                 item.getWinner() == null ? null : item.getWinner().getUsername()));
 
-        // 5. The winner pays the seller (virtual wallet); notifications for both
+        // 5. The winner pays into escrow (OrderService); notifications for both
         if (winningBid.isPresent()) {
-            walletService.settle(item);
+            orderService.open(item);
             notificationService.notify(item.getWinner(), Notification.Type.WON, item,
-                    "Ai castigat \"" + item.getName() + "\" cu " + item.getCurrentPrice() + " RON! Vezi datele de contact ale vanzatorului.");
+                    "Ai castigat \"" + item.getName() + "\" cu " + item.getCurrentPrice() + " RON! Banii stau in siguranta pana confirmi primirea obiectului.");
             notificationService.notify(item.getSeller(), Notification.Type.SOLD, item,
-                    "\"" + item.getName() + "\" s-a vandut cu " + item.getCurrentPrice() + " RON lui " + item.getWinner().getUsername() + ".");
+                    "\"" + item.getName() + "\" s-a vandut cu " + item.getCurrentPrice() + " RON lui " + item.getWinner().getUsername()
+                            + ". Expediaza-l in " + OrderService.SHIP_DAYS + " zile; primesti banii cand cumparatorul confirma primirea.");
         } else {
             notificationService.notify(item.getSeller(), Notification.Type.UNSOLD, item,
                     "Licitatia pentru \"" + item.getName() + "\" s-a incheiat fara oferte.");

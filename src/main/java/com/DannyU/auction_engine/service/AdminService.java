@@ -19,6 +19,7 @@ import java.util.List;
 public class AdminService {
 
     private final UserRepository userRepository;
+    private final OrderService orderService;
     private final ItemRepository itemRepository;
     private final BidRepository bidRepository;
     private final AuctionScheduler auctionScheduler;
@@ -97,6 +98,8 @@ public class AdminService {
     @Transactional
     public void deleteItem(Integer itemId) {
         List<String> images = List.copyOf(findItem(itemId).getImageFilenames());
+        // A sold item with money still in escrow: give it back to the buyer before the order disappears
+        orderService.refundBeforeDeletion(itemId);
         bidRepository.deleteAllForItem(itemId);
         itemRepository.deleteById(itemId);
         itemRepository.flush();

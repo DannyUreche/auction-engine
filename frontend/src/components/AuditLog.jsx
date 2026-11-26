@@ -7,6 +7,7 @@ import { Alert, EmptyState, Loading } from './ui.jsx'
 
 // Admin "Jurnal" tab: every admin action as a timeline grouped by day, with filters by kind
 const ACTIONS = {
+  RESOLVE_DISPUTE: { text: 'a rezolvat disputa comenzii', icon: 'shield', tone: 'from-rose-400 to-pink-500', group: 'items' },
   CLOSE_AUCTION: { text: 'a inchis licitatia', icon: 'hourglass', tone: 'from-amber-400 to-orange-500', group: 'items' },
   DELETE_ITEM: { text: 'a sters obiectul', icon: 'flag', tone: 'from-rose-500 to-red-600', group: 'items' },
   FEATURE_ITEM: { text: 'a ales licitatia saptamanii', icon: 'trophy', tone: 'from-amber-300 to-amber-500', group: 'items' },

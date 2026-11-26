@@ -55,8 +55,8 @@ public class OpenApiConfig {
 
     // Display order of the groups in Swagger UI (descriptions come from @Tag on the controllers)
     static final List<String> TAG_ORDER = List.of("Autentificare", "Autentificare in doi pasi", "Obiecte", "Oferte",
-            "Licitare automata", "Oferte private", "Licitatii live", "Urmarite si recomandari", "Colectii", "Intrebari",
-            "Chat", "Camera live", "Recenzii", "Raportari", "Utilizatori", "Portofel", "Notificari", "Notificari push",
+            "Licitare automata", "Oferte private", "Comenzi", "Licitatii live", "Urmarite si recomandari", "Colectii", "Intrebari",
+            "Chat", "Camera live", "Recenzii", "Raportari", "Utilizatori", "Portofel", "Plati", "Notificari", "Notificari push",
             "Alerte", "Asistent AI", "Statistici", "Clasament", "Categorii", "Imagini", "Evenimente live", "Sistem",
             "Erori", "Administrare");
 

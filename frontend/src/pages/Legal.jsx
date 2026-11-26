@@ -48,8 +48,10 @@ export function Privacy() {
           si raspunsurile, mesajele din chat dupa o vanzare, recenziile, raportarile, notificarile si colectiile tale (cele publice le poate vedea oricine are linkul si apar pe profilul tau).
         </li>
         <li>
-          <b>Portofelul:</b> soldul virtual si istoricul tranzactiilor. Banii din portofel sunt credite de test, fara valoare
-          reala; nu procesam plati si nu stocam date de card.
+          <b>Portofelul si comenzile:</b> soldul virtual, istoricul tranzactiilor si comenzile (suma, curierul si numarul AWB, motivul
+          unei dispute si decizia administratorului). Banii din portofel sunt credite de test, fara valoare reala. Daca alimentezi
+          portofelul cu cardul, plata o proceseaza Stripe pe pagina lor: noi nu vedem si nu stocam datele cardului, pastram doar
+          identificatorul platii si suma.
         </li>
         <li>
           <b>Notificarile push</b> (doar daca le activezi): adresa tehnica de abonare a browserului tau.
@@ -113,8 +115,13 @@ export function Terms() {
         <li>O oferta plasata nu poate fi retrasa. Castiga oferta cea mai mare la finalul licitatiei sau primul care foloseste „Cumpara acum”.</li>
         <li>O oferta in ultimele 2 minute prelungeste licitatia cu 2 minute (protectie anti-sniping).</li>
         <li>
-          Portofelul contine credite virtuale de test, fara valoare reala. Site-ul nu intermediaza plati reale; orice
-          intelegere privind plata si livrarea se face direct intre cumparator si vanzator, pe raspunderea lor.
+          Portofelul contine credite virtuale de test, fara valoare reala. Plata cu cardul, cand e activata, ruleaza in modul de test
+          Stripe si nu retrage bani reali.
+        </li>
+        <li>
+          Plata e protejata (escrow): la castig, suma pleaca din portofelul cumparatorului, dar ajunge la vanzator abia dupa ce
+          cumparatorul confirma primirea. Vanzatorul expediaza in 5 zile (altfel banii se intorc automat la cumparator); dupa
+          expediere, comanda se confirma automat in 7 zile. Cumparatorul poate deschide o disputa, iar decizia o ia un administrator.
         </li>
       </ul>
 

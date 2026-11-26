@@ -1,15 +1,45 @@
-import { useState } from 'react'
-import { Link } from 'react-router'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router'
 import { api, formatDate, formatPrice } from '../api.js'
 import { Icon } from './icons.jsx'
 import { Alert, Card } from './ui.jsx'
 
-const TYPE_ICONS = { TOP_UP: 'coins', PURCHASE: 'cart', SALE: 'tagCheck' }
+const TYPE_ICONS = { TOP_UP: 'coins', PURCHASE: 'cart', SALE: 'tagCheck', REFUND: 'shield' }
 
-// Virtual wallet: balance, money reserved by the auctions you lead, test top-ups and the history
+// Virtual wallet: balance, money reserved by the auctions you lead, money in escrow (orders), test top-ups,
+// card top-ups through Stripe Checkout (when the server has Stripe keys) and the history
 export default function WalletPanel({ wallet, onChange }) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [params, setParams] = useSearchParams()
+  const confirming = useRef(false)
+
+  // Back from Stripe: ?stripe_session=cs_... -> the server checks the payment with Stripe and credits it once
+  useEffect(() => {
+    const session = params.get('stripe_session')
+    const cancelled = params.get('stripe') === 'cancel'
+    if ((!session && !cancelled) || confirming.current) return
+    confirming.current = true
+    const clean = () => {
+      const next = new URLSearchParams(params)
+      next.delete('stripe_session')
+      next.delete('stripe')
+      setParams(next, { replace: true })
+    }
+    if (cancelled) {
+      setNotice('Plata cu cardul a fost anulata.')
+      clean()
+      return
+    }
+    api('/wallet/checkout/confirm', { method: 'POST', body: { sessionId: session } })
+      .then(async (result) => {
+        setNotice(result.credited ? `Plata reusita: ${formatPrice(result.amount)} au fost adaugati in portofel.` : 'Plata era deja inregistrata.')
+        onChange(await api('/wallet'))
+      })
+      .catch((err) => setError(err.message))
+      .finally(clean)
+  }, [params]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function topUp(amount) {
     setError('')
@@ -31,6 +61,14 @@ export default function WalletPanel({ wallet, onChange }) {
         <Amount label="Rezervat (licitatii la care conduci)" value={wallet.reserved} />
         <Amount label="Disponibil pentru oferte" value={wallet.available} highlight />
       </div>
+      {(Number(wallet.inEscrow) > 0 || Number(wallet.pendingSales) > 0) && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Amount label="Platit, in escrow (pana confirmi primirea)" value={wallet.inEscrow} />
+          <Amount label="De incasat (cand cumparatorii confirma)" value={wallet.pendingSales} />
+        </div>
+      )}
+      {notice && <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">{notice}</p>}
+      <CardTopUp />
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -90,6 +128,78 @@ export default function WalletPanel({ wallet, onChange }) {
         )}
       </Card>
     </div>
+  )
+}
+
+// Card payment through Stripe Checkout; shown only when the server has Stripe keys
+function CardTopUp() {
+  const [config, setConfig] = useState(null)
+  const [amount, setAmount] = useState(100)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    api('/wallet/card')
+      .then(setConfig)
+      .catch(() => setConfig(null))
+  }, [])
+
+  if (!config?.enabled) return null
+
+  async function pay() {
+    setBusy(true)
+    setError('')
+    try {
+      const { url } = await api('/wallet/checkout', { method: 'POST', body: { amount } })
+      window.location.assign(url)
+    } catch (err) {
+      setError(err.message)
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="flex items-center gap-2 font-semibold text-slate-900">
+            <Icon name="wallet" size={20} /> Plateste cu cardul
+            {config.testMode && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 uppercase">mod test</span>}
+          </p>
+          <p className="text-sm text-slate-500">
+            Plata securizata prin Stripe ({config.min}-{config.max} RON).
+            {config.testMode && ' Foloseste cardul de test 4242 4242 4242 4242, orice data viitoare si orice CVC.'}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {[50, 100, 250, 500].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setAmount(value)}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                amount === value ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-700 shadow-sm ring-1 ring-slate-300 hover:ring-indigo-400'
+              }`}
+            >
+              {value} RON
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={pay}
+            className="rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:opacity-50"
+          >
+            {busy ? 'Te trimitem la Stripe...' : `Plateste ${amount} RON`}
+          </button>
+        </div>
+      </div>
+      {error && (
+        <div className="mt-3">
+          <Alert>{error}</Alert>
+        </div>
+      )}
+    </Card>
   )
 }
 

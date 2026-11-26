@@ -30,12 +30,12 @@ public class SecurityConfig {
     static final String ADMIN = "/api/admin/**";
     static final String[] AUTHENTICATED_FIRST = {"/api/collections/mine", "/api/collections/containing/*", "/api/shows/eligible-items",
             "/api/items/my", "/api/items/won", "/api/items/watched", "/api/items/*/contact", "/api/items/*/auto-bid",
-            "/api/items/*/messages", "/api/items/recommended", "/api/bids/my"};
+            "/api/items/*/messages", "/api/items/recommended", "/api/items/*/order", "/api/bids/my"};
     static final String PUBLIC_ANY = "/api/auth/**";
     static final String[] PUBLIC_GET = {"/api/images/**", "/api/items", "/api/items/**", "/api/bids/**", "/api/categories", "/api/stats",
             "/api/market", "/api/health", "/api/users/*/profile", "/api/users/*/badges", "/api/leaderboard", "/api/shows",
             "/api/shows/*", "/api/collections/*", "/api/users/*/collections", "/api/push/public-key", "/api/ai/config", "/api/events"};
-    static final String[] PUBLIC_POST = {"/api/client-errors", "/api/items/*/presence", "/api/items/*/presence/leave"};
+    static final String[] PUBLIC_POST = {"/api/stripe/webhook", "/api/client-errors", "/api/items/*/presence", "/api/items/*/presence/leave"};
 
     // Same order as the filter chain below: can this API route be called without a token?
     static boolean isPublic(String method, String path) {

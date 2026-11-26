@@ -208,6 +208,7 @@ const FEATURES = [
   { icon: 'bell', title: 'Alerte si statistici', text: 'Salvezi o cautare si esti anuntat cand apare ceva potrivit; vanzatorii vad vizualizari si oferte.' },
   { icon: 'trophy', title: 'Licitatia saptamanii si clasament', text: 'Licitatia evidentiata pe prima pagina, podiumul lunii si provocari cu insigne.' },
   { icon: 'coins', title: 'Oferte private', text: 'Propui vanzatorului un pret; el accepta, refuza sau face o contraoferta.' },
+  { icon: 'wallet', title: 'Plata protejata (escrow)', text: 'Banii castigatorului ajung la vanzator abia dupa confirmarea primirii; expediere cu AWB, dispute rezolvate de admin, plata cu cardul prin Stripe.' },
   { icon: 'shield', title: 'Licitatii verificabile', text: 'Ofertele sunt inlantuite cu SHA-256; browserul tau verifica istoricul si iti pastreaza chitantele, deci nimic nu poate fi schimbat pe ascuns.' },
   { icon: 'bookmark', title: 'Colectii', text: 'Liste personale de licitatii (ex: cadouri), publice cu link sau private.' },
   { icon: 'chart', title: 'Piata in cifre', text: 'Statistici publice: pret median pe categorii, evolutia vanzarilor, cele mai disputate licitatii si orele de varf.' },

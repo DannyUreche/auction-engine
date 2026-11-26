@@ -25,7 +25,7 @@ The interface is in Romanian, with an English toggle.
 - Dutch auctions: the price drops every minute until someone buys.
 - Scheduled auctions that open at a chosen time (watchers are notified when they start).
 - Proxy bidding: set a maximum and the server bids for you, only as much as needed.
-- Virtual wallet: bids are limited to the money you have available; it is settled when the auction closes.
+- Virtual wallet with escrow: bids are limited to the money you have available; the winner pays into escrow and the seller is paid only after the buyer confirms delivery (AWB tracking, disputes settled by an admin, automatic deadlines). Optional card top-ups through Stripe Checkout in test mode.
 - Live shows: a seller puts several items on stage one after another, each with a short slot (with a 15 s anti-sniping window that shifts the next lots).
 - Verifiable auctions: bids are chained with SHA-256 by a database trigger and re-checked in the browser, which also keeps receipts of your own bids, so the history can't be changed unnoticed.
 - Safe under load: every price change locks the item row; a load test with 200 simultaneous bidders (`load-test/`) checks that no bid is lost or doubled.

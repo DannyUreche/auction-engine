@@ -7,7 +7,7 @@ import { Icon } from './icons.jsx'
 import PushToggle from './PushToggle.jsx'
 import { useT } from '../i18n.jsx'
 
-const ICONS = { OUTBID: 'trendDown', NEW_BID: 'coins', WON: 'trophy', SOLD: 'tagCheck', UNSOLD: 'hourglass', MESSAGE: 'chat', STARTED: 'timer', QUESTION: 'chat', ANSWER: 'chat', ALERT: 'sparkles', OFFER: 'coins', OFFER_REPLY: 'coins', NEW_LISTING: 'bell', LIVE_SHOW: 'gavel' }
+const ICONS = { OUTBID: 'trendDown', NEW_BID: 'coins', WON: 'trophy', SOLD: 'tagCheck', UNSOLD: 'hourglass', MESSAGE: 'chat', STARTED: 'timer', QUESTION: 'chat', ANSWER: 'chat', ALERT: 'sparkles', OFFER: 'coins', OFFER_REPLY: 'coins', NEW_LISTING: 'bell', LIVE_SHOW: 'gavel', ORDER_SHIPPED: 'cart', ORDER_COMPLETED: 'coins', ORDER_DISPUTE: 'flag', ORDER_RESOLVED: 'shield' }
 
 // Clopotelul din bara de sus: notificarile utilizatorului logat, cu numarul celor necitite.
 // Lista se reincarca instant cand serverul anunta o notificare noua pentru acest utilizator.

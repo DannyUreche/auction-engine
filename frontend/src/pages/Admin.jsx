@@ -4,6 +4,7 @@ import { api, formatDate, formatPrice } from '../api.js'
 import AdminCharts from '../components/AdminCharts.jsx'
 import ErrorsPanel from '../components/ErrorsPanel.jsx'
 import AuditLog from '../components/AuditLog.jsx'
+import DisputesPanel from '../components/DisputesPanel.jsx'
 import { Icon } from '../components/icons.jsx'
 import ItemImage from '../components/ItemImage.jsx'
 import { Alert, Badge, Button, Card, Loading } from '../components/ui.jsx'
@@ -13,6 +14,7 @@ const TABS = [
   { key: 'items', label: 'Obiecte' },
   { key: 'users', label: 'Utilizatori' },
   { key: 'reports', label: 'Raportari' },
+  { key: 'disputes', label: 'Dispute' },
   { key: 'errors', label: 'Erori' },
   { key: 'audit', label: 'Jurnal' },
 ]
@@ -155,6 +157,7 @@ export default function Admin() {
             {tab === 'users' && <UsersTable users={data.users} onToggleBlock={toggleBlock} />}
             {tab === 'errors' && <ErrorsPanel />}
             {tab === 'audit' && <AuditLog />}
+            {tab === 'disputes' && <DisputesPanel />}
             {tab === 'reports' && (
               <ReportsTable
                 reports={data.reports}

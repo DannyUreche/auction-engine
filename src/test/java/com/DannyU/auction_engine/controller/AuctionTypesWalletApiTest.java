@@ -94,10 +94,12 @@ class AuctionTypesWalletApiTest {
         assertThat(item.getActive()).isFalse();
         assertThat(item.getWinner().getId()).isEqualTo(buyer.getId());
 
+        // Escrow: the buyer paid, the seller gets the money only after the buyer confirms
         wallet(buyer).andExpect(jsonPath("$.balance").value(9150))
+                .andExpect(jsonPath("$.inEscrow").value(850))
                 .andExpect(jsonPath("$.transactions[0].type").value("PURCHASE"));
-        wallet(seller).andExpect(jsonPath("$.balance").value(10850))
-                .andExpect(jsonPath("$.transactions[0].type").value("SALE"));
+        wallet(seller).andExpect(jsonPath("$.balance").value(10000))
+                .andExpect(jsonPath("$.pendingSales").value(850));
 
         createItem(seller, "{\"name\": \"Gresit\", \"startPrice\": 100, \"auctionType\": \"DUTCH\", \"floorPrice\": 200, \"priceDrop\": 5}")
                 .andExpect(status().isBadRequest())

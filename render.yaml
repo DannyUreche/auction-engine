@@ -46,3 +46,9 @@ services:
       # Optional AI listing assistant (Claude): API key from console.anthropic.com (empty = feature hidden)
       - key: ANTHROPIC_API_KEY
         sync: false
+      # Optional card top-ups with Stripe Checkout: test keys from dashboard.stripe.com (test mode, no real money)
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      # Signing secret of the webhook endpoint https://auction-engine.onrender.com/api/stripe/webhook
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

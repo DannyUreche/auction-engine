@@ -17,6 +17,13 @@ import java.math.BigDecimal;
 public class WalletController {
 
     private final WalletService walletService;
+    private final com.DannyU.auction_engine.service.CardTopUpService cardTopUpService;
+
+    public record CheckoutRequest(Long amount) {
+    }
+
+    public record ConfirmRequest(String sessionId) {
+    }
 
     public record TopUpRequest(@NotNull(message = "Suma este obligatorie!") BigDecimal amount) {
     }
@@ -31,5 +38,23 @@ public class WalletController {
     @PostMapping("/top-up")
     public WalletService.Wallet topUp(@Valid @RequestBody TopUpRequest request, Authentication authentication) {
         return walletService.topUp(authentication.getName(), request.amount());
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(summary = "Este activa plata cu cardul (Stripe)?")
+    @GetMapping("/card")
+    public com.DannyU.auction_engine.service.CardTopUpService.CardConfig cardConfig() {
+        return cardTopUpService.config();
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(summary = "Incepe o plata cu cardul: intoarce adresa paginii Stripe Checkout")
+    @PostMapping("/checkout")
+    public com.DannyU.auction_engine.service.CardTopUpService.Checkout checkout(@RequestBody CheckoutRequest request, Authentication authentication) {
+        return cardTopUpService.start(authentication.getName(), request.amount());
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(summary = "Confirma plata dupa intoarcerea de la Stripe (o singura alimentare per plata)")
+    @PostMapping("/checkout/confirm")
+    public com.DannyU.auction_engine.service.CardTopUpService.Result confirm(@RequestBody ConfirmRequest request, Authentication authentication) {
+        return cardTopUpService.confirm(authentication.getName(), request.sessionId());
     }
 }

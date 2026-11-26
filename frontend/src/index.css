@@ -343,3 +343,10 @@ html:not(.dark) .bg-white\/95:not(.stay-dark, .stay-dark *) { --surface-alpha: 9
 @keyframes chain-block {
   from { opacity: 0; transform: translateX(-6px) scale(0.85); }
 }
+
+/* Order stepper: the current step breathes */
+.order-pulse { animation: order-pulse 2s ease-in-out infinite; }
+@keyframes order-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(99 102 241 / 0.45); }
+  50% { box-shadow: 0 0 0 8px rgb(99 102 241 / 0); }
+}

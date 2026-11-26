@@ -249,6 +249,14 @@ Authorization: Bearer {{loginCumparator.response.body.$.token}}
 ### Verifica lantul criptografic al ofertelor (public)
 GET {{baseUrl}}/api/bids/{{creareObiect.response.body.$.id}}/verify
 
+### Comenzile mele (cumparaturi si vanzari, cu escrow)
+GET {{baseUrl}}/api/orders/mine
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
+### Comanda obiectului vandut (cumparatorul, vanzatorul sau un admin)
+GET {{baseUrl}}/api/items/{{creareObiect.response.body.$.id}}/order
+Authorization: Bearer {{loginCumparator.response.body.$.token}}
+
 ### Colectie noua (lista personala de licitatii)
 # @name colectie
 POST {{baseUrl}}/api/collections
